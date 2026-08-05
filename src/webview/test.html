@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
+    <style nonce="${nonce}">
+        :root {
+            --container-padding: 12px;
+            --input-padding: 8px;
+            --border-radius: 6px;
+            --primary-color: var(--vscode-button-background, #0078d4);
+            --primary-hover: var(--vscode-button-hoverBackground, #026ec1);
+            --background: var(--vscode-sideBar-background, #1e1e1e);
+            --foreground: var(--vscode-sideBar-foreground, #cccccc);
+            --input-bg: var(--vscode-input-background, #3c3c3c);
+            --input-fg: var(--vscode-input-foreground, #cccccc);
+            --border-color: var(--vscode-sideBar-border, #333333);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--foreground);
+            padding: var(--container-padding);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* Connection Section */
+        .connection-section {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--vscode-descriptionForeground, #888888);
+            font-weight: 600;
+        }
+
+        .connection-input-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .connection-input {
+            flex: 1;
+            background: var(--input-bg);
+            color: var(--input-fg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--input-padding);
+            font-size: 12px;
+            outline: none;
+        }
+
+        .connection-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: var(--vscode-button-foreground, white);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-secondary {
+            background: var(--vscode-button-secondaryBackground, #3a3d41);
+            color: var(--vscode-button-secondaryForeground, #cccccc);
+        }
+
+        .btn-secondary:hover {
+            background: var(--vscode-button-secondaryHoverBackground, #45494e);
+        }
+
+        .connection-status {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground, #888888);
+            margin-top: 6px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .status-dot.connected {
+            background: #4ec9b0;
+        }
+
+        .status-dot.disconnected {
+            background: #f14c4c;
+        }
+
+        /* Chat Messages Area */
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 280px);
+            min-height: 200px;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+            margin-bottom: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .message {
+            padding: 8px 10px;
+            border-radius: var(--border-radius);
+            margin-bottom: 8px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background: var(--vscode-textBlockQuote-background, #2a2a2a);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .message.assistant {
+            background: var(--vscode-textBlockQuote-background, #2a2a2a);
+            border-left: 3px solid #4ec9b0;
+        }
+
+        .message.system {
+            background: transparent;
+            border-left: 3px solid #888888;
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground, #888888);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .message-role {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .message-role.user { color: var(--primary-color); }
+        .message-role.assistant { color: #4ec9b0; }
+        .message-role.system { color: #888888; }
+
+        .message-time {
+            font-size: 10px;
+            color: var(--vscode-descriptionForeground, #888888);
+        }
+
+        .message-content {
+            font-size: 13px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 6px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--input-bg);
+            color: var(--input-fg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--input-padding);
+            font-size: 12px;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            min-height: 32px;
+            max-height: 120px;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .chat-input::placeholder {
+            color: var(--vscode-input-placeholderForeground, #888888);
+        }
+
+        .send-btn {
+            background: var(--primary-color);
+            color: var(--vscode-button-foreground, white);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            align-self: flex-end;
+        }
+
+        .send-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .send-btn:active {
+            transform: scale(0.97);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            background: transparent;
+            color: var(--foreground);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--vscode-list-hoverBackground, #2a2d2e);
+            border-color: var(--primary-color);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--vscode-descriptionForeground, #888888);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Section -->
+    <div class="connection-section">
+        <div class="section-header">
+            <span class="section-title">Database Connection</span>
+        </div>
+        <div class="connection-input-group">
+            <input type="text" class="connection-input" id="connectionString" placeholder="postgresql://user:pass@localhost:5432/db" />
+            <button class="btn" id="connectBtn">Connect</button>
+        </div>
+        <div class="connection-status" id="connectionStatus">
+            <span class="status-dot disconnected"></span>
+            Not connected
+        </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area">
+        <div class="messages-container" id="messages">
+            <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <div class="empty-state-text">
+                    Ask questions about your database in plain English.<br><br>
+                    <small>e.g., "Show me all users" or "What's the average order value?"</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="quick-action-btn" data-prompt="Show me all tables">📋 Tables</button>
+            <button class="quick-action-btn" data-prompt="Show recent queries">🕐 Recent</button>
+            <button class="quick-action-btn" data-prompt="Describe the database schema">📐 Schema</button>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <textarea class="chat-input" id="chatInput" placeholder="Ask a question about your database..." rows="1"></textarea>
+            <button class="send-btn" id="sendBtn" disabled>Send</button>
+        </div>
+    </div>
+
+    <script nonce="${nonce}">
+        (function() {
+            const vscode = acquireVsCodeApi();
+            
+            const messagesContainer = document.getElementById('messages');
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const connectBtn = document.getElementById('connectBtn');
+            const connectionInput = document.getElementById('connectionString');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+
+            // State
+            let isConnected = false;
+
+            // Auto-resize textarea
+            chatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+                sendBtn.disabled = !this.value.trim();
+            });
+
+            // Handle keypress (Enter to send, Shift+Enter for new line)
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (this.value.trim()) {
+                        sendMessage();
+                    }
+                }
+            });
+
+            // Send message
+            function sendMessage() {
+                const text = chatInput.value.trim();
+                if (!text) return;
+
+                addMessage('You', text, 'user');
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+                sendBtn.disabled = true;
+
+                vscode.postMessage({
+                    command: 'sendMessage',
+                    text: text
+                });
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+
+            // Add message to the chat
+            function addMessage(role, content, type) {
+                // Remove empty state if present
+                const emptyState = messagesContainer.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ' + type;
+
+                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-role ${type}">${role}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(content)}</div>
+               `;
+
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            // Connect button
+            connectBtn.addEventListener('click', function() {
+                const connStr = connectionInput.value.trim();
+                if (!connStr) {
+                    vscode.window.showErrorMessage('Please enter a connection string');
+                    return;
+                }
+
+                connectBtn.disabled = true;
+                connectBtn.textContent = 'Connecting...';
+
+                vscode.postMessage({
+                    command: 'connect',
+                    connectionString: connStr
+                });
+            });
+
+            // Quick action buttons
+            quickActionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    chatInput.value = this.dataset.prompt;
+                    chatInput.dispatchEvent(new Event('input'));
+                    sendMessage();
+                });
+            });
+
+            // Handle messages from extension
+            window.addEventListener('message', event => {
+                const message = event.data;
+                switch (message.command) {
+                    case 'response':
+                        addMessage('DBChat', message.text, 'assistant');
+                        break;
+                    case 'connectionStatus':
+                        connectBtn.disabled = false;
+                        connectBtn.textContent = 'Connect';
+                        isConnected = message.status === 'connected';
+                        updateConnectionStatus(message.status, message.message);
+                        break;
+                    case 'addMessage':
+                        addMessage(message.role, message.text, message.type);
+                        break;
+                }
+            });
+
+            // Utility: Escape HTML
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // Utility: Update connection status display
+            function updateConnectionStatus(status, message) {
+                const dot = connectionStatus.querySelector('.status-dot');
+                dot.className = 'status-dot ' + status;
+                connectionStatus.innerHTML = '<span class="status-dot ' + status + '"></span> ' + (message || status);
+            }
+
+            // Initialize - restore state
+            const previousState = vscode.getState();
+            if (previousState) {
+                if (previousState.messages) {
+                    previousState.messages.forEach(msg => addMessage(msg.role, msg.content, msg.type));
+                }
+                if (previousState.connectionString) {
+                    connectionInput.value = previousState.connectionString;
+                }
+            }
+
+            // Save state when messages change
+            function saveState() {
+                const messages = [];
+                const messageEls = messagesContainer.querySelectorAll('.message');
+                messageEls.forEach(el => {
+                    const roleEl = el.querySelector('.message-role');
+                    const contentEl = el.querySelector('.message-content');
+                    const type = el.classList.contains('user') ? 'user' : 
+                                 el.classList.contains('assistant') ? 'assistant' : 'system';
+                    messages.push({
+                        role: roleEl.textContent,
+                        content: contentEl.textContent,
+                        type: type
+                    });
+                });
+                vscode.setState({
+                    messages: messages,
+                    connectionString: connectionInput.value
+                });
+            }
+
+            // Save state periodically
+            const observer = new MutationObserver(saveState);
+            observer.observe(messagesContainer, { childList: true });
+        })();
+    </script>
+</body>
+</html>

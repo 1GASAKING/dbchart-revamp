@@ -1,0 +1,36 @@
+import { type WebViewMessageType } from "@shared/webview/webviewmessage"
+
+
+ class VSCodeAPIWrapper{
+
+    constructor(){
+        // Check if the acquireVsCodeApi function exists in the current development
+		// context (i.e. VS Code development window or web browser)
+    }
+
+    private readonly vsCodeApi = typeof acquireVsCodeApi === "function" ? acquireVsCodeApi<unknown>() : undefined;
+
+
+    /**
+	 * Post a message (i.e. send arbitrary data) to the owner of the webview.
+	 *
+	 * @remarks When running webview code inside a web browser, postMessage will instead
+	 * log the given message to the console.
+	 *
+	 * @param message Abitrary data (must be JSON serializable) to send to the extension context.
+	 */
+    public _postMessage(message:{messgaseType:WebViewMessageType}){
+        if(this.vsCodeApi){
+            this.vsCodeApi.postMessage(message);
+        }
+        else{
+            console.log(message);
+            
+        }
+
+    }
+}
+
+
+// Exports class singleton to prevent multiple invocations of acquireVsCodeApi.
+export const vscode = new VSCodeAPIWrapper()

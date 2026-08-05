@@ -1,0 +1,85 @@
+{
+  "name": "dbchat",
+  "displayName": "DBChat",
+  "description": "A VS Code extension for chatting with databases",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization",
+    "Data Science"
+  ],
+  "workspaces": [
+    "packages/schema",
+    "packages/lib"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "dbchat.helloWorld",
+        "title": "Hello World"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "dbchat-sidebar",
+          "title": "DBChat",
+          "icon": "$(database)"
+        }
+      ]
+    },
+    "views": {
+      "dbchat-sidebar": [
+        {
+          "type": "webview",
+          "id": "dbchat.sidebar",
+          "name": "DBChat"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build:webview && npm run build:server:publish",
+    "compile": "npm run build:webview && npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:esbuild:testmode": "node esbuild.js --watch --testmode",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run build:webview && npm run build && npm run build:server:publish && vsce package",
+    "build": "npm run build:webview && tsc",
+    "build:server:local": "node build/download-server.mjs --local",
+    "build:server:publish": "node build/download-server.mjs --publish",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "install:all": "npm install && cd webview-ui && npm install",
+    "dev:webview": "cd webview-ui && npm run dev",
+    "build:webview": "cd webview-ui && npm run build",
+    "test:webview": "cd webview-ui && npm run test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.9",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.96.0",
+    "@typescript-eslint/eslint-plugin": "^8.10.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.13.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@vscode/codicons": "^0.0.45",
+    "axios": "^1.18.1"
+  }
+}
