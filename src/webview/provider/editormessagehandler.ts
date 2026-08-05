@@ -13,8 +13,8 @@ export class EditorMessageHandler implements ImessageHandler {
     public async handleMessage( messgae :WebviewMessage)
     {
         
-        Logger.getInstance().log(messgae.messgaseType.toString(),true);
-        switch (messgae.messgaseType) {
+        Logger.getInstance().log(messgae.messageType.toString(),true);
+        switch (messgae.messageType) {
             case WebviewMessageType.WEBVIEW_DID_LAUNCH:
                 this._provider.sendMessageToWebview({
                     type:ExtensionMessageType.SET_APP_MODE,

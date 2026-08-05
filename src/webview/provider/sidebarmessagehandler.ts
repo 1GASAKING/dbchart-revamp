@@ -14,8 +14,8 @@ export class SidebarMessageHandler implements ImessageHandler {
   ) {}
 
   public async handleMessage(messgae: WebviewMessage) {
-    Logger.getInstance().log("hhsh" + messgae.messgaseType.toString(), true);
-    switch (messgae.messgaseType) {
+    Logger.getInstance().log("hhsh" + messgae.messageType.toString(), true);
+    switch (messgae.messageType) {
       case WebviewMessageType.OPEN_EDITOR:
         Logger.getInstance().log(
           "ddd" + (this._provider.context !== undefined),true
@@ -25,7 +25,7 @@ export class SidebarMessageHandler implements ImessageHandler {
         editorPanelProvider.openEditor(this._provider.context);
         break;
 
-      case "WEBVIEW_DID_LAUNCH":
+      case WebviewMessageType.WEBVIEW_DID_LAUNCH:
         this._provider.HandleSendMessageToWebview({
           type: ExtensionMessageType.SET_APP_MODE,
           mode: "sidebar",

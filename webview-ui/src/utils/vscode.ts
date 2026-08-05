@@ -1,4 +1,4 @@
-import { type WebViewMessageType } from "@shared/webview/webviewmessage"
+import { type WebviewMessage } from "@shared/webview/type"
 import type  { WebviewApi } from "vscode-webview"
 
 
@@ -25,7 +25,7 @@ import type  { WebviewApi } from "vscode-webview"
 	 *
 	 * @param message Abitrary data (must be JSON serializable) to send to the extension context.
 	 */
-    public _postMessage(message:WebViewMessageType){
+    public _postMessage(message:WebviewMessage){
         if(this.vsCodeApi){
             this.vsCodeApi.postMessage(message);
         }

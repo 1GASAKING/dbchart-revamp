@@ -3,13 +3,14 @@ import SideBarPage from './pages/sidebarpages';
 import { type ExtensionMessage } from "@shared/extensionmessage/types";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from '@shared/extensionmessage/extensionmessage';
+import type { WebviewMessage } from "@shared/webview/type";
 import { vscode } from './utils/vscode';
 import EditorPage from './pages/editor/editor-page';
 
 
 function App() {
 
-  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("sidebar");
+  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("");
 
   const handleMessage = useCallback((event: MessageEvent) => {
     const message: ExtensionMessage = event.data
@@ -37,8 +38,11 @@ function App() {
   }, [handleMessage]);
 
   useEffect(() => {
-    vscode._postMessage(WebviewMessageType.WEBVIEW_DID_LAUNCH)
-  })
+    const message: WebviewMessage = {
+      messageType: WebviewMessageType.WEBVIEW_DID_LAUNCH,
+    };
+    vscode._postMessage(message);
+  }, [])
   return (
     <main>
       <div className='webview-container'>

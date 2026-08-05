@@ -6,8 +6,9 @@ import { WebviewMessageType } from "@shared/webview/webviewmessage";
 
 const SideBarComponent = () => {
     const OpenEditor =()=>{
+
         vscode._postMessage(
-            WebviewMessageType.OPEN_EDITOR
+            {messageType: WebviewMessageType.OPEN_EDITOR}
         )
     }
     return (
