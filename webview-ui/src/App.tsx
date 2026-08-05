@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import SideBarPage from './pages/sidebarpages';
-import {type ExtensionMessage } from "@shared/extensionmessage/types";
+import { type ExtensionMessage } from "@shared/extensionmessage/types";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from '@shared/extensionmessage/extensionmessage';
 import { vscode } from './utils/vscode';
@@ -8,7 +8,7 @@ import EditorPage from './pages/editor/editor-page';
 
 
 function App() {
-  
+
   const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("editor");
 
   const handleMessage = useCallback((event: MessageEvent) => {
@@ -37,21 +37,14 @@ function App() {
   }, [handleMessage]);
 
   useEffect(() => {
-    vscode._postMessage({ messgaseType: WebviewMessageType.WEBVIEW_DID_LAUNCH })
+    vscode._postMessage(WebviewMessageType.WEBVIEW_DID_LAUNCH)
   })
   return (
     <main>
       <div className='webview-container'>
-         
-         
-                                                              {appMode === "editor" && <EditorPage/>}
-
-                                               
-                                               
 
 
-
-
+        {appMode === "editor" && <EditorPage />}
 
 
         {appMode === "sidebar" && <SideBarPage />}
@@ -59,8 +52,8 @@ function App() {
       </div>
 
     </main>
-    
-    
+
+
   )
 }
 

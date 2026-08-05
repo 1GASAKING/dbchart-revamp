@@ -1,14 +1,20 @@
 import { type WebViewMessageType } from "@shared/webview/webviewmessage"
+import type  { WebviewApi } from "vscode-webview"
+
 
 
  class VSCodeAPIWrapper{
 
+    private readonly vsCodeApi:WebviewApi<unknown>|undefined;
+
     constructor(){
         // Check if the acquireVsCodeApi function exists in the current development
 		// context (i.e. VS Code development window or web browser)
-    }
+		if (typeof acquireVsCodeApi === "function") {
+			this.vsCodeApi = acquireVsCodeApi()
+		}
 
-    private readonly vsCodeApi = typeof acquireVsCodeApi === "function" ? acquireVsCodeApi<unknown>() : undefined;
+    }
 
 
     /**
@@ -19,7 +25,7 @@ import { type WebViewMessageType } from "@shared/webview/webviewmessage"
 	 *
 	 * @param message Abitrary data (must be JSON serializable) to send to the extension context.
 	 */
-    public _postMessage(message:{messgaseType:WebViewMessageType}){
+    public _postMessage(message:WebViewMessageType){
         if(this.vsCodeApi){
             this.vsCodeApi.postMessage(message);
         }
