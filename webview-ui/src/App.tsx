@@ -9,7 +9,7 @@ import EditorPage from './pages/editor/editor-page';
 
 function App() {
 
-  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("editor");
+  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("sidebar");
 
   const handleMessage = useCallback((event: MessageEvent) => {
     const message: ExtensionMessage = event.data
