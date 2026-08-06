@@ -1,4 +1,4 @@
-import { WebViewMessageType } from "./webviewmessage";
+import  { type WebViewMessageType } from "./webviewmessage";
 
 export interface WebviewMessage{
     messageType:WebViewMessageType;
