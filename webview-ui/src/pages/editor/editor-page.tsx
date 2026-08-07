@@ -1,11 +1,10 @@
+import CanvasComponent from "../../components/canvascomponents/canvascomponent"
 
 
-const EditorPage = ()=>{
-    return(<>
-    
-    </>)
+const EditorPage = () => {
+    return (<CanvasComponent />)
 
-    
+
 }
 
 
