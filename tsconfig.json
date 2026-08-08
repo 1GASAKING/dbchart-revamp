@@ -6,9 +6,13 @@
 			"ES2022"
 		],
 		"sourceMap": true,
-		"rootDir": "src",
+		"paths": {
+			"@dbchart/schema": ["./packages/schema/src/index.ts"]
+		},
 		"forceConsistentCasingInFileNames": true,
-		"strict": true   /* enable all strict type-checking options */
+		"strict": true,
+		
+		/* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
 		// "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
@@ -17,8 +21,8 @@
 	"exclude": [
 		"node_modules",
 		"webview-ui",
-		"packages"
+		"packages",
 	],
-	
-
 }
+
+

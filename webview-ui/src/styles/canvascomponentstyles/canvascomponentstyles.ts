@@ -41,10 +41,17 @@ const CanvasComponentMainDiv = styled.div`
 `;
 
 const CanvasComponentReactFlow = styled(ReactFlow)`
-width:100%;
-height:100vh;`;
-const CanvasComponentMiniMap = styled(MiniMap)``;
-const CanvasComponentBackground = styled(Background)``;
+  width: 100%;
+  height: 100vh;
+  border: 1px solid red;
+`;
+const CanvasComponentMiniMap = styled(MiniMap)`
+  border: 1px solid red;
+  width: 200px;
+`;
+const CanvasComponentBackground = styled(Background)`
+  border: 1px solid yellow;
+`;
 
 export {
   CanvasComponentMainDiv,

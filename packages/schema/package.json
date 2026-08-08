@@ -1,0 +1,16 @@
+{
+  "name": "@dbchart/schema",
+  "version": "0.0.1",
+  "description": "Domain data types and utilities for the DBChat schema editor",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

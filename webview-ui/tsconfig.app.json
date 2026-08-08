@@ -4,7 +4,8 @@
     
     "target": "es2023",
     "paths": {
-      "@shared/*": ["../src/shared/*"]
+      "@shared/*": ["../src/shared/*"],
+      "@dbchart/schema": ["../packages/schema/src/index.ts"]
     },
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
