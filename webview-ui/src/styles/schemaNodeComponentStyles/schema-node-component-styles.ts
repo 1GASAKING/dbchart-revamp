@@ -10,7 +10,6 @@ const SchemaNodeComponentMainDiv = styled.div`
 `;
 
 const SchemaNodeComponentHeader = styled.div`
-  border: 1px solid red;
   width: 100%;
   background: green;
 
@@ -107,7 +106,6 @@ const SchemaNodeComponentField = styled.div`
   .schema-data-type-field-text {
     padding: 0;
     margin: 0;
-    border: 1px solid red;
     font-size: 15px;
     font-weight: 500;
     overflow: hidden;

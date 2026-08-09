@@ -82,8 +82,6 @@ const CanvasComponent = () => {
                 <CanvasComponentMiniMap  
                 />
                 <CanvasComponentBackground
-                    color="YELLOW"
-                    bgColor="blue"
                 />
 
 
