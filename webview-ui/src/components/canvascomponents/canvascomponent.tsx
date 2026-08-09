@@ -27,6 +27,7 @@ const CanvasComponent = () => {
                         id: "1",
                         label: "Users",
                         kind: "table",
+                        color:"red",
                         fields: [
                             { id: "1", name: "id", dataType: "int", color: "#4CAF50" },
                             { id: "2", name: "name", dataType: "varchar"},
@@ -46,6 +47,7 @@ const CanvasComponent = () => {
                         id: "2",
                         label: "Orders",
                         kind: "table",
+                        color:"blue",
                         fields: [
                             { id: "1", name: "id", dataType: "int", color: "#4CAF50" },
                             { id: "2", name: "user_id", dataType: "int", color: "#2196F3" },
@@ -84,6 +86,7 @@ const CanvasComponent = () => {
             data: {
                 node: {
                     id: `node-${Date.now()}`,
+                    color:"red",
                     label: node.label,
                     kind: node.kind as "table" | "view",
                     fields: [],

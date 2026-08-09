@@ -5,6 +5,7 @@ export interface DesignNodeBase {
   id: string;
   label: string;
   fields: DesignField[];
+  color:string,
 }
 
 /** Schema design node (tables, views) */

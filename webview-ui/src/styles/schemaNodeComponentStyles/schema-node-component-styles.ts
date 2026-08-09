@@ -1,18 +1,28 @@
 import styled from "styled-components";
 
-const SchemaNodeComponentMainDiv = styled.div`
-  padding: 4px;
-  border: 1px solid red;
+interface SchemaNodeComponentMainDivProp {
+  $bgColor: string;
+}
+const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
+  padding: 2px;
+  border: 1px dashed transparent;
   width: fit-content;
   min-width: 300px;
   border-radius: 4px;
   max-width: 300px;
+  background: ${(p) => p.$bgColor};
+
+  &.selected {
+    border-color:var(--vscode-focusBorder, var(--gray-70));
+    box-shadow: 0 0 0 1px var(--vscode-focusBorder, var(--gray-70));
+  }
 `;
 
-const SchemaNodeComponentHeader = styled.div`
+const SchemaNodeComponentHeader = styled.div<SchemaNodeComponentMainDivProp>`
   width: 100%;
-  background: green;
 
+  backdrop-filter: blur(6px);
+  background: rgba(6, 6, 6, 0.85);
   > div {
     display: flex;
     align-items: center;
@@ -34,13 +44,7 @@ const SchemaNodeComponentHeader = styled.div`
     align-items: center;
     justify-content: space-between;
   }
-  .schema-label {
-    width: 35px;
-    background: blue;
-    height: 25px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
+
   .schema-label-header {
     width: 100%;
     overflow: hidden;
@@ -61,12 +65,14 @@ const SchemaNodeComponentHeader = styled.div`
   }
   .schema-label-header-indicator {
     padding: 3px;
-    background: yellow;
     width: 100%;
+    background: ${(p) => p.$bgColor};
   }
 `;
 
 const SchemaNodeComponentBody = styled.div`
+  background: var(--vscode-editor-background, var(--gray-100));
+
   > div {
     display: flex;
     flex-flow: column;
@@ -76,7 +82,6 @@ const SchemaNodeComponentBody = styled.div`
 
 const SchemaNodeComponentField = styled.div`
   padding: 4px 0;
-  border: 1px solid green;
   width: 100%;
   position: relative;
 
@@ -118,13 +123,19 @@ const SchemaNodeComponentField = styled.div`
   }
 `;
 
-const SchemaNodeComponentFooter = styled.div`
-  border: 1px solid red;
-  padding: 16px 0px 8px;
+const SchemaNodeComponentToolBar = styled.div`
+  padding:  8px 4px;
+  position:absolute;
+  top:-40px;
+  width:100%;
+  border-radius:6px;
+  right:0;
 
   > div {
     display: flex;
     gap: 2px;
+    flex-start:end;
+    justify-content:end;
   }
   .schema-node-button {
     display: flex;
@@ -134,8 +145,8 @@ const SchemaNodeComponentFooter = styled.div`
   }
 `;
 
-interface SchemaNodeComponentEdgeHandleProp{
-  $color?:string,
+interface SchemaNodeComponentEdgeHandleProp {
+  $color?: string;
 }
 const SchemaNodeComponentEdgeHandle = styled.div<SchemaNodeComponentEdgeHandleProp>`
   max-width: 8px;
@@ -156,15 +167,15 @@ const SchemaNodeComponentEdgeHandle = styled.div<SchemaNodeComponentEdgeHandlePr
     .handle {
       left: 4px;
     }
-    
   }
-    .handle {
-      width: 8px;
-      height: 8px;
-      color:${(p)=>p.$color};
-      background:${(p)=>p.$color||"var(--vscode-editorHoverWidget-border, #2d2d2d)"};
-      border-radius:1px;
-    }
+  .handle {
+    width: 8px;
+    height: 8px;
+    color: ${(p) => p.$color};
+    background: ${(p) =>
+      p.$color || "var(--vscode-editorHoverWidget-border, #2d2d2d)"};
+    border-radius: 1px;
+  }
 `;
 
 export {
@@ -172,6 +183,6 @@ export {
   SchemaNodeComponentHeader,
   SchemaNodeComponentBody,
   SchemaNodeComponentField,
-  SchemaNodeComponentFooter,
+  SchemaNodeComponentToolBar,
   SchemaNodeComponentEdgeHandle,
 };
