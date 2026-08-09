@@ -79,6 +79,7 @@ const SchemaNodeComponentField = styled.div`
   padding: 4px 0;
   border: 1px solid green;
   width: 100%;
+  position: relative;
 
   > div {
     display: flex;
@@ -136,14 +137,37 @@ const SchemaNodeComponentFooter = styled.div`
   }
 `;
 
-const SchemaNodeComponentEdgeHandle = styled.div`
-  max-width: 20px;
-  height: 20px;
-  position:absolute ;
-  border:1px solid  yellow;
-  left:-24px;
-  background:Red;
-
+interface SchemaNodeComponentEdgeHandleProp{
+  $color:string,
+}
+const SchemaNodeComponentEdgeHandle = styled.div<SchemaNodeComponentEdgeHandleProp>`
+  max-width: 8px;
+  height: 8px;
+  position: absolute;
+  border: 1px solid yellow;
+  background: Red;
+  display: flex;
+  align-items: center;
+  top: 50%;
+  transform: translateY(-50%);
+  &.right {
+    right: -12px;
+    .handle {
+      right: 4px;
+    }
+  }
+  &.left {
+    left: -12px;
+    .handle {
+      left: 4px;
+    }
+    
+  }
+    .handle {
+      width: 8px;
+      height: 8px;
+      color:${(p)=> p.$color};
+    }
 `;
 
 export {

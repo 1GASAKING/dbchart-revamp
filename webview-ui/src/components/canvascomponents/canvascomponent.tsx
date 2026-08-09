@@ -1,6 +1,7 @@
 import { useEdgesState, useNodesState, Position } from "@xyflow/react"
 import { CanvasComponentBackground, CanvasComponentMainDiv, CanvasComponentMiniMap, CanvasComponentReactFlow } from "../../styles/canvascomponentstyles/canvascomponentstyles"
 import SchemaNodeComponent from "../schema-node-components/schema-node-component"
+import ConnectionLineComponent from "./connection-line-component"
 import { useEffect } from "react"
 import type { DesignFlowNode, DesignFlowEdge } from "../../types/schema-node-ui"
 
@@ -25,9 +26,9 @@ const CanvasComponent = () => {
                         label: "Users",
                         kind: "table",
                         fields: [
-                            { id: "1", name: "id", dataType: "int" },
-                            { id: "2", name: "name", dataType: "varchar" },
-                            { id: "3", name: "email", dataType: "varchar", connectable: false },
+                            { id: "1", name: "id", dataType: "int" ,color:"yellow"},
+                            { id: "2", name: "name", dataType: "varchar" ,color:"yellow"},
+                            { id: "3", name: "email", dataType: "varchar", connectable: false ,color:"yellow"},
                         ],
                     },
                 },
@@ -44,9 +45,9 @@ const CanvasComponent = () => {
                         label: "Orders",
                         kind: "table",
                         fields: [
-                            { id: "1", name: "id", dataType: "int" },
-                            { id: "2", name: "user_id", dataType: "int" },
-                            { id: "3", name: "total", dataType: "decimal", connectable: false },
+                            { id: "1", name: "id", dataType: "int" ,color:"yellow"},
+                            { id: "2", name: "user_id", dataType: "int" ,color:"yellow"},
+                            { id: "3", name: "total", dataType: "decimal", connectable: false ,color:"yellow"},
                         ],
                     },
                 },
@@ -67,7 +68,7 @@ const CanvasComponent = () => {
             },
         ]);
 
-    }, [])
+    }, [setNodes,setEdges])
 
     return (
         <CanvasComponentMainDiv>
@@ -75,13 +76,13 @@ const CanvasComponent = () => {
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
-
+                connectionLineComponent={ConnectionLineComponent}
 
                 proOptions={{ hideAttribution: true, }}>
                 <CanvasComponentMiniMap  
                 />
                 <CanvasComponentBackground
-                    color="red"
+                    color="YELLOW"
                     bgColor="blue"
                 />
 

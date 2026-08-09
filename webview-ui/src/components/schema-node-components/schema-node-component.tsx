@@ -33,7 +33,7 @@ const SchemaNodeComponent = ({ data }: NodeProps<DesignFlowNode>) => {
                     {node.fields.map((field) => (
                         <SchemaNodeComponentField key={field.id}>
                            
-                            <SchemaNodeComponentEdgeHandle>
+                            <SchemaNodeComponentEdgeHandle $color={field.color} className="left">
                                  {field.connectable !== false && (
                                 <Handle
                                 className="handle"
@@ -61,14 +61,18 @@ const SchemaNodeComponent = ({ data }: NodeProps<DesignFlowNode>) => {
                                 </div>
 
                             </div>
-                            {field.connectable !== false && (
+                           
+                            <SchemaNodeComponentEdgeHandle $color={field.color} className="right" >
+                                 {field.connectable !== false && (
                                 <Handle
-
+                                className="handle"
                                     type="source"
                                     position={Position.Right}
                                     id={`${field.id}-source`}
                                 />
                             )}
+
+                            </SchemaNodeComponentEdgeHandle>
                         </SchemaNodeComponentField>
                     ))}
                 </div>

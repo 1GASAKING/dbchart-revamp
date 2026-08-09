@@ -1,35 +1,27 @@
-import { useConnection } from "@xyflow/react";
+import { useConnection, type ConnectionLineComponentProps } from "@xyflow/react";
 
-interface ConnectionLineProp{
-    xorign:number,
-    xend:number,
-    yorign:number,
-    yend:number,
+const ConnectionLineComponent = ({ fromX, fromY, toX, toY }: ConnectionLineComponentProps) => {
+    const connection = useConnection();
 
-}
-const ConnectionLineComponent =({xorign,yorign,xend,yend}:ConnectionLineProp)=>{
-      const { fromHandle } = useConnection();
+    // Access the source node's data
+    const fromNodeData = connection.fromNode?.data;
 
-    if (!fromHandle?.id) return null;
-
-    return(
-         <g>
-      <path
-        fill="none"
-        stroke={fromHandle.id}
-        strokeWidth={1.5}
-        className="animated"
-        d={`M${xorign},${yorign} C ${xorign} ${yend} ${xorign} ${yend} ${xend},${yend}`}
-      />
-      <circle
-        cx={xend}
-        cy={yend}
-        fill="#fff"
-        r={3}
-        stroke={fromHandle.id}
-        strokeWidth={1.5}
-      />
-    </g>
+    return (
+        <g>
+            <path
+                fill="none"
+                stroke="#888"
+                strokeWidth={2}
+                className="animated"
+                d={`M${fromX},${fromY} C ${fromX + 50},${fromY} ${toX - 50},${toY} ${toX},${toY}`}
+            />
+            <circle
+                cx={toX}
+                cy={toY}
+                fill="#888"
+                r={4}
+            />
+        </g>
     )
 }
 
