@@ -4,7 +4,8 @@ const ConnectionLineComponent = ({ fromX, fromY, toX, toY }: ConnectionLineCompo
     const connection = useConnection();
 
     // Access the source node's data
-    const fromNodeData = connection.fromNode?.data;
+    const fromNodeData = connection.fromNode?.data as { node?: { label?: string } } | undefined;
+    const sourceLabel = fromNodeData?.node?.label;
 
     return (
         <g>
@@ -21,6 +22,17 @@ const ConnectionLineComponent = ({ fromX, fromY, toX, toY }: ConnectionLineCompo
                 fill="#888"
                 r={4}
             />
+            {sourceLabel && (
+                <text
+                    x={(fromX + toX) / 2}
+                    y={(fromY + toY) / 2 - 10}
+                    fill="#888"
+                    fontSize={12}
+                    textAnchor="middle"
+                >
+                    {sourceLabel}
+                </text>
+            )}
         </g>
     )
 }

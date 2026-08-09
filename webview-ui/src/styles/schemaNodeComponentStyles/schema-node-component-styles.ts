@@ -144,8 +144,6 @@ const SchemaNodeComponentEdgeHandle = styled.div<SchemaNodeComponentEdgeHandlePr
   max-width: 8px;
   height: 8px;
   position: absolute;
-  border: 1px solid yellow;
-  background: Red;
   display: flex;
   align-items: center;
   top: 50%;
@@ -166,7 +164,9 @@ const SchemaNodeComponentEdgeHandle = styled.div<SchemaNodeComponentEdgeHandlePr
     .handle {
       width: 8px;
       height: 8px;
-      color:${(p)=> p.$color};
+      color:${(p)=>p.$color};
+      background:${(p)=>p.$color};
+      border-radius:1px;
     }
 `;
 

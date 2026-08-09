@@ -27,7 +27,7 @@ const CanvasComponent = () => {
                         kind: "table",
                         fields: [
                             { id: "1", name: "id", dataType: "int" ,color:"yellow"},
-                            { id: "2", name: "name", dataType: "varchar" ,color:"yellow"},
+                            { id: "2", name: "name", dataType: "varchar" ,color:"red"},
                             { id: "3", name: "email", dataType: "varchar", connectable: false ,color:"yellow"},
                         ],
                     },
