@@ -19,3 +19,9 @@ export interface DesignEdgeData extends Record<string, unknown> {
 
 /** React Flow edge type for design relationships */
 export type DesignFlowEdge = Edge<DesignEdgeData>;
+
+/** Context menu position data */
+export interface ContextMenuData {
+  x: number;
+  y: number;
+}

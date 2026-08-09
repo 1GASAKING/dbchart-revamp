@@ -1,9 +1,10 @@
-import { useEdgesState, useNodesState, Position } from "@xyflow/react"
-import { CanvasComponentBackground, CanvasComponentMainDiv, CanvasComponentMiniMap, CanvasComponentReactFlow } from "../../styles/canvascomponentstyles/canvascomponentstyles"
+import { useEdgesState, useNodesState, Position, MiniMap } from "@xyflow/react"
+import { CanvasComponentBackground, CanvasComponentMainDiv, CanvasComponentReactFlow } from "../../styles/canvascomponentstyles/canvascomponentstyles"
 import SchemaNodeComponent from "../schema-node-components/schema-node-component"
 import ConnectionLineComponent from "./connection-line-component"
-import { useEffect } from "react"
-import type { DesignFlowNode, DesignFlowEdge } from "../../types/schema-node-ui"
+import ContextMenuComponent from "./contextmenu-component"
+import { useEffect, useState } from "react"
+import type { DesignFlowNode, DesignFlowEdge, ContextMenuData } from "../../types/schema-node-ui"
 
 const nodeTypes = {
     test: SchemaNodeComponent,
@@ -14,6 +15,7 @@ const CanvasComponent = () => {
 
     const [nodes, setNodes] = useNodesState<DesignFlowNode>([])
     const [edges, setEdges] = useEdgesState<DesignFlowEdge>([]);
+    const [contextMenu, setContextMenu] = useState<ContextMenuData | null>(null);
     useEffect(() => {
 
         setNodes([
@@ -70,6 +72,29 @@ const CanvasComponent = () => {
 
     }, [setNodes,setEdges])
 
+    const handlePaneContextMenu = (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
+        event.preventDefault();
+        setContextMenu({ x: event.clientX, y: event.clientY });
+    };
+
+    const handleCreateNode = (node: { label: string; kind: string }) => {
+        const newNode: DesignFlowNode = {
+            id: `node-${Date.now()}`,
+            type: "test",
+            data: {
+                node: {
+                    id: `node-${Date.now()}`,
+                    label: node.label,
+                    kind: node.kind as "table" | "view",
+                    fields: [],
+                },
+            },
+            position: { x: contextMenu?.x ?? 100, y: contextMenu?.y ?? 100 },
+        };
+        setNodes((nds) => [...nds, newNode]);
+        setContextMenu(null);
+    };
+
     return (
         <CanvasComponentMainDiv>
             <CanvasComponentReactFlow
@@ -77,11 +102,23 @@ const CanvasComponent = () => {
                 edges={edges}
                 nodeTypes={nodeTypes}
                 connectionLineComponent={ConnectionLineComponent}
+            
+                onPaneContextMenu={handlePaneContextMenu}
+                onPaneClick={() => setContextMenu(null)}
 
                 proOptions={{ hideAttribution: true, }}>
-                <CanvasComponentMiniMap  
+                <MiniMap
+                    nodeColor="#007acc"
+                    nodeStrokeColor="#454545"
+                    bgColor="#1e1e1e"
+                    maskColor="rgba(0, 0, 0, 0.6)"
+                    style={{ width: 200, border: "1px solid #454545" }}
                 />
                 <CanvasComponentBackground
+                />
+                <ContextMenuComponent
+                    contextMenu={contextMenu}
+                    onCreateNode={handleCreateNode}
                 />
 
 

@@ -98,7 +98,6 @@ const SchemaNodeComponentField = styled.div`
   }
   .schema-data-type-field-label-type {
     max-width: 35%;
-    border: 1px solid blue;
     overflow: hidden;
     padding: 1px 2px;
     text-overflow: ellipsis;

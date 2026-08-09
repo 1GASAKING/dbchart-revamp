@@ -46,7 +46,6 @@ const CanvasComponentReactFlow = styled(ReactFlow)`
 `;
 const CanvasComponentMiniMap = styled(MiniMap)`
   width: 200px;
-   background: var(--vscode-editor-background, #1e1e1e);
   border: 1px solid var(--vscode-editorWidget-border, #454545);
 `;
 const CanvasComponentBackground = styled(Background)`
