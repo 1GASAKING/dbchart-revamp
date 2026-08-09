@@ -4,12 +4,24 @@ import { SchemaNodeComponentBody, SchemaNodeComponentEdgeHandle, SchemaNodeCompo
 import { ReactComponent as ExpandIcon } from "./assets/expand-square-4.svg?react"
 import type { DesignFlowNode } from "../../types/schema-node-ui"
 
-const SchemaNodeComponent = ({ data }: NodeProps<DesignFlowNode>) => {
+const SchemaNodeComponent = ({ data, selected }: NodeProps<DesignFlowNode>) => {
     const { node } = data;
+    
 
     return (
-        <SchemaNodeComponentMainDiv $bgColor={data.node.color}>
-            <SchemaNodeComponentToolBar>
+        <SchemaNodeComponentMainDiv  $bgColor={data.node.color} className={ "selectable draggable "+selected ? "selected" : ""}>
+            <div style={{
+                position: "absolute",
+                top: -20,
+                left: 0,
+                fontSize: 10,
+                color: "lime",
+                pointerEvents: "none",
+                zIndex: 9999
+            }}>
+                {selected ? "✅ SELECTED" : "❌ NOT-SELECTED"}
+            </div>
+            <SchemaNodeComponentToolBar  position={Position.Top} align={"end"}>
                 <div>
                     <div className="schema-node-button ">
                         <VsButton className="text-icon-reveal">

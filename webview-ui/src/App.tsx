@@ -6,11 +6,13 @@ import { ExtensionMessageType } from '@shared/extensionmessage/extensionmessage'
 import type { WebviewMessage } from "@shared/webview/type";
 import { vscode } from './utils/vscode';
 import EditorPage from './pages/editor/editor-page';
+import '@xyflow/react/dist/style.css'
+
 
 
 function App() {
 
-  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("");
+  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("editor");
 
   const handleMessage = useCallback((event: MessageEvent) => {
     const message: ExtensionMessage = event.data

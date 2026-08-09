@@ -1,20 +1,22 @@
-import { useEdgesState, useNodesState, Position, MiniMap } from "@xyflow/react"
+import { useEdgesState, useNodesState, Position, MiniMap, type Connection, addEdge } from "@xyflow/react"
 import { CanvasComponentBackground, CanvasComponentMainDiv, CanvasComponentReactFlow } from "../../styles/canvascomponentstyles/canvascomponentstyles"
 import SchemaNodeComponent from "../schema-node-components/schema-node-component"
 import ConnectionLineComponent from "./connection-line-component"
 import ContextMenuComponent from "./contextmenu-component"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import type { DesignFlowNode, DesignFlowEdge, ContextMenuData } from "../../types/schema-node-ui"
+import TestNodeComponent from "../test-node-component"
 
 const nodeTypes = {
     test: SchemaNodeComponent,
+    testSimple: TestNodeComponent,
 }
 
 
 const CanvasComponent = () => {
 
-    const [nodes, setNodes] = useNodesState<DesignFlowNode>([])
-    const [edges, setEdges] = useEdgesState<DesignFlowEdge>([]);
+    const [nodes, setNodes,onNodesChange] = useNodesState<DesignFlowNode>([])
+    const [edges, setEdges,onEdgesChange] = useEdgesState<DesignFlowEdge>([]);
     const [contextMenu, setContextMenu] = useState<ContextMenuData | null>(null);
     useEffect(() => {
 
@@ -59,6 +61,21 @@ const CanvasComponent = () => {
                 sourcePosition: Position.Right,
 
             },
+            {
+                id: 'test-simple',
+                type: "testSimple",
+                data: {
+                    node: {
+                        id: "test-simple",
+                        label: "TEST-SIMPLE",
+                        kind: "table",
+                        color: "green",
+                        fields: [],
+                    },
+                },
+                position: { x: 10, y: 150 },
+                sourcePosition: Position.Right,
+            },
         ]);
 
         setEdges([
@@ -97,6 +114,11 @@ const CanvasComponent = () => {
         setNodes((nds) => [...nds, newNode]);
         setContextMenu(null);
     };
+     const onConnect = useCallback(
+    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
+    [setEdges]
+  )
+
 
     return (
         <CanvasComponentMainDiv>
@@ -104,10 +126,17 @@ const CanvasComponent = () => {
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
+                   onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+                
                 connectionLineComponent={ConnectionLineComponent}
             
                 onPaneContextMenu={handlePaneContextMenu}
                 onPaneClick={() => setContextMenu(null)}
+                onConnect={onConnect}
+                onNodeClick={(_event, node) => {
+                    console.log("[DEBUG] Node clicked:", node.id, node.selected);
+                }}
 
                 proOptions={{ hideAttribution: true, }}>
                 <MiniMap

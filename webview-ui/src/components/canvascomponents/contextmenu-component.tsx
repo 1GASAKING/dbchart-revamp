@@ -7,7 +7,7 @@ interface ContextMenuComponentProps {
     onCreateNode: (node: { label: string; kind: string }) => void;
 }
 
-const ContextMenuComponent = ({ contextMenu, onCreateNode }: ContextMenuComponentProps) => {
+const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const [adjustedPos, setAdjustedPos] = useState<ContextMenuData | null>(null);
 

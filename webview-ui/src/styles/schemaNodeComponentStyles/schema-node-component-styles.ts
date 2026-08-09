@@ -1,9 +1,11 @@
+import { NodeToolbar } from "@xyflow/react";
 import styled from "styled-components";
 
 interface SchemaNodeComponentMainDivProp {
   $bgColor: string;
 }
 const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
+z-index:10;
   padding: 2px;
   border: 1px dashed transparent;
   width: fit-content;
@@ -87,7 +89,7 @@ const SchemaNodeComponentField = styled.div`
 
   > div {
     display: flex;
-    align-items: flex;
+    align-items: flex-start;
     width: 100%;
     gap: 1px;
   }
@@ -99,7 +101,7 @@ const SchemaNodeComponentField = styled.div`
   }
   .schema-data-type-field-label {
     max-width: 62%;
-    oveflow: hidden;
+    overflow: hidden;
   }
   .schema-data-type-field-label-type {
     max-width: 35%;
@@ -123,19 +125,25 @@ const SchemaNodeComponentField = styled.div`
   }
 `;
 
-const SchemaNodeComponentToolBar = styled.div`
-  padding:  8px 4px;
-  position:absolute;
-  top:-40px;
-  width:100%;
-  border-radius:6px;
-  right:0;
+const SchemaNodeComponentToolBar = styled(NodeToolbar)`
+  display: flex;
+  padding: 0 4px;
+  gap: 4px;
+  border-radius: 6px;
+  z-index: 10;
+  position: relative;
+  width: 20px;
+  pointer-events: none;
 
   > div {
+    position: absolute;
+    left: -66px;
+    bottom: 0;
     display: flex;
     gap: 2px;
-    flex-start:end;
-    justify-content:end;
+    align-items: flex-end;
+    justify-content: end;
+    pointer-events: auto;
   }
   .schema-node-button {
     display: flex;
@@ -144,6 +152,7 @@ const SchemaNodeComponentToolBar = styled.div`
     max-width: 400px;
   }
 `;
+
 
 interface SchemaNodeComponentEdgeHandleProp {
   $color?: string;
