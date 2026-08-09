@@ -138,7 +138,7 @@ const SchemaNodeComponentFooter = styled.div`
 `;
 
 interface SchemaNodeComponentEdgeHandleProp{
-  $color:string,
+  $color?:string,
 }
 const SchemaNodeComponentEdgeHandle = styled.div<SchemaNodeComponentEdgeHandleProp>`
   max-width: 8px;
@@ -165,7 +165,7 @@ const SchemaNodeComponentEdgeHandle = styled.div<SchemaNodeComponentEdgeHandlePr
       width: 8px;
       height: 8px;
       color:${(p)=>p.$color};
-      background:${(p)=>p.$color||"var(--vscode-editorHoverWidget-background, #2d2d2d)"};
+      background:${(p)=>p.$color||"var(--vscode-editorHoverWidget-border, #2d2d2d)"};
       border-radius:1px;
     }
 `;

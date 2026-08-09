@@ -3,5 +3,5 @@ export interface DesignField {
   name: string;
   dataType: string;
   connectable?: boolean;
-  color:string
+  color?:string
 }

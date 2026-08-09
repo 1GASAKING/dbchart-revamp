@@ -13,7 +13,7 @@ const ConnectionLineComponent = ({ fromX, fromY, toX, toY }: ConnectionLineCompo
     const fieldId = handleId?.replace(/-source$|-target$/, "");
 
     // Find the field and use its color
-    const fieldColor = fromNode?.fields.find(f => f.id === fieldId)?.color ?? "#888";
+    const fieldColor = fromNode?.fields.find(f => f.id === fieldId)?.color ?? "var(--vscode-editorHoverWidget-border, #2d2d2d)";
 
     return (
         <g>
