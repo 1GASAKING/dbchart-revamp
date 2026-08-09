@@ -165,7 +165,7 @@ const SchemaNodeComponentEdgeHandle = styled.div<SchemaNodeComponentEdgeHandlePr
       width: 8px;
       height: 8px;
       color:${(p)=>p.$color};
-      background:${(p)=>p.$color};
+      background:${(p)=>p.$color||"var(--vscode-editorHoverWidget-background, #2d2d2d)"};
       border-radius:1px;
     }
 `;

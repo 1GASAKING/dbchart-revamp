@@ -1,17 +1,25 @@
 import { useConnection, type ConnectionLineComponentProps } from "@xyflow/react";
+import type { DesignNode } from "../../types/schema-node-ui";
 
 const ConnectionLineComponent = ({ fromX, fromY, toX, toY }: ConnectionLineComponentProps) => {
     const connection = useConnection();
 
-    // Access the source node's data
-    const fromNodeData = connection.fromNode?.data as { node?: { label?: string } } | undefined;
-    const sourceLabel = fromNodeData?.node?.label;
+    // Get the source node's data
+    const fromNodeData = connection.fromNode?.data as { node?: DesignNode } | undefined;
+    const fromNode = fromNodeData?.node;
+
+    // Get the handle ID (e.g., "1-source") and extract the field ID
+    const handleId = connection.fromHandle?.id;
+    const fieldId = handleId?.replace(/-source$|-target$/, "");
+
+    // Find the field and use its color
+    const fieldColor = fromNode?.fields.find(f => f.id === fieldId)?.color ?? "#888";
 
     return (
         <g>
             <path
                 fill="none"
-                stroke="#888"
+                stroke={fieldColor}
                 strokeWidth={2}
                 className="animated"
                 d={`M${fromX},${fromY} C ${fromX + 50},${fromY} ${toX - 50},${toY} ${toX},${toY}`}
@@ -19,20 +27,9 @@ const ConnectionLineComponent = ({ fromX, fromY, toX, toY }: ConnectionLineCompo
             <circle
                 cx={toX}
                 cy={toY}
-                fill="#888"
+                fill={fieldColor}
                 r={4}
             />
-            {sourceLabel && (
-                <text
-                    x={(fromX + toX) / 2}
-                    y={(fromY + toY) / 2 - 10}
-                    fill="#888"
-                    fontSize={12}
-                    textAnchor="middle"
-                >
-                    {sourceLabel}
-                </text>
-            )}
         </g>
     )
 }
