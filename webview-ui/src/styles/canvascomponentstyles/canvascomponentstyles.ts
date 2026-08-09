@@ -24,7 +24,7 @@ const CanvasComponentMainDiv = styled.div`
 const CanvasComponentReactFlow = styled(ReactFlow)`
   width: 100%;
   height: 100vh;
-`;
+` as typeof ReactFlow;
 const CanvasComponentMiniMap = styled(MiniMap)`
   width: 200px;
   border: 1px solid var(--vscode-editorWidget-border, #454545);
