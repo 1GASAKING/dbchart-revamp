@@ -22,65 +22,32 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
 
     const { updateNodeData } = useReactFlow()
 
+    const hasNewField = newFieldIds.length > 0
     const hasEdits = editingFieldIds.length > 0
 
     // --- helpers ---
     const populateEdits = (fields: DesignField[]) => {
         const entries: Record<string, EditEntry> = {}
-        for (const f of fields) {
-            entries[f.id] = { name: f.name, dataType: f.dataType }
-        }
+        for (const f of fields) { entries[f.id] = { name: f.name, dataType: f.dataType } }
         setLocalEdits(entries)
     }
 
-    const updateLocalName = (fieldId: string, name: string) => {
+    const updateLocalName = (fieldId: string, name: string) =>
         setLocalEdits((prev) => ({ ...prev, [fieldId]: { ...prev[fieldId], name } }))
-    }
 
-    const updateLocalDataType = (fieldId: string, dataType: FieldDataType) => {
+    const updateLocalDataType = (fieldId: string, dataType: FieldDataType) =>
         setLocalEdits((prev) => ({ ...prev, [fieldId]: { ...prev[fieldId], dataType } }))
-    }
 
     // --- add field ---
     const handleAddField = () => {
         const newField = createDesignField({ name: `new_field_${node.fields.length + 1}` })
-        const updatedFields = [...node.fields, newField]
-        updateNodeData(id, { node: { ...node, fields: updatedFields } })
+        updateNodeData(id, { node: { ...node, fields: [...node.fields, newField] } })
         setEditingFieldIds((prev) => [...prev, newField.id])
         setNewFieldIds((prev) => [...prev, newField.id])
         setLocalEdits((prev) => ({ ...prev, [newField.id]: { name: newField.name, dataType: newField.dataType } }))
     }
 
-    // --- toggle edit all ---
-    const handleToggleEdit = () => {
-        if (hasEdits) {
-            // discard any unsaved changes and exit edit mode
-            // restore original fields from node (which may have pending drafts removed)
-            const restored = node.fields.filter((f) => !newFieldIds.includes(f.id))
-            updateNodeData(id, { node: { ...node, fields: restored } })
-            setEditingFieldIds([])
-            setNewFieldIds([])
-            setLocalEdits({})
-        } else {
-            // enter edit mode: all existing fields become editable
-            populateEdits(node.fields)
-            setEditingFieldIds(node.fields.map((f) => f.id))
-            setNewFieldIds([])
-        }
-    }
-
-    // --- save ---
-    const handleSave = () => {
-        const updated = node.fields.map((f) => {
-            const edit = localEdits[f.id]
-            return edit ? { ...f, name: edit.name, dataType: edit.dataType } : f
-        })
-        updateNodeData(id, { node: { ...node, fields: updated } })
-        setEditingFieldIds([])
-        setNewFieldIds([])
-    }
-
-    // --- save single field ---
+    // --- save new field (inline) ---
     const handleSaveSingleField = (fieldId: string) => {
         const edit = localEdits[fieldId]
         if (!edit) return
@@ -92,28 +59,50 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
         setNewFieldIds((prev) => prev.filter((fid) => fid !== fieldId))
     }
 
-    // --- delete single field ---
+    // --- delete new field ---
     const handleDeleteField = (fieldId: string) => {
         updateNodeData(id, { node: { ...node, fields: node.fields.filter((f) => f.id !== fieldId) } })
         setEditingFieldIds((prev) => prev.filter((fid) => fid !== fieldId))
         setNewFieldIds((prev) => prev.filter((fid) => fid !== fieldId))
     }
 
-    // --- click-outside: discard unsaved new fields ---
+    // --- edit all: toggle in / save all ---
+    const handleEditOrSaveAll = () => {
+        if (hasEdits && newFieldIds.length === 0) {
+            // Save all edits
+            const updated = node.fields.map((f) => {
+                const edit = localEdits[f.id]
+                return edit ? { ...f, name: edit.name, dataType: edit.dataType } : f
+            })
+            updateNodeData(id, { node: { ...node, fields: updated } })
+            setEditingFieldIds([])
+            setLocalEdits({})
+        } else {
+            // Enter edit-all mode
+            populateEdits(node.fields)
+            setEditingFieldIds(node.fields.map((f) => f.id))
+        }
+    }
+
+    // --- click-outside discards unsaved new fields ---
     useEffect(() => {
-        if (newFieldIds.length === 0) return
-        const handleOutsideClick = (event: MouseEvent) => {
+        if (!hasNewField) return
+        const handler = (event: MouseEvent) => {
             const target = event.target as HTMLElement
             if (mainDivRef.current?.contains(target)) return
             if (target.closest(".schema-node-toolbar")) return
-            // discard new fields that haven't been saved
-            updateNodeData(id, { node: { ...node, fields: node.fields.filter((f) => !newFieldIds.includes(f.id)) } })
+            updateNodeData(id, {
+                node: { ...node, fields: node.fields.filter((f) => !newFieldIds.includes(f.id)) },
+            })
             setEditingFieldIds((prev) => prev.filter((fid) => !newFieldIds.includes(fid)))
             setNewFieldIds([])
         }
-        document.addEventListener("mousedown", handleOutsideClick)
-        return () => document.removeEventListener("mousedown", handleOutsideClick)
-    }, [newFieldIds, id, node, updateNodeData])
+        document.addEventListener("mousedown", handler)
+        return () => document.removeEventListener("mousedown", handler)
+    }, [hasNewField, id, node, newFieldIds, updateNodeData])
+
+    const isEditAllMode = hasEdits && !hasNewField
+    const editBtnLabel = isEditAllMode ? "Save" : "Edit"
 
     return (
         <SchemaNodeComponentMainDiv
@@ -121,39 +110,26 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
             $bgColor={data.node.color}
             className={(selected ? "selected " : "") + "schema-node-toolbar"}
         >
-
             <SchemaNodeComponentToolBar position={Position.Top} align={"end"}>
                 <div>
                     <div className="schema-node-button ">
                         <VsButton className="text-icon-reveal" onClick={handleAddField}>
-                            <div>
-                                <i className="codicon codicon-add-small"></i>
-                            </div>
-                            <div className="text-holder">
-                                <p className="button-text">Add Field</p>
-                            </div>
+                            <div><i className="codicon codicon-add-small"></i></div>
+                            <div className="text-holder"><p className="button-text">Add Field</p></div>
                         </VsButton>
                     </div>
-                    <div className="schema-node-button ">
-                        <VsButton className="text-icon-reveal" onClick={handleToggleEdit}>
-                            <div>
-                                <i className="codicon codicon-edit"></i>
-                            </div>
-                            <div className="text-holder">
-                                <p className="button-text">{hasEdits ? "save" : "Edit"}</p>
-                            </div>
-                        </VsButton>
-                    </div>
-                   
-                   
+                    {!hasNewField && (
+                        <div className="schema-node-button ">
+                            <VsButton className="text-icon-reveal" onClick={handleEditOrSaveAll}>
+                                <div><i className= {"codicon codicon-"+isEditAllMode ?"save":"edit" } ></i></div>
+                                <div className="text-holder"><p className="button-text">{editBtnLabel}</p></div>
+                            </VsButton>
+                        </div>
+                    )}
                     <div className="schema-node-button ">
                         <VsButton className="text-icon-reveal">
-                            <div>
-                                <ExpandIcon width={16} height={19} />
-                            </div>
-                            <div className="text-holder">
-                                <p className="button-text">Expand</p>
-                            </div>
+                            <div><ExpandIcon width={16} height={19} /></div>
+                            <div className="text-holder"><p className="button-text">Expand</p></div>
                         </VsButton>
                     </div>
                 </div>
@@ -178,6 +154,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                         {node.fields.map((field) => {
                             const isEditing = editingFieldIds.includes(field.id)
                             const edit = localEdits[field.id]
+                            const isNew = newFieldIds.includes(field.id)
                             return (
                                 <SchemaNodeComponentField key={field.id}>
                                     <SchemaNodeComponentEdgeHandle $color={field.color} className="left">
@@ -193,7 +170,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                                                         autoFocus
                                                         value={edit.name}
                                                         onChange={(e) => updateLocalName(field.id, e.target.value)}
-                                                        onKeyDown={(e) => { if (e.key === "Enter") handleSave() }}
+                                                        onKeyDown={(e) => { if (e.key === "Enter") { if (isNew) { handleSaveSingleField(field.id); } else { handleEditOrSaveAll(); } } }}
                                                     />
                                                 </div>
                                                 <div className="schema-data-type-field-label-type">
@@ -201,46 +178,35 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                                                         value={edit.dataType}
                                                         onChange={(e) => updateLocalDataType(field.id, e.target.value as FieldDataType)}
                                                     >
-                                                        {DATA_TYPES.map((dt) => (
-                                                            <option key={dt} value={dt}>{dt}</option>
-                                                        ))}
+                                                        {DATA_TYPES.map((dt) => (<option key={dt} value={dt}>{dt}</option>))}
                                                     </SchemaNodeComponentEditSelect>
                                                 </div>
-
-                                                <div className="flex field-buttons-holder ">
-                                                        <div className="schema-node-button ">
+                                                    <div className="flex field-buttons-holder "> 
+                                                        {
+                                                            isNew &&(
+                                                                 <div className="schema-node-button ">
                                                             <VsButton title="save" onClick={() => handleSaveSingleField(field.id)}>
-                                                                <div>
-                                                                    <i className="codicon codicon-save"></i>
-                                                                </div>
+                                                                <div><i className="codicon codicon-save"></i></div>
                                                             </VsButton>
                                                         </div>
 
-
-                                                   
+                                                            )
+                                                        }
+                                                       
                                                         <div className="schema-node-button ">
-                                                            <VsButton title="delete" className=" delete-button" onClick={() => handleDeleteField(field.id)}>
-                                                                    <i className="codicon codicon-trash"></i>
+                                                            <VsButton title="delete" className="delete-button" onClick={() => handleDeleteField(field.id)}>
+                                                                <i className="codicon codicon-trash"></i>
                                                             </VsButton>
                                                         </div>
-
-
-                                                </div>
-
-
-
+                                                    </div>
                                             </div>
                                         ) : (
                                             <div className="schema-data-type-field-item">
                                                 <div className="schema-data-type-field-label">
-                                                    <div>
-                                                        <p className="schema-data-type-field-text">{field.name}</p>
-                                                    </div>
+                                                    <div><p className="schema-data-type-field-text">{field.name}</p></div>
                                                 </div>
                                                 <div className="schema-data-type-field-label-type">
-                                                    <div>
-                                                        <p className="schema-data-type-field-text schema-data-type-field-data-type">{field.dataType}</p>
-                                                    </div>
+                                                    <div><p className="schema-data-type-field-text schema-data-type-field-data-type">{field.dataType}</p></div>
                                                 </div>
                                             </div>
                                         )}
