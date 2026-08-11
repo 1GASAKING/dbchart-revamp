@@ -6,22 +6,13 @@ import type { DesignFlowNode } from "../../types/schema-node-ui"
 
 const SchemaNodeComponent = ({ data, selected }: NodeProps<DesignFlowNode>) => {
     const { node } = data;
-    
+
 
     return (
-        <SchemaNodeComponentMainDiv  $bgColor={data.node.color} className={ "selectable draggable "+selected ? "selected" : ""}>
-            <div style={{
-                position: "absolute",
-                top: -20,
-                left: 0,
-                fontSize: 10,
-                color: "lime",
-                pointerEvents: "none",
-                zIndex: 9999
-            }}>
-                {selected ? "✅ SELECTED" : "❌ NOT-SELECTED"}
-            </div>
-            <SchemaNodeComponentToolBar  position={Position.Top} align={"end"}>
+        <SchemaNodeComponentMainDiv $bgColor={data.node.color} className={selected ? "selected" : ""}>
+
+
+            <SchemaNodeComponentToolBar position={Position.Top} align={"end"}>
                 <div>
                     <div className="schema-node-button ">
                         <VsButton className="text-icon-reveal">
@@ -75,76 +66,80 @@ const SchemaNodeComponent = ({ data, selected }: NodeProps<DesignFlowNode>) => {
 
                 </div>
             </SchemaNodeComponentToolBar>
-            <SchemaNodeComponentHeader $bgColor={data.node.color}>
-                <div>
-                    <div className="schema-node-header">
-                        <div className="schema-label-header-indicator" />
+            <div>
+                <SchemaNodeComponentHeader $bgColor={data.node.color}>
+                    <div>
+                        <div className="schema-node-header">
+                            <div className="schema-label-header-indicator" />
 
-                        <div className="schema-node-header-holder">
+                            <div className="schema-node-header-holder">
 
-                            <div className="schema-label-header" title={node.label}>
-                                <h4 className="schema-label-text">{node.label}</h4>
+                                <div className="schema-label-header" title={node.label}>
+                                    <h4 className="schema-label-text">{node.label}</h4>
+                                </div>
+
                             </div>
 
                         </div>
 
                     </div>
 
-                </div>
+                </SchemaNodeComponentHeader>
 
-            </SchemaNodeComponentHeader>
+                <SchemaNodeComponentBody>
+                    <div>
+                        {node.fields.map((field) => (
+                            <SchemaNodeComponentField key={field.id}>
 
-            <SchemaNodeComponentBody>
-                <div>
-                    {node.fields.map((field) => (
-                        <SchemaNodeComponentField key={field.id}>
-                           
-                            <SchemaNodeComponentEdgeHandle $color={field.color} className="left">
-                                 {field.connectable !== false && (
-                                <Handle
-                                className="handle"
-                                    type="target"
-                                    position={Position.Left}
-                                    id={`${field.id}-target`}
-                                />
-                            )}
+                                <SchemaNodeComponentEdgeHandle $color={field.color} className="left">
+                                    {field.connectable !== false && (
+                                        <Handle
+                                            className="handle"
+                                            type="target"
+                                            position={Position.Left}
+                                            id={`${field.id}-target`}
+                                        />
+                                    )}
 
-                            </SchemaNodeComponentEdgeHandle>
-                            <div>
-                                <div className="schema-data-type-field-item">
-                                    <div className="schema-data-type-field-label">
-                                        <div>
-                                            <p className="schema-data-type-field-text">{field.name}</p>
+                                </SchemaNodeComponentEdgeHandle>
+                                <div>
+                                    <div className="schema-data-type-field-item">
+                                        <div className="schema-data-type-field-label">
+                                            <div>
+                                                <p className="schema-data-type-field-text">{field.name}</p>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="schema-data-type-field-label-type">
-                                        <div>
-                                            <p className="schema-data-type-field-text schema-data-type-field-data-type">{field.dataType}</p>
+                                        <div className="schema-data-type-field-label-type">
+                                            <div>
+                                                <p className="schema-data-type-field-text schema-data-type-field-data-type">{field.dataType}</p>
+                                            </div>
                                         </div>
+
                                     </div>
 
                                 </div>
 
-                            </div>
-                           
-                            <SchemaNodeComponentEdgeHandle $color={field.color} className="right" >
-                                 {field.connectable !== false && (
-                                <Handle
-                                className="handle"
-                                    type="source"
-                                    position={Position.Right}
-                                    id={`${field.id}-source`}
-                                />
-                            )}
+                                <SchemaNodeComponentEdgeHandle $color={field.color} className="right" >
+                                    {field.connectable !== false && (
+                                        <Handle
+                                            className="handle"
+                                            type="source"
+                                            position={Position.Right}
+                                            id={`${field.id}-source`}
+                                        />
+                                    )}
 
-                            </SchemaNodeComponentEdgeHandle>
-                        </SchemaNodeComponentField>
-                    ))}
-                </div>
+                                </SchemaNodeComponentEdgeHandle>
+                            </SchemaNodeComponentField>
+                        ))}
+                    </div>
 
-            </SchemaNodeComponentBody>
-            
+                </SchemaNodeComponentBody>
+
+            </div>
+
+
 
         </SchemaNodeComponentMainDiv>
     )

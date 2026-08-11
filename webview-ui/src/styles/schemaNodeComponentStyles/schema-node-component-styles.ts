@@ -5,9 +5,9 @@ interface SchemaNodeComponentMainDivProp {
   $bgColor: string;
 }
 const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
-z-index:10;
+  z-index:10;
   padding: 2px;
-  border: 1px dashed transparent;
+  border: 2px dashed transparent;
   width: fit-content;
   min-width: 300px;
   border-radius: 4px;
@@ -15,8 +15,53 @@ z-index:10;
   background: ${(p) => p.$bgColor};
 
   &.selected {
-    border-color:var(--vscode-focusBorder, var(--gray-70));
-    box-shadow: 0 0 0 1px var(--vscode-focusBorder, var(--gray-70));
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: 4px;
+      pointer-events: none;
+      background:
+        linear-gradient(
+            90deg,
+            var(--vscode-focusBorder, var(--gray-70)) 50%,
+            transparent 50%
+          ),
+        linear-gradient(
+            90deg,
+            var(--vscode-focusBorder, var(--gray-70)) 50%,
+            transparent 50%
+          ),
+        linear-gradient(
+            0deg,
+            var(--vscode-focusBorder, var(--gray-70)) 50%,
+            transparent 50%
+          ),
+        linear-gradient(
+            0deg,
+            var(--vscode-focusBorder, var(--gray-70)) 50%,
+            transparent 50%
+          );
+      background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+      background-size: 16px 2px, 16px 2px, 2px 16px, 2px 16px;
+      background-position: 0 0, 0 100%, 0 0, 100% 0;
+      animation: schema-node-dash-roll 0.5s linear infinite;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    @keyframes schema-node-dash-roll {
+      0% {
+        background-position: 0 0, 0 100%, 0 0, 100% 0;
+      }
+      100% {
+        background-position: 16px 0, -16px 100%, 0 -16px, 100% 16px;
+      }
+    }
   }
 `;
 

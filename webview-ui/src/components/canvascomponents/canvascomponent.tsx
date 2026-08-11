@@ -5,11 +5,9 @@ import ConnectionLineComponent from "./connection-line-component"
 import ContextMenuComponent from "./contextmenu-component"
 import { useCallback, useEffect, useState } from "react"
 import type { DesignFlowNode, DesignFlowEdge, ContextMenuData } from "../../types/schema-node-ui"
-import TestNodeComponent from "../test-node-component"
 
 const nodeTypes = {
     test: SchemaNodeComponent,
-    testSimple: TestNodeComponent,
 }
 
 
@@ -63,7 +61,7 @@ const CanvasComponent = () => {
             },
             {
                 id: 'test-simple',
-                type: "testSimple",
+                type: "test",
                 data: {
                     node: {
                         id: "test-simple",
