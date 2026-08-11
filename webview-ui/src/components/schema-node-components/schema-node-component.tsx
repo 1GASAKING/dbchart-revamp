@@ -3,13 +3,10 @@ import { VsButton } from "../../styles/reusablecomponentsstyles/button-component
 import { SchemaNodeComponentBody, SchemaNodeComponentEdgeHandle, SchemaNodeComponentField, SchemaNodeComponentHeader, SchemaNodeComponentMainDiv, SchemaNodeComponentToolBar } from "../../styles/schemaNodeComponentStyles/schema-node-component-styles"
 import { ReactComponent as ExpandIcon } from "./assets/expand-square-4.svg?react"
 import type { DesignFlowNode } from "../../types/schema-node-ui"
-import { useState } from "react"
 import { createDesignField } from "@lib/utils"
 
 const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) => {
     const { node } = data;
-    const [isChanges,setIsChange ] = useState<boolean>();
-    const [isNewField,setIsNewField ] = useState<boolean>();
 
     const { updateNodeData } = useReactFlow();
 
@@ -165,6 +162,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
 
 }
 export default SchemaNodeComponent
+
 
 
 

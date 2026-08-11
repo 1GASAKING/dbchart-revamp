@@ -1,11 +1,11 @@
 import type { SchemaNode } from "@dbchart/schema";
-import { generateNodeId } from "./general-utils";
+import { generateNodeColor, generateNodeId } from "./general-utils";
 
 /** Default values used when creating a new SchemaNode */
 const DEFAULT_SCHEMA_NODE: Omit<SchemaNode, "id"> = {
   label: "New Table",
   kind: "table",
-  color: "blue",
+  color: generateNodeColor(),
   fields: [],
 };
 
@@ -22,3 +22,4 @@ export function createSchemaNode(
     id: generateNodeId(),
   };
 }
+

@@ -5,6 +5,7 @@ import ConnectionLineComponent from "./connection-line-component"
 import ContextMenuComponent from "./contextmenu-component"
 import { useCallback, useEffect, useState } from "react"
 import type { DesignFlowNode, DesignFlowEdge, ContextMenuData } from "../../types/schema-node-ui"
+import { createSchemaNode } from "@lib/utils"
 
 const nodeTypes = {
     test: SchemaNodeComponent,
@@ -95,18 +96,14 @@ const CanvasComponent = () => {
     };
 
     const handleCreateNode = (node: { label: string; kind: string }) => {
+        const schemaNode = createSchemaNode({
+            label: node.label,
+            kind: node.kind as "table" | "view",
+        });
         const newNode: DesignFlowNode = {
-            id: `node-${Date.now()}`,
+            id: schemaNode.id,
             type: "test",
-            data: {
-                node: {
-                    id: `node-${Date.now()}`,
-                    color:"red",
-                    label: node.label,
-                    kind: node.kind as "table" | "view",
-                    fields: [],
-                },
-            },
+            data: { node: schemaNode },
             position: { x: contextMenu?.x ?? 100, y: contextMenu?.y ?? 100 },
         };
         setNodes((nds) => [...nds, newNode]);
@@ -162,3 +159,6 @@ const CanvasComponent = () => {
 }
 
 export default CanvasComponent
+
+
+
