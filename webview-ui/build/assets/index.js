@@ -361,12 +361,12 @@ Error generating stack: `+e.message+`
     opacity: 0.7;
     border-color: var(--vscode-focusBorder, var(--gray-70));
   }
-    
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-    
+
   &.footer-button {
     width: fit-content;
     display: flex;
@@ -400,7 +400,7 @@ Error generating stack: `+e.message+`
     display: grid;
     grid-template-columns: auto 0fr;
     gap: 0px;
-          font-size:16px;
+    font-size: 12px;
 
     align-items: center;
     overflow: hidden;
@@ -413,8 +413,7 @@ Error generating stack: `+e.message+`
       overflow: hidden;
       white-space: nowrap;
       min-width: 0;
-      align-items:top;
-      
+      align-items: top;
     }
     .button-text {
       padding: 0;
@@ -424,7 +423,7 @@ Error generating stack: `+e.message+`
     &:hover {
       grid-template-columns: auto 1fr;
       gap: 8px;
-      opacity:1;
+      opacity: 1;
     }
   }
 `,Ih=B.div`
@@ -435,6 +434,7 @@ Error generating stack: `+e.message+`
   min-width: 300px;
   border-radius: 4px;
   max-width: 300px;
+  position:relative;
   background: ${e=>e.$bgColor};
 
   &.selected {
@@ -580,12 +580,14 @@ Error generating stack: `+e.message+`
   .schema-data-type-field-label {
     max-width: 62%;
     overflow: hidden;
+    flex: 1;
   }
   .schema-data-type-field-label-type {
-    max-width: 35%;
+    max-width: 38%;
     overflow: hidden;
     padding: 1px 2px;
     text-overflow: ellipsis;
+    flex: 1;
   }
   .schema-data-type-field-text {
     padding: 0;
@@ -601,19 +603,60 @@ Error generating stack: `+e.message+`
     opacity: 0.8;
     font-weight: 400;
   }
-`,Bh=B(jh)`
+`;B.div`
+  cursor: pointer;
+  &:hover {
+    opacity: 0.85;
+  }
+`;var Bh=B.input`
+  width: 100%;
+  min-width: 0;
+  background: var(--vscode-input-background, #3c3c3c);
+  color: var(--vscode-input-foreground, #cccccc);
+  border: 1px solid var(--vscode-input-border, var(--gray-30));
+  padding: 2px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 2px;
+  outline: none;
+
+  &:focus {
+    border-color: var(--vscode-focusBorder, var(--gray-70));
+  }
+`,Vh=B.select`
+  width: 100%;
+  min-width: 0;
+  background: var(--vscode-dropdown-background, #3c3c3c);
+  color: var(--vscode-dropdown-foreground, #cccccc);
+  border: 1px solid var(--vscode-dropdown-border, var(--gray-30));
+  padding: 2px 4px;
+  font-size: 13px;
+  border-radius: 2px;
+  outline: none;
+
+  &:focus {
+    border-color: var(--vscode-focusBorder, var(--gray-70));
+  }
+
+  option {
+    background: var(--vscode-dropdown-background, #3c3c3c);
+    color: var(--vscode-dropdown-foreground, #cccccc);
+  }
+`,Hh=B(jh)`
   display: flex;
   padding: 0 4px;
   gap: 4px;
   border-radius: 6px;
   z-index: 10;
   position: relative;
-  width: 20px;
+  width:100%;
+  max-width:200px;
   pointer-events: none;
 
   > div {
     position: absolute;
-    left: -66px;
+    right: 10px;
+    width:fit-content;
     bottom: 0;
     display: flex;
     gap: 2px;
@@ -627,7 +670,7 @@ Error generating stack: `+e.message+`
     width: fit-content;
     max-width: 400px;
   }
-`,Vh=B.div`
+`,Uh=B.div`
   max-width: 8px;
   height: 8px;
   position: absolute;
@@ -654,7 +697,7 @@ Error generating stack: `+e.message+`
     background: ${e=>e.$color||`var(--vscode-editorHoverWidget-border, #2d2d2d)`};
     border-radius: 1px;
   }
-`,Hh=e=>(0,V.jsxs)(`svg`,{width:80,height:80,viewBox:`0 0 25 24`,fill:`none`,xmlns:`http://www.w3.org/2000/svg`,transform:`rotate(0 0 0)`,...e,children:[(0,V.jsx)(`path`,{d:`M3.5625 5.5C3.5625 4.25736 4.56986 3.25 5.8125 3.25H8.31213C8.72635 3.25 9.06213 3.58579 9.06213 4C9.06213 4.41421 8.72635 4.75 8.31213 4.75H5.8125C5.39829 4.75 5.0625 5.08579 5.0625 5.5V8C5.0625 8.41421 4.72671 8.75 4.3125 8.75C3.89829 8.75 3.5625 8.41421 3.5625 8V5.5Z`,fill:`currentColor`}),(0,V.jsx)(`path`,{d:`M20.3111 15.25C20.7253 15.25 21.0611 15.5858 21.0611 16L21.0611 18.5C21.0611 19.7426 20.0537 20.75 18.8111 20.75H16.3114C15.8972 20.75 15.5614 20.4142 15.5614 20C15.5614 19.5858 15.8972 19.25 16.3114 19.25H18.8111C19.2253 19.25 19.5611 18.9142 19.5611 18.5L19.5611 16C19.5611 15.5858 19.8968 15.25 20.3111 15.25Z`,fill:`currentColor`}),(0,V.jsxs)(`g`,{opacity:.4,children:[(0,V.jsx)(`path`,{d:`M15.5614 4C15.5614 3.58579 15.8972 3.25 16.3114 3.25H18.811C20.0537 3.25 21.061 4.25736 21.061 5.5L21.061 8C21.061 8.41421 20.7253 8.75 20.311 8.75C19.8968 8.75 19.561 8.41421 19.561 8L19.561 5.5C19.561 5.08579 19.2253 4.75 18.811 4.75H16.3114C15.8972 4.75 15.5614 4.41421 15.5614 4Z`,fill:`currentColor`}),(0,V.jsx)(`path`,{d:`M4.3125 15.25C4.72671 15.25 5.0625 15.5858 5.0625 16V18.5C5.0625 18.9142 5.39829 19.25 5.8125 19.25H8.31214C8.72635 19.25 9.06214 19.5858 9.06214 20C9.06214 20.4142 8.72635 20.75 8.31214 20.75H5.8125C4.56986 20.75 3.5625 19.7426 3.5625 18.5V16C3.5625 15.5858 3.89829 15.25 4.3125 15.25Z`,fill:`currentColor`})]})]}),Uh=({data:e,selected:t})=>{let{node:n}=e;return(0,V.jsxs)(Ih,{$bgColor:e.node.color,className:t?`selected`:``,children:[(0,V.jsx)(Bh,{position:G.Top,align:`end`,children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,children:[(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`i`,{className:`codicon codicon-add-small`}),`                            `]}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Add Field`})})]})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Edit`})})]})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(Hh,{width:16,height:19})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Expand`})})]})})]})}),(0,V.jsxs)(`div`,{children:[(0,V.jsx)(Lh,{$bgColor:e.node.color,children:(0,V.jsx)(`div`,{children:(0,V.jsxs)(`div`,{className:`schema-node-header`,children:[(0,V.jsx)(`div`,{className:`schema-label-header-indicator`}),(0,V.jsx)(`div`,{className:`schema-node-header-holder`,children:(0,V.jsx)(`div`,{className:`schema-label-header`,title:n.label,children:(0,V.jsx)(`h4`,{className:`schema-label-text`,children:n.label})})})]})})}),(0,V.jsx)(Rh,{children:(0,V.jsx)(`div`,{children:n.fields.map(e=>(0,V.jsxs)(zh,{children:[(0,V.jsx)(Vh,{$color:e.color,className:`left`,children:e.connectable!==!1&&(0,V.jsx)(lp,{className:`handle`,type:`target`,position:G.Left,id:`${e.id}-target`})}),(0,V.jsx)(`div`,{children:(0,V.jsxs)(`div`,{className:`schema-data-type-field-item`,children:[(0,V.jsx)(`div`,{className:`schema-data-type-field-label`,children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`schema-data-type-field-text`,children:e.name})})}),(0,V.jsx)(`div`,{className:`schema-data-type-field-label-type`,children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`schema-data-type-field-text schema-data-type-field-data-type`,children:e.dataType})})})]})}),(0,V.jsx)(Vh,{$color:e.color,className:`right`,children:e.connectable!==!1&&(0,V.jsx)(lp,{className:`handle`,type:`source`,position:G.Right,id:`${e.id}-source`})})]},e.id))})})]})]})},Wh=({fromX:e,fromY:t,toX:n,toY:r})=>{let i=Em(),a=i.fromNode?.data?.node,o=(i.fromHandle?.id)?.replace(/-source$|-target$/,``),s=a?.fields.find(e=>e.id===o)?.color??`var(--vscode-editorHoverWidget-border, #2d2d2d)`;return(0,V.jsxs)(`g`,{children:[(0,V.jsx)(`path`,{fill:`none`,stroke:s,strokeWidth:2,className:`animated`,d:`M${e},${t} C ${e+50},${t} ${n-50},${r} ${n},${r}`}),(0,V.jsx)(`circle`,{cx:n,cy:r,fill:s,r:4})]})},Gh=B.div`
+`,Wh=e=>(0,V.jsxs)(`svg`,{width:80,height:80,viewBox:`0 0 25 24`,fill:`none`,xmlns:`http://www.w3.org/2000/svg`,transform:`rotate(0 0 0)`,...e,children:[(0,V.jsx)(`path`,{d:`M3.5625 5.5C3.5625 4.25736 4.56986 3.25 5.8125 3.25H8.31213C8.72635 3.25 9.06213 3.58579 9.06213 4C9.06213 4.41421 8.72635 4.75 8.31213 4.75H5.8125C5.39829 4.75 5.0625 5.08579 5.0625 5.5V8C5.0625 8.41421 4.72671 8.75 4.3125 8.75C3.89829 8.75 3.5625 8.41421 3.5625 8V5.5Z`,fill:`currentColor`}),(0,V.jsx)(`path`,{d:`M20.3111 15.25C20.7253 15.25 21.0611 15.5858 21.0611 16L21.0611 18.5C21.0611 19.7426 20.0537 20.75 18.8111 20.75H16.3114C15.8972 20.75 15.5614 20.4142 15.5614 20C15.5614 19.5858 15.8972 19.25 16.3114 19.25H18.8111C19.2253 19.25 19.5611 18.9142 19.5611 18.5L19.5611 16C19.5611 15.5858 19.8968 15.25 20.3111 15.25Z`,fill:`currentColor`}),(0,V.jsxs)(`g`,{opacity:.4,children:[(0,V.jsx)(`path`,{d:`M15.5614 4C15.5614 3.58579 15.8972 3.25 16.3114 3.25H18.811C20.0537 3.25 21.061 4.25736 21.061 5.5L21.061 8C21.061 8.41421 20.7253 8.75 20.311 8.75C19.8968 8.75 19.561 8.41421 19.561 8L19.561 5.5C19.561 5.08579 19.2253 4.75 18.811 4.75H16.3114C15.8972 4.75 15.5614 4.41421 15.5614 4Z`,fill:`currentColor`}),(0,V.jsx)(`path`,{d:`M4.3125 15.25C4.72671 15.25 5.0625 15.5858 5.0625 16V18.5C5.0625 18.9142 5.39829 19.25 5.8125 19.25H8.31214C8.72635 19.25 9.06214 19.5858 9.06214 20C9.06214 20.4142 8.72635 20.75 8.31214 20.75H5.8125C4.56986 20.75 3.5625 19.7426 3.5625 18.5V16C3.5625 15.5858 3.89829 15.25 4.3125 15.25Z`,fill:`currentColor`})]})]}),Gh=[`varchar`,`int`,`bigint`,`text`,`boolean`,`decimal`,`float`,`date`,`timestamp`,`time`,`json`,`uuid`,`bytea`],Kh=[`#E53935`,`#D81B60`,`#8E24AA`,`#5E35B1`,`#3949AB`,`#1E88E5`,`#039BE5`,`#00ACC1`,`#00897B`,`#43A047`,`#7CB342`,`#C0CA33`,`#FDD835`,`#FFB300`,`#FB8C00`,`#F4511E`,`#6D4C41`,`#546E7A`];function qh(e=`id`){return`${e}-${Date.now()}-${Math.random().toString(36).slice(2,9)}`}function Jh(){return qh(`field`)}function Yh(){return qh(`node`)}function Xh(){return Kh[Math.floor(Math.random()*Kh.length)]}var Zh={name:`new_field`,dataType:`varchar`};function Qh(e={}){return{...Zh,...e,id:Jh()}}var $h={label:`New Table`,kind:`table`,color:Xh(),fields:[]};function eg(e={}){return{...$h,...e,id:Yh()}}var tg=({id:e,data:t,selected:n})=>{let{node:r}=t,i=(0,_.useRef)(null),[a,o]=(0,_.useState)([]),[s,c]=(0,_.useState)(``),[l,u]=(0,_.useState)(Gh[0]),{updateNodeData:d}=If(),f=a.length>0,p=()=>{let t=Qh({name:`new_field_${r.fields.length+1}`});d(e,{node:{...r,fields:[...r.fields,t]}}),o(e=>[...e,t.id]),c(t.name),u(t.dataType)},m=()=>{let t=a[a.length-1];t&&(d(e,{node:{...r,fields:r.fields.map(e=>e.id===t?{...e,name:s,dataType:l}:e)}}),o(e=>e.filter(e=>e!==t)),c(``),u(Gh[0]))};return(0,_.useEffect)(()=>{if(!f)return;let t=t=>{let n=t.target;i.current?.contains(n)||n.closest(`.schema-node-toolbar`)||(d(e,{node:{...r,fields:r.fields.filter(e=>!a.includes(e.id))}}),o([]),c(``),u(Gh[0]))};return document.addEventListener(`mousedown`,t),()=>document.removeEventListener(`mousedown`,t)},[f,e,r,a,d]),(0,V.jsxs)(Ih,{ref:i,$bgColor:t.node.color,className:(n?`selected `:``)+`schema-node-toolbar`,children:[(0,V.jsx)(Hh,{position:G.Top,align:`end`,children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,onClick:p,children:[(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`i`,{className:`codicon codicon-add-small`}),`                            `]}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Add Field`})})]})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Edit`})})]})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(Wh,{width:16,height:19})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Expand`})})]})}),f&&(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,onClick:m,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-save`})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Save`})})]})})]})}),(0,V.jsxs)(`div`,{children:[(0,V.jsx)(Lh,{$bgColor:t.node.color,children:(0,V.jsx)(`div`,{children:(0,V.jsxs)(`div`,{className:`schema-node-header`,children:[(0,V.jsx)(`div`,{className:`schema-label-header-indicator`}),(0,V.jsx)(`div`,{className:`schema-node-header-holder`,children:(0,V.jsx)(`div`,{className:`schema-label-header`,title:r.label,children:(0,V.jsx)(`h4`,{className:`schema-label-text`,children:r.label})})})]})})}),(0,V.jsx)(Rh,{children:(0,V.jsx)(`div`,{children:r.fields.map(e=>{let t=a.includes(e.id);return(0,V.jsxs)(zh,{children:[(0,V.jsx)(Uh,{$color:e.color,className:`left`,children:e.connectable!==!1&&(0,V.jsx)(lp,{className:`handle`,type:`target`,position:G.Left,id:`${e.id}-target`})}),(0,V.jsx)(`div`,{children:t?(0,V.jsxs)(`div`,{className:`schema-data-type-field-item`,children:[(0,V.jsx)(`div`,{className:`schema-data-type-field-label`,children:(0,V.jsx)(Bh,{autoFocus:!0,value:s,onChange:e=>c(e.target.value),onKeyDown:e=>{e.key===`Enter`&&m()}})}),(0,V.jsx)(`div`,{className:`schema-data-type-field-label-type`,children:(0,V.jsx)(Vh,{value:l,onChange:e=>u(e.target.value),children:Gh.map(e=>(0,V.jsx)(`option`,{value:e,children:e},e))})})]}):(0,V.jsxs)(`div`,{className:`schema-data-type-field-item`,children:[(0,V.jsx)(`div`,{className:`schema-data-type-field-label`,children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`schema-data-type-field-text`,children:e.name})})}),(0,V.jsx)(`div`,{className:`schema-data-type-field-label-type`,children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`schema-data-type-field-text schema-data-type-field-data-type`,children:e.dataType})})})]})}),(0,V.jsx)(Uh,{$color:e.color,className:`right`,children:e.connectable!==!1&&(0,V.jsx)(lp,{className:`handle`,type:`source`,position:G.Right,id:`${e.id}-source`})})]},e.id)})})})]})]})},ng=({fromX:e,fromY:t,toX:n,toY:r})=>{let i=Em(),a=i.fromNode?.data?.node,o=(i.fromHandle?.id)?.replace(/-source$|-target$/,``),s=a?.fields.find(e=>e.id===o)?.color??`var(--vscode-editorHoverWidget-border, #2d2d2d)`;return(0,V.jsxs)(`g`,{children:[(0,V.jsx)(`path`,{fill:`none`,stroke:s,strokeWidth:2,className:`animated`,d:`M${e},${t} C ${e+50},${t} ${n-50},${r} ${n},${r}`}),(0,V.jsx)(`circle`,{cx:n,cy:r,fill:s,r:4})]})},rg=B.div`
   border: 1px solid var(--vscode-editorWidget-border, #454545);
   border-radius: 4px;
   min-width: 200px;
@@ -673,7 +716,7 @@ position:absolute;
   .canvas-context-menu-group-border {
     border-bottom: 1px solid var(--vscode-editorWidget-border, #454545);
   }
-`,Kh=B.div`
+`,ig=B.div`
   padding: 8px 10px;
   border-radius: 2px;
   min-width: 200px;
@@ -701,4 +744,4 @@ position:absolute;
     font-weight: 500;
     text-transform: capitalize;
   }
-`,qh=({contextMenu:e})=>{let t=(0,_.useRef)(null),[n,r]=(0,_.useState)(null);if((0,_.useEffect)(()=>{if(e&&t.current){let n=t.current.getBoundingClientRect(),{x:i,y:a}=e;a+n.height>window.innerHeight&&(a=window.innerHeight-n.height-10),i+n.width>window.innerWidth&&(i=window.innerWidth-n.width-10),i<10&&(i=10),a<10&&(a=10),r({x:i,y:a})}},[e]),!e)return null;let i=n??e;return(0,V.jsx)(Gh,{ref:t,className:`canvas-context-menu`,style:{top:i.y,left:i.x,zIndex:1e3},onClick:e=>e.stopPropagation(),children:(0,V.jsxs)(`div`,{children:[(0,V.jsxs)(`div`,{className:`canvas-context-menu-group  canvas-context-menu-group-border`,children:[(0,V.jsx)(Kh,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`New  node`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})}),(0,V.jsx)(Kh,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`new Relationship`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})})]}),(0,V.jsxs)(`div`,{className:`canvas-context-menu-group canvas-context-menu-group-border  `,children:[(0,V.jsx)(Kh,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`new  area`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})}),(0,V.jsx)(Kh,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`new note`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})})]}),(0,V.jsxs)(`div`,{className:`canvas-context-menu-group   canvas-context-menu-group-border`,children:[(0,V.jsx)(Kh,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`import  diagram`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})}),(0,V.jsx)(Kh,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`Import  SQL/DBML`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})})]}),(0,V.jsxs)(`div`,{className:`canvas-context-menu-group   canvas-context-menu-group-border`,children:[(0,V.jsx)(Kh,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`import  diagram`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})}),(0,V.jsx)(Kh,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`Import  SQL/DBML`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})})]})]})})},Jh={test:Uh},Yh=()=>{let[e,t,n]=Um([]),[r,i,a]=Wm([]),[o,s]=(0,_.useState)(null);(0,_.useEffect)(()=>{t([{id:`1`,type:`test`,data:{node:{id:`1`,label:`Users`,kind:`table`,color:`red`,fields:[{id:`1`,name:`id`,dataType:`int`,color:`#4CAF50`},{id:`2`,name:`name`,dataType:`varchar`},{id:`3`,name:`email`,dataType:`varchar`,color:`#FF9800`}]}},position:{x:10,y:0},sourcePosition:G.Right},{id:`2`,type:`test`,data:{node:{id:`2`,label:`Orders`,kind:`table`,color:`blue`,fields:[{id:`1`,name:`id`,dataType:`int`,color:`#4CAF50`},{id:`2`,name:`user_id`,dataType:`int`,color:`#2196F3`},{id:`3`,name:`total`,dataType:`decimal`,connectable:!1,color:`#FF9800`}]}},position:{x:400,y:0},sourcePosition:G.Right},{id:`test-simple`,type:`test`,data:{node:{id:`test-simple`,label:`TEST-SIMPLE`,kind:`table`,color:`green`,fields:[]}},position:{x:10,y:150},sourcePosition:G.Right}]),i([{id:`rel-1`,source:`1`,target:`2`,sourceHandle:`1-source`,targetHandle:`2-target`,data:{relationshipId:`rel-1`}}])},[t,i]);let c=e=>{e.preventDefault(),s({x:e.clientX,y:e.clientY})},l=e=>{let n={id:`node-${Date.now()}`,type:`test`,data:{node:{id:`node-${Date.now()}`,color:`red`,label:e.label,kind:e.kind,fields:[]}},position:{x:o?.x??100,y:o?.y??100}};t(e=>[...e,n]),s(null)},u=(0,_.useCallback)(e=>i(t=>Tf(e,t)),[i]);return(0,V.jsx)(Mh,{children:(0,V.jsxs)(Nh,{nodes:e,edges:r,nodeTypes:Jh,onNodesChange:n,onEdgesChange:a,connectionLineComponent:Wh,onPaneContextMenu:c,onPaneClick:()=>s(null),onConnect:u,onNodeClick:(e,t)=>{console.log(`[DEBUG] Node clicked:`,t.id,t.selected)},proOptions:{hideAttribution:!0},children:[(0,V.jsx)(Sh,{nodeColor:`#007acc`,nodeStrokeColor:`#454545`,bgColor:`#1e1e1e`,maskColor:`rgba(0, 0, 0, 0.6)`,style:{width:200,border:`1px solid #454545`}}),(0,V.jsx)(Ph,{}),(0,V.jsx)(qh,{contextMenu:o,onCreateNode:l})]})})},Xh=()=>(0,V.jsx)(Yh,{});function Zh(){let[e,t]=(0,_.useState)(`editor`),n=(0,_.useCallback)(e=>{let n=e.data;switch(n.type){case ir.WORKSPACEUPDATED:break;case ir.SET_APP_MODE:n.mode&&t(n.mode)}},[]);return(0,_.useEffect)(()=>(window.addEventListener(`message`,n),()=>{window.removeEventListener(`message`,n)}),[n]),(0,_.useEffect)(()=>{let e={messageType:tr.WEBVIEW_DID_LAUNCH};er._postMessage(e)},[]),(0,V.jsx)(`main`,{children:(0,V.jsxs)(`div`,{className:`webview-container`,children:[e===`editor`&&(0,V.jsx)(Xh,{}),e===`sidebar`&&(0,V.jsx)(rr,{})]})})}(0,v.createRoot)(document.getElementById(`root`)).render((0,V.jsx)(_.StrictMode,{children:(0,V.jsx)(Zh,{})}));
+`,ag=({contextMenu:e})=>{let t=(0,_.useRef)(null),[n,r]=(0,_.useState)(null);if((0,_.useEffect)(()=>{if(e&&t.current){let n=t.current.getBoundingClientRect(),{x:i,y:a}=e;a+n.height>window.innerHeight&&(a=window.innerHeight-n.height-10),i+n.width>window.innerWidth&&(i=window.innerWidth-n.width-10),i<10&&(i=10),a<10&&(a=10),r({x:i,y:a})}},[e]),!e)return null;let i=n??e;return(0,V.jsx)(rg,{ref:t,className:`canvas-context-menu`,style:{top:i.y,left:i.x,zIndex:1e3},onClick:e=>e.stopPropagation(),children:(0,V.jsxs)(`div`,{children:[(0,V.jsxs)(`div`,{className:`canvas-context-menu-group  canvas-context-menu-group-border`,children:[(0,V.jsx)(ig,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`New  node`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})}),(0,V.jsx)(ig,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`new Relationship`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})})]}),(0,V.jsxs)(`div`,{className:`canvas-context-menu-group canvas-context-menu-group-border  `,children:[(0,V.jsx)(ig,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`new  area`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})}),(0,V.jsx)(ig,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`new note`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})})]}),(0,V.jsxs)(`div`,{className:`canvas-context-menu-group   canvas-context-menu-group-border`,children:[(0,V.jsx)(ig,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`import  diagram`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})}),(0,V.jsx)(ig,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`Import  SQL/DBML`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})})]}),(0,V.jsxs)(`div`,{className:`canvas-context-menu-group   canvas-context-menu-group-border`,children:[(0,V.jsx)(ig,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`import  diagram`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})}),(0,V.jsx)(ig,{children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`canvas-context-menu-text`,children:`Import  SQL/DBML`})}),(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})})]})})]})]})})},og={test:tg},sg=()=>{let[e,t,n]=Um([]),[r,i,a]=Wm([]),[o,s]=(0,_.useState)(null);(0,_.useEffect)(()=>{t([{id:`1`,type:`test`,data:{node:{id:`1`,label:`Users`,kind:`table`,color:`red`,fields:[{id:`1`,name:`id`,dataType:`int`,color:`#4CAF50`},{id:`2`,name:`name`,dataType:`varchar`},{id:`3`,name:`email`,dataType:`varchar`,color:`#FF9800`}]}},position:{x:10,y:0},sourcePosition:G.Right},{id:`2`,type:`test`,data:{node:{id:`2`,label:`Orders`,kind:`table`,color:`blue`,fields:[{id:`1`,name:`id`,dataType:`int`,color:`#4CAF50`},{id:`2`,name:`user_id`,dataType:`int`,color:`#2196F3`},{id:`3`,name:`total`,dataType:`decimal`,connectable:!1,color:`#FF9800`}]}},position:{x:400,y:0},sourcePosition:G.Right},{id:`test-simple`,type:`test`,data:{node:{id:`test-simple`,label:`TEST-SIMPLE`,kind:`table`,color:`green`,fields:[]}},position:{x:10,y:150},sourcePosition:G.Right}]),i([{id:`rel-1`,source:`1`,target:`2`,sourceHandle:`1-source`,targetHandle:`2-target`,data:{relationshipId:`rel-1`}}])},[t,i]);let c=e=>{e.preventDefault(),s({x:e.clientX,y:e.clientY})},l=e=>{let n=eg({label:e.label,kind:e.kind}),r={id:n.id,type:`test`,data:{node:n},position:{x:o?.x??100,y:o?.y??100}};t(e=>[...e,r]),s(null)},u=(0,_.useCallback)(e=>i(t=>Tf(e,t)),[i]);return(0,V.jsx)(Mh,{children:(0,V.jsxs)(Nh,{nodes:e,edges:r,nodeTypes:og,onNodesChange:n,onEdgesChange:a,connectionLineComponent:ng,onPaneContextMenu:c,onPaneClick:()=>s(null),onConnect:u,onNodeClick:(e,t)=>{console.log(`[DEBUG] Node clicked:`,t.id,t.selected)},proOptions:{hideAttribution:!0},children:[(0,V.jsx)(Sh,{nodeColor:`#007acc`,nodeStrokeColor:`#454545`,bgColor:`#1e1e1e`,maskColor:`rgba(0, 0, 0, 0.6)`,style:{width:200,border:`1px solid #454545`}}),(0,V.jsx)(Ph,{}),(0,V.jsx)(ag,{contextMenu:o,onCreateNode:l})]})})},cg=()=>(0,V.jsx)(sg,{});function lg(){let[e,t]=(0,_.useState)(`editor`),n=(0,_.useCallback)(e=>{let n=e.data;switch(n.type){case ir.WORKSPACEUPDATED:break;case ir.SET_APP_MODE:n.mode&&t(n.mode)}},[]);return(0,_.useEffect)(()=>(window.addEventListener(`message`,n),()=>{window.removeEventListener(`message`,n)}),[n]),(0,_.useEffect)(()=>{let e={messageType:tr.WEBVIEW_DID_LAUNCH};er._postMessage(e)},[]),(0,V.jsx)(`main`,{children:(0,V.jsxs)(`div`,{className:`webview-container`,children:[e===`editor`&&(0,V.jsx)(cg,{}),e===`sidebar`&&(0,V.jsx)(rr,{})]})})}(0,v.createRoot)(document.getElementById(`root`)).render((0,V.jsx)(_.StrictMode,{children:(0,V.jsx)(lg,{})}));

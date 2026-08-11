@@ -164,12 +164,14 @@ const SchemaNodeComponentField = styled.div`
   .schema-data-type-field-label {
     max-width: 62%;
     overflow: hidden;
+    flex: 1;
   }
   .schema-data-type-field-label-type {
-    max-width: 35%;
+    max-width: 38%;
     overflow: hidden;
     padding: 1px 2px;
     text-overflow: ellipsis;
+    flex: 1;
   }
   .schema-data-type-field-text {
     padding: 0;
@@ -184,6 +186,51 @@ const SchemaNodeComponentField = styled.div`
     font-size: 14px;
     opacity: 0.8;
     font-weight: 400;
+  }
+`;
+
+const SchemaNodeComponentEditTrigger = styled.div`
+  cursor: pointer;
+  &:hover {
+    opacity: 0.85;
+  }
+`;
+
+const SchemaNodeComponentEditInput = styled.input`
+  width: 100%;
+  min-width: 0;
+  background: var(--vscode-input-background, #3c3c3c);
+  color: var(--vscode-input-foreground, #cccccc);
+  border: 1px solid var(--vscode-input-border, var(--gray-30));
+  padding: 2px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 2px;
+  outline: none;
+
+  &:focus {
+    border-color: var(--vscode-focusBorder, var(--gray-70));
+  }
+`;
+
+const SchemaNodeComponentEditSelect = styled.select`
+  width: 100%;
+  min-width: 0;
+  background: var(--vscode-dropdown-background, #3c3c3c);
+  color: var(--vscode-dropdown-foreground, #cccccc);
+  border: 1px solid var(--vscode-dropdown-border, var(--gray-30));
+  padding: 2px 4px;
+  font-size: 13px;
+  border-radius: 2px;
+  outline: none;
+
+  &:focus {
+    border-color: var(--vscode-focusBorder, var(--gray-70));
+  }
+
+  option {
+    background: var(--vscode-dropdown-background, #3c3c3c);
+    color: var(--vscode-dropdown-foreground, #cccccc);
   }
 `;
 
@@ -257,4 +304,7 @@ export {
   SchemaNodeComponentField,
   SchemaNodeComponentToolBar,
   SchemaNodeComponentEdgeHandle,
+  SchemaNodeComponentEditInput,
+  SchemaNodeComponentEditSelect,
+  SchemaNodeComponentEditTrigger,
 };

@@ -1,5 +1,5 @@
 import type { SchemaNode } from "@dbchart/schema";
-import { generateNodeColor, generateNodeId } from "./general-utils";
+import { generateNodeColor, generateNodeId } from "../utils/general-utils";
 
 /** Default values used when creating a new SchemaNode */
 const DEFAULT_SCHEMA_NODE: Omit<SchemaNode, "id"> = {
