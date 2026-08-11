@@ -428,7 +428,7 @@ Error generating stack: `+e.message+`
     }
   }
 `,Ih=B.div`
-  z-index:10;
+  z-index: 10;
   padding: 2px;
   border: 2px dashed transparent;
   width: fit-content;
@@ -448,28 +448,36 @@ Error generating stack: `+e.message+`
       pointer-events: none;
       background:
         linear-gradient(
-            90deg,
-            var(--vscode-focusBorder, var(--gray-70)) 50%,
-            transparent 50%
-          ),
+          90deg,
+          var(--vscode-focusBorder, var(--gray-70)) 50%,
+          transparent 50%
+        ),
         linear-gradient(
-            90deg,
-            var(--vscode-focusBorder, var(--gray-70)) 50%,
-            transparent 50%
-          ),
+          90deg,
+          var(--vscode-focusBorder, var(--gray-70)) 50%,
+          transparent 50%
+        ),
         linear-gradient(
-            0deg,
-            var(--vscode-focusBorder, var(--gray-70)) 50%,
-            transparent 50%
-          ),
+          0deg,
+          var(--vscode-focusBorder, var(--gray-70)) 50%,
+          transparent 50%
+        ),
         linear-gradient(
-            0deg,
-            var(--vscode-focusBorder, var(--gray-70)) 50%,
-            transparent 50%
-          );
+          0deg,
+          var(--vscode-focusBorder, var(--gray-70)) 50%,
+          transparent 50%
+        );
       background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
-      background-size: 16px 2px, 16px 2px, 2px 16px, 2px 16px;
-      background-position: 0 0, 0 100%, 0 0, 100% 0;
+      background-size:
+        16px 2px,
+        16px 2px,
+        2px 16px,
+        2px 16px;
+      background-position:
+        0 0,
+        0 100%,
+        0 0,
+        100% 0;
       animation: schema-node-dash-roll 0.5s linear infinite;
 
       @media (prefers-reduced-motion: reduce) {
@@ -479,10 +487,18 @@ Error generating stack: `+e.message+`
 
     @keyframes schema-node-dash-roll {
       0% {
-        background-position: 0 0, 0 100%, 0 0, 100% 0;
+        background-position:
+          0 0,
+          0 100%,
+          0 0,
+          100% 0;
       }
       100% {
-        background-position: 16px 0, -16px 100%, 0 -16px, 100% 16px;
+        background-position:
+          16px 0,
+          -16px 100%,
+          0 -16px,
+          100% 16px;
       }
     }
   }

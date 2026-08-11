@@ -5,13 +5,14 @@ interface SchemaNodeComponentMainDivProp {
   $bgColor: string;
 }
 const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
-  z-index:10;
+  z-index: 10;
   padding: 2px;
   border: 2px dashed transparent;
   width: fit-content;
   min-width: 300px;
   border-radius: 4px;
   max-width: 300px;
+  position:relative;
   background: ${(p) => p.$bgColor};
 
   &.selected {
@@ -25,28 +26,36 @@ const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
       pointer-events: none;
       background:
         linear-gradient(
-            90deg,
-            var(--vscode-focusBorder, var(--gray-70)) 50%,
-            transparent 50%
-          ),
+          90deg,
+          var(--vscode-focusBorder, var(--gray-70)) 50%,
+          transparent 50%
+        ),
         linear-gradient(
-            90deg,
-            var(--vscode-focusBorder, var(--gray-70)) 50%,
-            transparent 50%
-          ),
+          90deg,
+          var(--vscode-focusBorder, var(--gray-70)) 50%,
+          transparent 50%
+        ),
         linear-gradient(
-            0deg,
-            var(--vscode-focusBorder, var(--gray-70)) 50%,
-            transparent 50%
-          ),
+          0deg,
+          var(--vscode-focusBorder, var(--gray-70)) 50%,
+          transparent 50%
+        ),
         linear-gradient(
-            0deg,
-            var(--vscode-focusBorder, var(--gray-70)) 50%,
-            transparent 50%
-          );
+          0deg,
+          var(--vscode-focusBorder, var(--gray-70)) 50%,
+          transparent 50%
+        );
       background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
-      background-size: 16px 2px, 16px 2px, 2px 16px, 2px 16px;
-      background-position: 0 0, 0 100%, 0 0, 100% 0;
+      background-size:
+        16px 2px,
+        16px 2px,
+        2px 16px,
+        2px 16px;
+      background-position:
+        0 0,
+        0 100%,
+        0 0,
+        100% 0;
       animation: schema-node-dash-roll 0.5s linear infinite;
 
       @media (prefers-reduced-motion: reduce) {
@@ -56,10 +65,18 @@ const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
 
     @keyframes schema-node-dash-roll {
       0% {
-        background-position: 0 0, 0 100%, 0 0, 100% 0;
+        background-position:
+          0 0,
+          0 100%,
+          0 0,
+          100% 0;
       }
       100% {
-        background-position: 16px 0, -16px 100%, 0 -16px, 100% 16px;
+        background-position:
+          16px 0,
+          -16px 100%,
+          0 -16px,
+          100% 16px;
       }
     }
   }
@@ -177,17 +194,20 @@ const SchemaNodeComponentToolBar = styled(NodeToolbar)`
   border-radius: 6px;
   z-index: 10;
   position: relative;
-  width: 20px;
+  width:100%;
+  max-width:200px;
   pointer-events: none;
 
   > div {
     position: absolute;
-    left: -66px;
+    right: 10px;
+    width:fit-content;
     bottom: 0;
     display: flex;
     gap: 2px;
     align-items: flex-end;
     justify-content: end;
+    border:1px solid red;
     pointer-events: auto;
   }
   .schema-node-button {
@@ -197,7 +217,6 @@ const SchemaNodeComponentToolBar = styled(NodeToolbar)`
     max-width: 400px;
   }
 `;
-
 
 interface SchemaNodeComponentEdgeHandleProp {
   $color?: string;
