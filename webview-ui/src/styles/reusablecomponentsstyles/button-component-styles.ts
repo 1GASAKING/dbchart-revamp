@@ -23,12 +23,12 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
     opacity: 0.7;
     border-color: var(--vscode-focusBorder, var(--gray-70));
   }
-    
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-    
+
   &.footer-button {
     width: fit-content;
     display: flex;
@@ -62,7 +62,7 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
     display: grid;
     grid-template-columns: auto 0fr;
     gap: 0px;
-          font-size:16px;
+    font-size: 12px;
 
     align-items: center;
     overflow: hidden;
@@ -75,8 +75,7 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
       overflow: hidden;
       white-space: nowrap;
       min-width: 0;
-      align-items:top;
-      
+      align-items: top;
     }
     .button-text {
       padding: 0;
@@ -86,7 +85,7 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
     &:hover {
       grid-template-columns: auto 1fr;
       gap: 8px;
-      opacity:1;
+      opacity: 1;
     }
   }
 `;

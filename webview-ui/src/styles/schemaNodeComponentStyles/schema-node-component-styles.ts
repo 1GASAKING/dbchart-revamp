@@ -207,7 +207,6 @@ const SchemaNodeComponentToolBar = styled(NodeToolbar)`
     gap: 2px;
     align-items: flex-end;
     justify-content: end;
-    border:1px solid red;
     pointer-events: auto;
   }
   .schema-node-button {

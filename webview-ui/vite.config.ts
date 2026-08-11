@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@shared': fileURLToPath(new URL('../src/shared', import.meta.url)),
+      '@lib': fileURLToPath(new URL('../lib', import.meta.url)),
     },
   },
    build: {
@@ -39,5 +40,6 @@ export default defineConfig({
     },
   },
 })
+
 
 

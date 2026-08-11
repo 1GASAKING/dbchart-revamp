@@ -1,12 +1,29 @@
-import { type NodeProps, Handle, Position } from "@xyflow/react"
+import { type NodeProps, Handle, Position, useReactFlow } from "@xyflow/react"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
 import { SchemaNodeComponentBody, SchemaNodeComponentEdgeHandle, SchemaNodeComponentField, SchemaNodeComponentHeader, SchemaNodeComponentMainDiv, SchemaNodeComponentToolBar } from "../../styles/schemaNodeComponentStyles/schema-node-component-styles"
 import { ReactComponent as ExpandIcon } from "./assets/expand-square-4.svg?react"
 import type { DesignFlowNode } from "../../types/schema-node-ui"
+import { useState } from "react"
+import { createDesignField } from "@lib/utils"
 
-const SchemaNodeComponent = ({ data, selected }: NodeProps<DesignFlowNode>) => {
+const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) => {
     const { node } = data;
+    const [isChanges,setIsChange ] = useState<boolean>();
+    const [isNewField,setIsNewField ] = useState<boolean>();
 
+    const { updateNodeData } = useReactFlow();
+
+    const handleAddField = () => {
+        const newField = createDesignField({
+            name: `new_field_${node.fields.length + 1}`,
+        });
+        updateNodeData(id, {
+            node: {
+                ...node,
+                fields: [...node.fields, newField],
+            },
+        });
+    };
 
     return (
         <SchemaNodeComponentMainDiv $bgColor={data.node.color} className={selected ? "selected" : ""}>
@@ -15,7 +32,7 @@ const SchemaNodeComponent = ({ data, selected }: NodeProps<DesignFlowNode>) => {
             <SchemaNodeComponentToolBar position={Position.Top} align={"end"}>
                 <div>
                     <div className="schema-node-button ">
-                        <VsButton className="text-icon-reveal">
+                        <VsButton className="text-icon-reveal" onClick={handleAddField}>
                             <div>
                                 <i className="codicon codicon-add-small"></i>                            </div>
                             <div className="text-holder">
@@ -137,6 +154,8 @@ const SchemaNodeComponent = ({ data, selected }: NodeProps<DesignFlowNode>) => {
 
                 </SchemaNodeComponentBody>
 
+
+
             </div>
 
 
@@ -146,3 +165,7 @@ const SchemaNodeComponent = ({ data, selected }: NodeProps<DesignFlowNode>) => {
 
 }
 export default SchemaNodeComponent
+
+
+
+
