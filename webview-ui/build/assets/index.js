@@ -426,6 +426,11 @@ Error generating stack: `+e.message+`
       opacity: 1;
     }
   }
+  &.delete-button {
+    i {
+      color: red;
+    }
+  }
 `,Ih=B.div`
   z-index: 10;
   padding: 2px;
@@ -434,7 +439,7 @@ Error generating stack: `+e.message+`
   min-width: 300px;
   border-radius: 4px;
   max-width: 300px;
-  position:relative;
+  position: relative;
   background: ${e=>e.$bgColor};
 
   &.selected {
@@ -502,6 +507,12 @@ Error generating stack: `+e.message+`
       }
     }
   }
+  .schema-node-button {
+    display: flex;
+    height: 26px;
+    width: fit-content;
+    max-width: 400px;
+  }
 `,Lh=B.div`
   width: 100%;
 
@@ -552,8 +563,12 @@ Error generating stack: `+e.message+`
     width: 100%;
     background: ${e=>e.$bgColor};
   }
+
+
 `,Rh=B.div`
   background: var(--vscode-editor-background, var(--gray-100));
+
+  padding-bottom: 10px;
 
   > div {
     display: flex;
@@ -561,7 +576,7 @@ Error generating stack: `+e.message+`
     gap: 2px;
   }
 `,zh=B.div`
-  padding: 4px 0;
+  padding: 4px 6px;
   width: 100%;
   position: relative;
 
@@ -569,13 +584,18 @@ Error generating stack: `+e.message+`
     display: flex;
     align-items: flex-start;
     width: 100%;
-    gap: 1px;
+  }
+  .field-buttons-holder {
+    gap: 4px;
+    height: 20px;
+    align-items: center;
   }
   .schema-data-type-field-item {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
   }
   .schema-data-type-field-label {
     max-width: 62%;
@@ -602,6 +622,11 @@ Error generating stack: `+e.message+`
     font-size: 14px;
     opacity: 0.8;
     font-weight: 400;
+    text-align: right;
+  }
+  .schema-edit-field {
+    height: 35px;
+    align-items: center;
   }
 `;B.div`
   cursor: pointer;
@@ -614,11 +639,13 @@ Error generating stack: `+e.message+`
   background: var(--vscode-input-background, #3c3c3c);
   color: var(--vscode-input-foreground, #cccccc);
   border: 1px solid var(--vscode-input-border, var(--gray-30));
-  padding: 2px 4px;
-  font-size: 13px;
+  padding: 4px;
+  font-size: 14px;
   font-weight: 500;
-  border-radius: 2px;
+  border-radius: 4px;
   outline: none;
+  flex:1;
+  height:30px;
 
   &:focus {
     border-color: var(--vscode-focusBorder, var(--gray-70));
@@ -630,9 +657,10 @@ Error generating stack: `+e.message+`
   color: var(--vscode-dropdown-foreground, #cccccc);
   border: 1px solid var(--vscode-dropdown-border, var(--gray-30));
   padding: 2px 4px;
-  font-size: 13px;
-  border-radius: 2px;
+  font-size: 14px;
+  border-radius: 4px;
   outline: none;
+  height:30px;
 
   &:focus {
     border-color: var(--vscode-focusBorder, var(--gray-70));
@@ -649,14 +677,14 @@ Error generating stack: `+e.message+`
   border-radius: 6px;
   z-index: 10;
   position: relative;
-  width:100%;
-  max-width:200px;
+  width: 100%;
+  max-width: 200px;
   pointer-events: none;
 
   > div {
     position: absolute;
     right: 10px;
-    width:fit-content;
+    width: fit-content;
     bottom: 0;
     display: flex;
     gap: 2px;
@@ -664,12 +692,7 @@ Error generating stack: `+e.message+`
     justify-content: end;
     pointer-events: auto;
   }
-  .schema-node-button {
-    display: flex;
-    height: 26px;
-    width: fit-content;
-    max-width: 400px;
-  }
+ 
 `,Uh=B.div`
   max-width: 8px;
   height: 8px;
@@ -697,7 +720,7 @@ Error generating stack: `+e.message+`
     background: ${e=>e.$color||`var(--vscode-editorHoverWidget-border, #2d2d2d)`};
     border-radius: 1px;
   }
-`,Wh=e=>(0,V.jsxs)(`svg`,{width:80,height:80,viewBox:`0 0 25 24`,fill:`none`,xmlns:`http://www.w3.org/2000/svg`,transform:`rotate(0 0 0)`,...e,children:[(0,V.jsx)(`path`,{d:`M3.5625 5.5C3.5625 4.25736 4.56986 3.25 5.8125 3.25H8.31213C8.72635 3.25 9.06213 3.58579 9.06213 4C9.06213 4.41421 8.72635 4.75 8.31213 4.75H5.8125C5.39829 4.75 5.0625 5.08579 5.0625 5.5V8C5.0625 8.41421 4.72671 8.75 4.3125 8.75C3.89829 8.75 3.5625 8.41421 3.5625 8V5.5Z`,fill:`currentColor`}),(0,V.jsx)(`path`,{d:`M20.3111 15.25C20.7253 15.25 21.0611 15.5858 21.0611 16L21.0611 18.5C21.0611 19.7426 20.0537 20.75 18.8111 20.75H16.3114C15.8972 20.75 15.5614 20.4142 15.5614 20C15.5614 19.5858 15.8972 19.25 16.3114 19.25H18.8111C19.2253 19.25 19.5611 18.9142 19.5611 18.5L19.5611 16C19.5611 15.5858 19.8968 15.25 20.3111 15.25Z`,fill:`currentColor`}),(0,V.jsxs)(`g`,{opacity:.4,children:[(0,V.jsx)(`path`,{d:`M15.5614 4C15.5614 3.58579 15.8972 3.25 16.3114 3.25H18.811C20.0537 3.25 21.061 4.25736 21.061 5.5L21.061 8C21.061 8.41421 20.7253 8.75 20.311 8.75C19.8968 8.75 19.561 8.41421 19.561 8L19.561 5.5C19.561 5.08579 19.2253 4.75 18.811 4.75H16.3114C15.8972 4.75 15.5614 4.41421 15.5614 4Z`,fill:`currentColor`}),(0,V.jsx)(`path`,{d:`M4.3125 15.25C4.72671 15.25 5.0625 15.5858 5.0625 16V18.5C5.0625 18.9142 5.39829 19.25 5.8125 19.25H8.31214C8.72635 19.25 9.06214 19.5858 9.06214 20C9.06214 20.4142 8.72635 20.75 8.31214 20.75H5.8125C4.56986 20.75 3.5625 19.7426 3.5625 18.5V16C3.5625 15.5858 3.89829 15.25 4.3125 15.25Z`,fill:`currentColor`})]})]}),Gh=[`varchar`,`int`,`bigint`,`text`,`boolean`,`decimal`,`float`,`date`,`timestamp`,`time`,`json`,`uuid`,`bytea`],Kh=[`#E53935`,`#D81B60`,`#8E24AA`,`#5E35B1`,`#3949AB`,`#1E88E5`,`#039BE5`,`#00ACC1`,`#00897B`,`#43A047`,`#7CB342`,`#C0CA33`,`#FDD835`,`#FFB300`,`#FB8C00`,`#F4511E`,`#6D4C41`,`#546E7A`];function qh(e=`id`){return`${e}-${Date.now()}-${Math.random().toString(36).slice(2,9)}`}function Jh(){return qh(`field`)}function Yh(){return qh(`node`)}function Xh(){return Kh[Math.floor(Math.random()*Kh.length)]}var Zh={name:`new_field`,dataType:`varchar`};function Qh(e={}){return{...Zh,...e,id:Jh()}}var $h={label:`New Table`,kind:`table`,color:Xh(),fields:[]};function eg(e={}){return{...$h,...e,id:Yh()}}var tg=({id:e,data:t,selected:n})=>{let{node:r}=t,i=(0,_.useRef)(null),[a,o]=(0,_.useState)([]),[s,c]=(0,_.useState)(``),[l,u]=(0,_.useState)(Gh[0]),{updateNodeData:d}=If(),f=a.length>0,p=()=>{let t=Qh({name:`new_field_${r.fields.length+1}`});d(e,{node:{...r,fields:[...r.fields,t]}}),o(e=>[...e,t.id]),c(t.name),u(t.dataType)},m=()=>{let t=a[a.length-1];t&&(d(e,{node:{...r,fields:r.fields.map(e=>e.id===t?{...e,name:s,dataType:l}:e)}}),o(e=>e.filter(e=>e!==t)),c(``),u(Gh[0]))};return(0,_.useEffect)(()=>{if(!f)return;let t=t=>{let n=t.target;i.current?.contains(n)||n.closest(`.schema-node-toolbar`)||(d(e,{node:{...r,fields:r.fields.filter(e=>!a.includes(e.id))}}),o([]),c(``),u(Gh[0]))};return document.addEventListener(`mousedown`,t),()=>document.removeEventListener(`mousedown`,t)},[f,e,r,a,d]),(0,V.jsxs)(Ih,{ref:i,$bgColor:t.node.color,className:(n?`selected `:``)+`schema-node-toolbar`,children:[(0,V.jsx)(Hh,{position:G.Top,align:`end`,children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,onClick:p,children:[(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`i`,{className:`codicon codicon-add-small`}),`                            `]}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Add Field`})})]})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Edit`})})]})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(Wh,{width:16,height:19})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Expand`})})]})}),f&&(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,onClick:m,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-save`})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Save`})})]})})]})}),(0,V.jsxs)(`div`,{children:[(0,V.jsx)(Lh,{$bgColor:t.node.color,children:(0,V.jsx)(`div`,{children:(0,V.jsxs)(`div`,{className:`schema-node-header`,children:[(0,V.jsx)(`div`,{className:`schema-label-header-indicator`}),(0,V.jsx)(`div`,{className:`schema-node-header-holder`,children:(0,V.jsx)(`div`,{className:`schema-label-header`,title:r.label,children:(0,V.jsx)(`h4`,{className:`schema-label-text`,children:r.label})})})]})})}),(0,V.jsx)(Rh,{children:(0,V.jsx)(`div`,{children:r.fields.map(e=>{let t=a.includes(e.id);return(0,V.jsxs)(zh,{children:[(0,V.jsx)(Uh,{$color:e.color,className:`left`,children:e.connectable!==!1&&(0,V.jsx)(lp,{className:`handle`,type:`target`,position:G.Left,id:`${e.id}-target`})}),(0,V.jsx)(`div`,{children:t?(0,V.jsxs)(`div`,{className:`schema-data-type-field-item`,children:[(0,V.jsx)(`div`,{className:`schema-data-type-field-label`,children:(0,V.jsx)(Bh,{autoFocus:!0,value:s,onChange:e=>c(e.target.value),onKeyDown:e=>{e.key===`Enter`&&m()}})}),(0,V.jsx)(`div`,{className:`schema-data-type-field-label-type`,children:(0,V.jsx)(Vh,{value:l,onChange:e=>u(e.target.value),children:Gh.map(e=>(0,V.jsx)(`option`,{value:e,children:e},e))})})]}):(0,V.jsxs)(`div`,{className:`schema-data-type-field-item`,children:[(0,V.jsx)(`div`,{className:`schema-data-type-field-label`,children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`schema-data-type-field-text`,children:e.name})})}),(0,V.jsx)(`div`,{className:`schema-data-type-field-label-type`,children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`schema-data-type-field-text schema-data-type-field-data-type`,children:e.dataType})})})]})}),(0,V.jsx)(Uh,{$color:e.color,className:`right`,children:e.connectable!==!1&&(0,V.jsx)(lp,{className:`handle`,type:`source`,position:G.Right,id:`${e.id}-source`})})]},e.id)})})})]})]})},ng=({fromX:e,fromY:t,toX:n,toY:r})=>{let i=Em(),a=i.fromNode?.data?.node,o=(i.fromHandle?.id)?.replace(/-source$|-target$/,``),s=a?.fields.find(e=>e.id===o)?.color??`var(--vscode-editorHoverWidget-border, #2d2d2d)`;return(0,V.jsxs)(`g`,{children:[(0,V.jsx)(`path`,{fill:`none`,stroke:s,strokeWidth:2,className:`animated`,d:`M${e},${t} C ${e+50},${t} ${n-50},${r} ${n},${r}`}),(0,V.jsx)(`circle`,{cx:n,cy:r,fill:s,r:4})]})},rg=B.div`
+`,Wh=e=>(0,V.jsxs)(`svg`,{width:80,height:80,viewBox:`0 0 25 24`,fill:`none`,xmlns:`http://www.w3.org/2000/svg`,transform:`rotate(0 0 0)`,...e,children:[(0,V.jsx)(`path`,{d:`M3.5625 5.5C3.5625 4.25736 4.56986 3.25 5.8125 3.25H8.31213C8.72635 3.25 9.06213 3.58579 9.06213 4C9.06213 4.41421 8.72635 4.75 8.31213 4.75H5.8125C5.39829 4.75 5.0625 5.08579 5.0625 5.5V8C5.0625 8.41421 4.72671 8.75 4.3125 8.75C3.89829 8.75 3.5625 8.41421 3.5625 8V5.5Z`,fill:`currentColor`}),(0,V.jsx)(`path`,{d:`M20.3111 15.25C20.7253 15.25 21.0611 15.5858 21.0611 16L21.0611 18.5C21.0611 19.7426 20.0537 20.75 18.8111 20.75H16.3114C15.8972 20.75 15.5614 20.4142 15.5614 20C15.5614 19.5858 15.8972 19.25 16.3114 19.25H18.8111C19.2253 19.25 19.5611 18.9142 19.5611 18.5L19.5611 16C19.5611 15.5858 19.8968 15.25 20.3111 15.25Z`,fill:`currentColor`}),(0,V.jsxs)(`g`,{opacity:.4,children:[(0,V.jsx)(`path`,{d:`M15.5614 4C15.5614 3.58579 15.8972 3.25 16.3114 3.25H18.811C20.0537 3.25 21.061 4.25736 21.061 5.5L21.061 8C21.061 8.41421 20.7253 8.75 20.311 8.75C19.8968 8.75 19.561 8.41421 19.561 8L19.561 5.5C19.561 5.08579 19.2253 4.75 18.811 4.75H16.3114C15.8972 4.75 15.5614 4.41421 15.5614 4Z`,fill:`currentColor`}),(0,V.jsx)(`path`,{d:`M4.3125 15.25C4.72671 15.25 5.0625 15.5858 5.0625 16V18.5C5.0625 18.9142 5.39829 19.25 5.8125 19.25H8.31214C8.72635 19.25 9.06214 19.5858 9.06214 20C9.06214 20.4142 8.72635 20.75 8.31214 20.75H5.8125C4.56986 20.75 3.5625 19.7426 3.5625 18.5V16C3.5625 15.5858 3.89829 15.25 4.3125 15.25Z`,fill:`currentColor`})]})]}),Gh=[`varchar`,`int`,`bigint`,`text`,`boolean`,`decimal`,`float`,`date`,`timestamp`,`time`,`json`,`uuid`,`bytea`],Kh=[`#E53935`,`#D81B60`,`#8E24AA`,`#5E35B1`,`#3949AB`,`#1E88E5`,`#039BE5`,`#00ACC1`,`#00897B`,`#43A047`,`#7CB342`,`#C0CA33`,`#FDD835`,`#FFB300`,`#FB8C00`,`#F4511E`,`#6D4C41`,`#546E7A`];function qh(e=`id`){return`${e}-${Date.now()}-${Math.random().toString(36).slice(2,9)}`}function Jh(){return qh(`field`)}function Yh(){return qh(`node`)}function Xh(){return Kh[Math.floor(Math.random()*Kh.length)]}var Zh={name:`new_field`,dataType:`varchar`};function Qh(e={}){return{...Zh,...e,id:Jh()}}var $h={label:`New Table`,kind:`table`,color:Xh(),fields:[]};function eg(e={}){return{...$h,...e,id:Yh()}}var tg=({id:e,data:t,selected:n})=>{let{node:r}=t,i=(0,_.useRef)(null),[a,o]=(0,_.useState)([]),[s,c]=(0,_.useState)({}),[l,u]=(0,_.useState)([]),{updateNodeData:d}=If(),f=a.length>0,p=e=>{let t={};for(let n of e)t[n.id]={name:n.name,dataType:n.dataType};c(t)},m=(e,t)=>{c(n=>({...n,[e]:{...n[e],name:t}}))},h=(e,t)=>{c(n=>({...n,[e]:{...n[e],dataType:t}}))},g=()=>{let t=Qh({name:`new_field_${r.fields.length+1}`}),n=[...r.fields,t];d(e,{node:{...r,fields:n}}),o(e=>[...e,t.id]),u(e=>[...e,t.id]),c(e=>({...e,[t.id]:{name:t.name,dataType:t.dataType}}))},v=()=>{if(f){let t=r.fields.filter(e=>!l.includes(e.id));d(e,{node:{...r,fields:t}}),o([]),u([]),c({})}else p(r.fields),o(r.fields.map(e=>e.id)),u([])},y=()=>{let t=r.fields.map(e=>{let t=s[e.id];return t?{...e,name:t.name,dataType:t.dataType}:e});d(e,{node:{...r,fields:t}}),o([]),u([])},b=t=>{let n=s[t];if(!n)return;let i=r.fields.map(e=>e.id===t?{...e,name:n.name,dataType:n.dataType}:e);d(e,{node:{...r,fields:i}}),o(e=>e.filter(e=>e!==t)),u(e=>e.filter(e=>e!==t))},x=t=>{d(e,{node:{...r,fields:r.fields.filter(e=>e.id!==t)}}),o(e=>e.filter(e=>e!==t)),u(e=>e.filter(e=>e!==t))};return(0,_.useEffect)(()=>{if(l.length===0)return;let t=t=>{let n=t.target;i.current?.contains(n)||n.closest(`.schema-node-toolbar`)||(d(e,{node:{...r,fields:r.fields.filter(e=>!l.includes(e.id))}}),o(e=>e.filter(e=>!l.includes(e))),u([]))};return document.addEventListener(`mousedown`,t),()=>document.removeEventListener(`mousedown`,t)},[l,e,r,d]),(0,V.jsxs)(Ih,{ref:i,$bgColor:t.node.color,className:(n?`selected `:``)+`schema-node-toolbar`,children:[(0,V.jsx)(Hh,{position:G.Top,align:`end`,children:(0,V.jsxs)(`div`,{children:[(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,onClick:g,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-add-small`})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Add Field`})})]})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,onClick:v,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-edit`})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:f?`save`:`Edit`})})]})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsxs)(Fh,{className:`text-icon-reveal`,children:[(0,V.jsx)(`div`,{children:(0,V.jsx)(Wh,{width:16,height:19})}),(0,V.jsx)(`div`,{className:`text-holder`,children:(0,V.jsx)(`p`,{className:`button-text`,children:`Expand`})})]})})]})}),(0,V.jsxs)(`div`,{children:[(0,V.jsx)(Lh,{$bgColor:t.node.color,children:(0,V.jsx)(`div`,{children:(0,V.jsxs)(`div`,{className:`schema-node-header`,children:[(0,V.jsx)(`div`,{className:`schema-label-header-indicator`}),(0,V.jsx)(`div`,{className:`schema-node-header-holder`,children:(0,V.jsx)(`div`,{className:`schema-label-header`,title:r.label,children:(0,V.jsx)(`h4`,{className:`schema-label-text`,children:r.label})})})]})})}),(0,V.jsx)(Rh,{children:(0,V.jsx)(`div`,{children:r.fields.map(e=>{let t=a.includes(e.id),n=s[e.id];return(0,V.jsxs)(zh,{children:[(0,V.jsx)(Uh,{$color:e.color,className:`left`,children:e.connectable!==!1&&(0,V.jsx)(lp,{className:`handle`,type:`target`,position:G.Left,id:`${e.id}-target`})}),(0,V.jsx)(`div`,{children:t&&n?(0,V.jsxs)(`div`,{className:`schema-data-type-field-item`,children:[(0,V.jsx)(`div`,{className:`schema-data-type-field-label`,children:(0,V.jsx)(Bh,{autoFocus:!0,value:n.name,onChange:t=>m(e.id,t.target.value),onKeyDown:e=>{e.key===`Enter`&&y()}})}),(0,V.jsx)(`div`,{className:`schema-data-type-field-label-type`,children:(0,V.jsx)(Vh,{value:n.dataType,onChange:t=>h(e.id,t.target.value),children:Gh.map(e=>(0,V.jsx)(`option`,{value:e,children:e},e))})}),(0,V.jsxs)(`div`,{className:`flex field-buttons-holder `,children:[(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsx)(Fh,{title:`save`,onClick:()=>b(e.id),children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`i`,{className:`codicon codicon-save`})})})}),(0,V.jsx)(`div`,{className:`schema-node-button `,children:(0,V.jsx)(Fh,{title:`delete`,className:` delete-button`,onClick:()=>x(e.id),children:(0,V.jsx)(`i`,{className:`codicon codicon-trash`})})})]})]}):(0,V.jsxs)(`div`,{className:`schema-data-type-field-item`,children:[(0,V.jsx)(`div`,{className:`schema-data-type-field-label`,children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`schema-data-type-field-text`,children:e.name})})}),(0,V.jsx)(`div`,{className:`schema-data-type-field-label-type`,children:(0,V.jsx)(`div`,{children:(0,V.jsx)(`p`,{className:`schema-data-type-field-text schema-data-type-field-data-type`,children:e.dataType})})})]})}),(0,V.jsx)(Uh,{$color:e.color,className:`right`,children:e.connectable!==!1&&(0,V.jsx)(lp,{className:`handle`,type:`source`,position:G.Right,id:`${e.id}-source`})})]},e.id)})})})]})]})},ng=({fromX:e,fromY:t,toX:n,toY:r})=>{let i=Em(),a=i.fromNode?.data?.node,o=(i.fromHandle?.id)?.replace(/-source$|-target$/,``),s=a?.fields.find(e=>e.id===o)?.color??`var(--vscode-editorHoverWidget-border, #2d2d2d)`;return(0,V.jsxs)(`g`,{children:[(0,V.jsx)(`path`,{fill:`none`,stroke:s,strokeWidth:2,className:`animated`,d:`M${e},${t} C ${e+50},${t} ${n-50},${r} ${n},${r}`}),(0,V.jsx)(`circle`,{cx:n,cy:r,fill:s,r:4})]})},rg=B.div`
   border: 1px solid var(--vscode-editorWidget-border, #454545);
   border-radius: 4px;
   min-width: 200px;

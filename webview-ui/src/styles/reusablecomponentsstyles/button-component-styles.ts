@@ -88,6 +88,11 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
       opacity: 1;
     }
   }
+  &.delete-button {
+    i {
+      color: red;
+    }
+  }
 `;
 
 export { VsButton };

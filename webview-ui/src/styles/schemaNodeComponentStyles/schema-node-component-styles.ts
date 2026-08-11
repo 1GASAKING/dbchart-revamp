@@ -12,7 +12,7 @@ const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
   min-width: 300px;
   border-radius: 4px;
   max-width: 300px;
-  position:relative;
+  position: relative;
   background: ${(p) => p.$bgColor};
 
   &.selected {
@@ -80,6 +80,12 @@ const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
       }
     }
   }
+  .schema-node-button {
+    display: flex;
+    height: 26px;
+    width: fit-content;
+    max-width: 400px;
+  }
 `;
 
 const SchemaNodeComponentHeader = styled.div<SchemaNodeComponentMainDivProp>`
@@ -132,10 +138,14 @@ const SchemaNodeComponentHeader = styled.div<SchemaNodeComponentMainDivProp>`
     width: 100%;
     background: ${(p) => p.$bgColor};
   }
+
+
 `;
 
 const SchemaNodeComponentBody = styled.div`
   background: var(--vscode-editor-background, var(--gray-100));
+
+  padding-bottom: 10px;
 
   > div {
     display: flex;
@@ -145,7 +155,7 @@ const SchemaNodeComponentBody = styled.div`
 `;
 
 const SchemaNodeComponentField = styled.div`
-  padding: 4px 0;
+  padding: 4px 6px;
   width: 100%;
   position: relative;
 
@@ -153,13 +163,18 @@ const SchemaNodeComponentField = styled.div`
     display: flex;
     align-items: flex-start;
     width: 100%;
-    gap: 1px;
+  }
+  .field-buttons-holder {
+    gap: 4px;
+    height: 20px;
+    align-items: center;
   }
   .schema-data-type-field-item {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
   }
   .schema-data-type-field-label {
     max-width: 62%;
@@ -186,6 +201,11 @@ const SchemaNodeComponentField = styled.div`
     font-size: 14px;
     opacity: 0.8;
     font-weight: 400;
+    text-align: right;
+  }
+  .schema-edit-field {
+    height: 35px;
+    align-items: center;
   }
 `;
 
@@ -202,11 +222,13 @@ const SchemaNodeComponentEditInput = styled.input`
   background: var(--vscode-input-background, #3c3c3c);
   color: var(--vscode-input-foreground, #cccccc);
   border: 1px solid var(--vscode-input-border, var(--gray-30));
-  padding: 2px 4px;
-  font-size: 13px;
+  padding: 4px;
+  font-size: 14px;
   font-weight: 500;
-  border-radius: 2px;
+  border-radius: 4px;
   outline: none;
+  flex:1;
+  height:30px;
 
   &:focus {
     border-color: var(--vscode-focusBorder, var(--gray-70));
@@ -220,9 +242,10 @@ const SchemaNodeComponentEditSelect = styled.select`
   color: var(--vscode-dropdown-foreground, #cccccc);
   border: 1px solid var(--vscode-dropdown-border, var(--gray-30));
   padding: 2px 4px;
-  font-size: 13px;
-  border-radius: 2px;
+  font-size: 14px;
+  border-radius: 4px;
   outline: none;
+  height:30px;
 
   &:focus {
     border-color: var(--vscode-focusBorder, var(--gray-70));
@@ -241,14 +264,14 @@ const SchemaNodeComponentToolBar = styled(NodeToolbar)`
   border-radius: 6px;
   z-index: 10;
   position: relative;
-  width:100%;
-  max-width:200px;
+  width: 100%;
+  max-width: 200px;
   pointer-events: none;
 
   > div {
     position: absolute;
     right: 10px;
-    width:fit-content;
+    width: fit-content;
     bottom: 0;
     display: flex;
     gap: 2px;
@@ -256,12 +279,7 @@ const SchemaNodeComponentToolBar = styled(NodeToolbar)`
     justify-content: end;
     pointer-events: auto;
   }
-  .schema-node-button {
-    display: flex;
-    height: 26px;
-    width: fit-content;
-    max-width: 400px;
-  }
+ 
 `;
 
 interface SchemaNodeComponentEdgeHandleProp {
