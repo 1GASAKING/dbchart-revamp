@@ -38,6 +38,17 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const updateLocalDataType = (fieldId: string, dataType: FieldDataType) =>
         setLocalEdits((prev) => ({ ...prev, [fieldId]: { ...prev[fieldId], dataType } }))
 
+    // --- reset: bring edit state to neutral ---
+    const resetEditState = () => {
+        // discard unsaved new fields from node
+        if (newFieldIds.length > 0) {
+            updateNodeData(id, { node: { ...node, fields: node.fields.filter((f) => !newFieldIds.includes(f.id)) } })
+        }
+        setEditingFieldIds([])
+        setNewFieldIds([])
+        setLocalEdits({})
+    }
+
     // --- add field ---
     const handleAddField = () => {
         const newField = createDesignField({ name: `new_field_${node.fields.length + 1}` })
@@ -68,7 +79,9 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
 
     // --- edit all: toggle in / save all ---
     const handleEditOrSaveAll = () => {
-        if (hasEdits && newFieldIds.length === 0) {
+        // first reset any pending new fields
+        if (hasNewField) { resetEditState(); return }
+        if (hasEdits) {
             // Save all edits
             const updated = node.fields.map((f) => {
                 const edit = localEdits[f.id]
