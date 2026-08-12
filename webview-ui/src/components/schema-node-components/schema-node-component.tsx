@@ -121,7 +121,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                     {!hasNewField && (
                         <div className="schema-node-button ">
                             <VsButton className="text-icon-reveal" onClick={handleEditOrSaveAll}>
-                                <div><i className= {"codicon codicon-"+isEditAllMode ?"save":"edit" } ></i></div>
+                                <div><i className={'codicon codicon-' + (isEditAllMode ? "save" : "edit")}></i></div>
                                 <div className="text-holder"><p className="button-text">{editBtnLabel}</p></div>
                             </VsButton>
                         </div>
