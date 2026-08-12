@@ -6,6 +6,7 @@ import ContextMenuComponent from "./contextmenu-component"
 import { useCallback, useEffect, useState } from "react"
 import type { DesignFlowNode, DesignFlowEdge, ContextMenuData } from "../../types/schema-node-ui"
 import { createSchemaNode } from "@lib/utils"
+import { ToastProvider } from "../../contexts/toast-context"
 
 const nodeTypes = {
     test: SchemaNodeComponent,
@@ -116,6 +117,7 @@ const CanvasComponent = () => {
 
 
     return (
+        <ToastProvider>
         <CanvasComponentMainDiv>
             <CanvasComponentReactFlow
                 nodes={nodes}
@@ -152,8 +154,8 @@ const CanvasComponent = () => {
 
             </CanvasComponentReactFlow>
 
-
         </CanvasComponentMainDiv>
+        </ToastProvider>
     )
 
 }

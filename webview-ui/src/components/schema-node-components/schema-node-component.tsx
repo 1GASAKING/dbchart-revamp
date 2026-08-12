@@ -5,7 +5,8 @@ import { ReactComponent as ExpandIcon } from "./assets/expand-square-4.svg?react
 import type { DesignFlowNode } from "../../types/schema-node-ui"
 import type { FieldDataType, DesignField } from "@dbchart/schema"
 import { useEffect, useRef, useState } from "react"
-import { createDesignField, DATA_TYPES } from "@lib/utils"
+import { createDesignField, DATA_TYPES, validateFieldName, getFieldNameErrorMessage } from "@lib/utils"
+import { useToast } from "../../contexts/toast-context"
 
 type EditEntry = { name: string; dataType: FieldDataType }
 
@@ -19,8 +20,8 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const [localEdits, setLocalEdits] = useState<Record<string, EditEntry>>({})
     /** Fields that were just created and haven't been saved yet (for click-outside discard) */
     const [newFieldIds, setNewFieldIds] = useState<string[]>([])
-
     const { updateNodeData } = useReactFlow()
+    const { showToast } = useToast()
 
     const hasNewField = newFieldIds.length > 0
     const hasEdits = editingFieldIds.length > 0
@@ -67,6 +68,8 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const handleSaveSingleField = (fieldId: string) => {
         const edit = localEdits[fieldId]
         if (!edit) return
+        const error = validateFieldName(edit.name, fieldId, node.fields)
+        if (error) { showToast(getFieldNameErrorMessage(error)); return }
         const updated = node.fields.map((f) =>
             f.id === fieldId ? { ...f, name: edit.name, dataType: edit.dataType } : f
         )
@@ -87,6 +90,15 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
         // first reset any pending new fields
         if (hasNewField) { resetEditState(); return }
         if (hasEdits) {
+            // Validate all fields
+            const errors: Record<string, string> = {}
+            for (const f of node.fields) {
+                const edit = localEdits[f.id]
+                if (!edit) continue
+                const err = validateFieldName(edit.name, f.id, node.fields)
+                if (err) errors[f.id] = getFieldNameErrorMessage(err)
+            }
+            if (Object.keys(errors).length > 0) { showToast(Object.values(errors).join(", ")); return }
             // Save all edits
             const updated = node.fields.map((f) => {
                 const edit = localEdits[f.id]

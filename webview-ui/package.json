@@ -11,6 +11,8 @@
     },
     "dependencies": {
         "@dbchart/schema": "file:../packages/schema",
+        "@radix-ui/react-alert-dialog": "^1.1.23",
+        "@radix-ui/react-toast": "^1.2.23",
         "@types/vscode-webview": "^1.57.5",
         "@vscode/webview-ui-toolkit": "^1.4.0",
         "@xyflow/react": "^12.11.2",
