@@ -51,6 +51,11 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
 
     // --- add field ---
     const handleAddField = () => {
+        // stop edit-all mode if active, but leave existing new fields alone
+        if (hasEdits && !hasNewField) {
+            setEditingFieldIds([])
+            setLocalEdits({})
+        }
         const newField = createDesignField({ name: `new_field_${node.fields.length + 1}` })
         updateNodeData(id, { node: { ...node, fields: [...node.fields, newField] } })
         setEditingFieldIds((prev) => [...prev, newField.id])
