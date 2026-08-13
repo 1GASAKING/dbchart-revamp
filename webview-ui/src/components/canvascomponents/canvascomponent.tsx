@@ -96,6 +96,7 @@ const CanvasComponent = () => {
                 sourceHandle: "1-source",
                 targetHandle: "2-target",
                 type: "schema",
+                animated: true,
                 data: { relationshipId: "rel-1", color: "#4CAF50" },
             },
         ]);
@@ -135,6 +136,7 @@ const CanvasComponent = () => {
                     sourceHandle: connection.sourceHandle,
                     targetHandle: connection.targetHandle,
                     type: "schema",
+                    animated: true,
                     data: {
                         relationshipId: generateId("rel"),
                         color: fieldColor,
