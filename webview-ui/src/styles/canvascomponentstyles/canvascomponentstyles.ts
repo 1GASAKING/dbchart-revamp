@@ -1,4 +1,4 @@
-import { Background, MiniMap, ReactFlow } from "@xyflow/react";
+import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
 import styled from "styled-components";
 
 const CanvasComponentMainDiv = styled.div`
@@ -16,9 +16,6 @@ const CanvasComponentMainDiv = styled.div`
     background: var(--vscode-editor-background, #1e1e1e);
     border: 1px solid var(--vscode-editorWidget-border, #454545);
   }
-
- 
-  
 `;
 
 const CanvasComponentReactFlow = styled(ReactFlow)`
@@ -33,73 +30,35 @@ const CanvasComponentBackground = styled(Background)`
   ;
 `;
 
-const CanvasControlsBar = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
+const CanvasComponentControls = styled(Controls)`
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 12px;
-  background: var(--vscode-editor-background, #1e1e1e);
-  border-top: 1px solid var(--vscode-editorWidget-border, #454545);
-  z-index: 10;
+  flex-flow: column;
+  width:fit-content;
 
-  .controls-search {
-    flex: 1;
-    max-width: 220px;
-    input {
-      width: 100%;
-      height: 26px;
-      padding: 0 8px;
-      background: var(--vscode-input-background, #3c3c3c);
-      color: var(--vscode-input-foreground, #cccccc);
-      border: 1px solid var(--vscode-input-border, #454545);
-      border-radius: 4px;
-      font-size: 12px;
-      outline: none;
-      &:focus {
-        border-color: var(--vscode-focusBorder, #007acc);
-      }
-    }
-  }
-
-  .controls-divider {
-    width: 1px;
-    height: 20px;
-    background: var(--vscode-editorWidget-border, #454545);
-  }
-
-  .controls-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    background: transparent;
+  button {
+    background: var(--vscode-editor-background, #1e1e1e);
     color: var(--vscode-editor-foreground, #cccccc);
-    cursor: pointer;
-    font-size: 16px;
+    border: 1px solid var(--vscode-editorWidget-border, #454545);
+    border-radius: 4px;
     transition: all 0.15s;
 
     &:hover {
       background: var(--vscode-toolbar-hoverBackground, #3c3c3c);
-      border-color: var(--vscode-editorWidget-border, #454545);
     }
     &:active {
       background: var(--vscode-toolbar-activeBackground, #555);
     }
+
+    svg {
+      fill: var(--vscode-editor-foreground, #cccccc);
+    }
   }
-`;
+` as typeof Controls;
 
 export {
   CanvasComponentMainDiv,
   CanvasComponentReactFlow,
   CanvasComponentMiniMap,
   CanvasComponentBackground,
-  CanvasControlsBar,
+  CanvasComponentControls,
 };
