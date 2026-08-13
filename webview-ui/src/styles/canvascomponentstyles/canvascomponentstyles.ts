@@ -30,17 +30,77 @@ const CanvasComponentBackground = styled(Background)`
   ;
 `;
 
-const CanvasComponentControls = styled(Controls)`
+const CanvasComponentControls = styled.div`
   display: flex;
-  flex-flow: column;
-  width:fit-content;
+  width: fit-content;
+  gap: 4px;
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
 
+  .button-holder {
+    cursor: pointer;
+  }
+  .value-input-holder {
+
+    background: var(--vscode-editor-background, #1e1e1e);
+    color: var(--vscode-editor-foreground, #cccccc);
+    border: 1px solid var(--vscode-editorWidget-border, #454545);
+    border-radius: 4px;
+    transition: all 0.15s;
+    cursor: pointer;
+    display: flex;
+    align-items:center;
+    padding:0 6px;
+
+    &:hover {
+      background: var(--vscode-toolbar-hoverBackground, #3c3c3c);
+    }
+    &:active {
+      background: var(--vscode-toolbar-activeBackground, #555);
+    }
+
+    input {
+    border:none;
+    outline:none;
+      padding: 0;
+      margin: 0;
+      padding: 2px 2px  2px 4px;
+
+      color: var(--vscode-editor-foreground, #cccccc);
+
+      background: transparent;
+      width: fit-content;
+      width:30px;
+      text-align:right;
+      &:hover {
+        outline: none;
+                background:transparent;
+
+      }
+      &:active {
+        border: none;
+        outline: none;
+      }
+    }
+
+    .zoom-suffix {
+      display: flex;
+      align-items: center;
+      padding: 2px 4px 2px 0;
+      color: var(--vscode-editor-foreground, #cccccc);
+      font-size: 12px;
+    }
+  }
   button {
     background: var(--vscode-editor-background, #1e1e1e);
     color: var(--vscode-editor-foreground, #cccccc);
     border: 1px solid var(--vscode-editorWidget-border, #454545);
     border-radius: 4px;
     transition: all 0.15s;
+    cursor: pointer;
 
     &:hover {
       background: var(--vscode-toolbar-hoverBackground, #3c3c3c);
