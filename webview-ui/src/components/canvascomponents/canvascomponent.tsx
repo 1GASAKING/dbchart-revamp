@@ -1,12 +1,13 @@
 import { useEdgesState, useNodesState, Position, MiniMap, type Connection, addEdge, type ReactFlowInstance } from "@xyflow/react"
 import { CanvasComponentMainDiv, CanvasComponentReactFlow, CanvasComponentControls, CanvasComponentBackground } from "../../styles/canvascomponentstyles/canvascomponentstyles"
 import SchemaNodeComponent from "../schema-node-components/schema-node-component"
+import AreaNodeComponent from "../areanodecomponents/area-node-component"
 import ConnectionLineComponent from "./connection-line-component"
 import SchemaEdgeComponent from "../schemacomponents/schema-edge-component"
 import ContextMenuComponent from "./contextmenu-component"
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
-import type { DesignFlowNode, DesignFlowEdge, ContextMenuData } from "../../types/schema-node-ui"
-import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId } from "@lib/utils"
+import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, type AreaFlowNode, } from "../../types/schema-node-ui"
+import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData } from "@lib/utils"
 import { ToastProvider } from "../../contexts/toast-context"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
 import AddNodeDialog, { type AddNodeFormData } from "../reusable-components/add-node-dialog"
@@ -15,6 +16,7 @@ import AddRelationshipDialog, { type RelationshipFormData } from "../reusable-co
 
 const nodeTypes = {
     test: SchemaNodeComponent,
+    area: AreaNodeComponent,
 }
 
 const edgeTypes = {
@@ -24,7 +26,7 @@ const edgeTypes = {
 
 const CanvasComponent = () => {
 
-    const [nodes, setNodes, onNodesChange] = useNodesState<DesignFlowNode>([])
+    const [nodes, setNodes, onNodesChange] = useNodesState<CanvasNode>([])
     const [edges, setEdges, onEdgesChange] = useEdgesState<DesignFlowEdge>([]);
     const [contextMenu, setContextMenu] = useState<ContextMenuData | null>(null);
     const [filterState,setFilterState] = useState<boolean>()
@@ -32,7 +34,7 @@ const CanvasComponent = () => {
     const [isAddNodeDialogOpen, setIsAddNodeDialogOpen] = useState(false)
     const [creationPosition, setCreationPosition] = useState<ContextMenuData | null>(null)
     const [isAddRelationshipOpen, setIsAddRelationshipOpen] = useState(false)
-    const rfRef = useRef<ReactFlowInstance<DesignFlowNode, DesignFlowEdge> | null>(null);
+    const rfRef = useRef<ReactFlowInstance<CanvasNode, DesignFlowEdge> | null>(null);
     useEffect(() => {
 
         setNodes([
@@ -91,6 +93,20 @@ const CanvasComponent = () => {
                 position: { x: 10, y: 150 },
                 sourcePosition: Position.Right,
             },
+            {
+                id: 'area-1',
+                type: 'area',
+                position: { x: 0, y: 300 },
+                zIndex: -1,
+                style: { width: 520, height: 280 },
+                data: {
+                    area: {
+                        id: 'area-1',
+                        name: 'Core Tables',
+                        color: '#3949AB',
+                    },
+                },
+            },
         ]);
 
         setEdges([
@@ -143,9 +159,9 @@ const CanvasComponent = () => {
     };
     const handleCreateRelationship = (data: RelationshipFormData) => {
         const sourceNode = nodes.find((n) => n.id === data.sourceNodeId);
-        const sourceField = sourceNode?.data?.node?.fields.find(
-            (f) => f.id === data.sourceFieldId
-        );
+        const sourceField = isDesignNode(sourceNode)
+            ? sourceNode.data.node.fields.find((f) => f.id === data.sourceFieldId)
+            : undefined;
 
         const newEdge: DesignFlowEdge = {
             id: generateId("rel"),
@@ -166,12 +182,36 @@ const CanvasComponent = () => {
         setIsAddRelationshipOpen(false);
     };
 
+    const handleCreateArea = (position?: ContextMenuData | null) => {
+        const areaData = createAreaNodeData();
+        const screenPos = position ?? { x: 100, y: 100 };
+        const flowPos = rfRef.current?.screenToFlowPosition(screenPos) ?? screenPos;
+        const freePos = findFreeNodePosition(
+            nodes,
+            flowPos,
+            { width: 520, height: 280 }
+        );
+
+        const newArea: AreaFlowNode = {
+            id: areaData.id,
+            type: "area",
+            data: { area: areaData },
+            position: freePos,
+            zIndex: -1,
+            style: { width: 520, height: 280 },
+        };
+        setNodes((nds) => [...nds, newArea]);
+        setContextMenu(null);
+    };
+
     const onConnect = useCallback(
         (connection: Connection) => {
             setEdges((eds) => {
                 const sourceNode = nodes.find((n) => n.id === connection.source);
                 const fieldId = connection.sourceHandle?.replace(/-source$|-target$/, "");
-                const fieldColor = sourceNode?.data?.node?.fields.find((f) => f.id === fieldId)?.color;
+                const fieldColor = isDesignNode(sourceNode)
+                    ? sourceNode.data.node.fields.find((f) => f.id === fieldId)?.color
+                    : undefined;
 
                 const newEdge: DesignFlowEdge = {
                     id: generateId("rel"),
@@ -314,6 +354,7 @@ const CanvasComponent = () => {
                             setContextMenu(null);
                             setIsAddRelationshipOpen(true);
                         }}
+                        onCreateArea={() => handleCreateArea(contextMenu)}
                     />
 
 
@@ -332,7 +373,7 @@ const CanvasComponent = () => {
             <AddRelationshipDialog
                 open={isAddRelationshipOpen}
                 onOpenChange={setIsAddRelationshipOpen}
-                nodes={nodes}
+                nodes={nodes.filter(isDesignNode)}
                 onSubmit={handleCreateRelationship}
             />
         </ToastProvider>

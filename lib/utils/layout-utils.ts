@@ -14,7 +14,7 @@ export interface LayoutNode {
   width?: number;
   height?: number;
   measured?: { width?: number; height?: number };
-  data?: { node?: { fields?: readonly unknown[] } };
+  data?: { node?: { fields?: readonly unknown[] }; [key: string]: unknown };
 }
 
 /** Minimal structural contract for a graph edge. */

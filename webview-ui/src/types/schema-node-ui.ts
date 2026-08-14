@@ -20,6 +20,17 @@ export type DesignFlowNode = Node<DesignNodeData>;
 /** React Flow node type for area containers (visual only, no handles). */
 export type AreaFlowNode = Node<AreaNodeData>;
 
+/** Any node that can live on the canvas (design nodes or visual areas). */
+export type CanvasNode = DesignFlowNode | AreaFlowNode;
+
+/**
+ * Type guard: whether a canvas node is a design node (carries `data.node`)
+ * versus a visual area node (carries `data.area`).
+ */
+export function isDesignNode(node: CanvasNode): node is DesignFlowNode {
+  return "node" in node.data;
+}
+
 /** Data payload passed to a design edge */
 export interface DesignEdgeData extends Record<string, unknown> {
   relationshipId: string;
