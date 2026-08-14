@@ -6,9 +6,11 @@ import SchemaEdgeComponent from "../schemacomponents/schema-edge-component"
 import ContextMenuComponent from "./contextmenu-component"
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
 import type { DesignFlowNode, DesignFlowEdge, ContextMenuData } from "../../types/schema-node-ui"
-import { autoArrangeNodes, createSchemaNode, generateId } from "@lib/utils"
+import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId } from "@lib/utils"
 import { ToastProvider } from "../../contexts/toast-context"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
+import AddNodeDialog, { type AddNodeFormData } from "../reusable-components/add-node-dialog"
+import AddRelationshipDialog, { type RelationshipFormData } from "../reusable-components/add-relationship-dialog"
 
 
 const nodeTypes = {
@@ -27,6 +29,9 @@ const CanvasComponent = () => {
     const [contextMenu, setContextMenu] = useState<ContextMenuData | null>(null);
     const [filterState,setFilterState] = useState<boolean>()
     const [zoomValue, setZoomValue] = useState<string>("100")
+    const [isAddNodeDialogOpen, setIsAddNodeDialogOpen] = useState(false)
+    const [creationPosition, setCreationPosition] = useState<ContextMenuData | null>(null)
+    const [isAddRelationshipOpen, setIsAddRelationshipOpen] = useState(false)
     const rfRef = useRef<ReactFlowInstance<DesignFlowNode, DesignFlowEdge> | null>(null);
     useEffect(() => {
 
@@ -108,20 +113,59 @@ const CanvasComponent = () => {
         setContextMenu({ x: event.clientX, y: event.clientY });
     };
 
-    const handleCreateNode = (node: { label: string; kind: string }) => {
+    const handleCreateNode = (data: AddNodeFormData) => {
         const schemaNode = createSchemaNode({
-            label: node.label,
-            kind: node.kind as "table" | "view",
+            label: data.label,
+            kind: data.kind,
+            fields: data.fields,
         });
+
+        // Convert the preserved context-menu click (screen pixels) into flow
+        // coordinates, then nudge it to a spot that does not overlap existing nodes.
+        const screenPos = creationPosition ?? { x: 100, y: 100 };
+        const flowPos = rfRef.current?.screenToFlowPosition(screenPos) ?? screenPos;
+        const freePos = findFreeNodePosition(
+            nodes,
+            flowPos,
+            { width: 300, height: 60 + schemaNode.fields.length * 28 }
+        );
+
         const newNode: DesignFlowNode = {
             id: schemaNode.id,
             type: "test",
             data: { node: schemaNode },
-            position: { x: contextMenu?.x ?? 100, y: contextMenu?.y ?? 100 },
+            position: freePos,
         };
         setNodes((nds) => [...nds, newNode]);
         setContextMenu(null);
+        setCreationPosition(null);
+        setIsAddNodeDialogOpen(false);
     };
+    const handleCreateRelationship = (data: RelationshipFormData) => {
+        const sourceNode = nodes.find((n) => n.id === data.sourceNodeId);
+        const sourceField = sourceNode?.data?.node?.fields.find(
+            (f) => f.id === data.sourceFieldId
+        );
+
+        const newEdge: DesignFlowEdge = {
+            id: generateId("rel"),
+            source: data.sourceNodeId,
+            target: data.targetNodeId,
+            sourceHandle: `${data.sourceFieldId}-source`,
+            targetHandle: `${data.targetFieldId}-target`,
+            type: "schema",
+            animated: true,
+            data: {
+                relationshipId: generateId("rel"),
+                color: sourceField?.color,
+            },
+        };
+
+        setEdges((eds) => [...eds, newEdge]);
+        setContextMenu(null);
+        setIsAddRelationshipOpen(false);
+    };
+
     const onConnect = useCallback(
         (connection: Connection) => {
             setEdges((eds) => {
@@ -261,7 +305,15 @@ const CanvasComponent = () => {
 
                     <ContextMenuComponent
                         contextMenu={contextMenu}
-                        onCreateNode={handleCreateNode}
+                        onCreateNode={() => {
+                            setCreationPosition(contextMenu);
+                            setContextMenu(null);
+                            setIsAddNodeDialogOpen(true);
+                        }}
+                        onCreateRelationship={() => {
+                            setContextMenu(null);
+                            setIsAddRelationshipOpen(true);
+                        }}
                     />
 
 
@@ -270,6 +322,19 @@ const CanvasComponent = () => {
                 </CanvasComponentReactFlow>
 
             </CanvasComponentMainDiv>
+
+            <AddNodeDialog
+                open={isAddNodeDialogOpen}
+                onOpenChange={setIsAddNodeDialogOpen}
+                onSubmit={handleCreateNode}
+            />
+
+            <AddRelationshipDialog
+                open={isAddRelationshipOpen}
+                onOpenChange={setIsAddRelationshipOpen}
+                nodes={nodes}
+                onSubmit={handleCreateRelationship}
+            />
         </ToastProvider>
     )
 

@@ -26,3 +26,7 @@ export interface EndpointNode extends DesignNodeBase {
   method?: string;
   path?: string;
 }
+
+export interface AreaNode {
+  kind:"area"
+}

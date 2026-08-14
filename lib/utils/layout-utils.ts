@@ -51,6 +51,70 @@ export function estimateLayoutNodeSize<TNode extends LayoutNode>(
   return { width, height };
 }
 
+/** Options for {@link findFreeNodePosition}. */
+export interface FindFreeNodePositionOptions {
+  /** Extra spacing added around node bounds. @default 24 */
+  padding?: number;
+}
+
+/**
+ * Find a position that does not overlap any existing node.
+ *
+ * Starts from the provided `preferred` position and, if it collides with an
+ * existing node, searches outward on a grid for an empty slot.
+ *
+ * @returns a collision-free position.
+ */
+export function findFreeNodePosition<TNode extends LayoutNode>(
+  nodes: TNode[],
+  preferred: { x: number; y: number },
+  size: { width: number; height: number },
+  options: FindFreeNodePositionOptions = {}
+): { x: number; y: number } {
+  const padding = options.padding ?? 24;
+  const candidate = { x: preferred.x, y: preferred.y };
+
+  const overlaps = (pos: { x: number; y: number }) =>
+    nodes.some((node) => {
+      const nodeSize = estimateLayoutNodeSize(node);
+      return (
+        pos.x < node.position.x + nodeSize.width + padding &&
+        pos.x + size.width + padding > node.position.x &&
+        pos.y < node.position.y + nodeSize.height + padding &&
+        pos.y + size.height + padding > node.position.y
+      );
+    });
+
+  if (!overlaps(candidate)) {
+    return candidate;
+  }
+
+  const stepX = size.width + padding;
+  const stepY = size.height + padding;
+
+  // Expand outward in rings until an empty slot is found.
+  for (let ring = 1; ring < 100; ring++) {
+    for (let dy = -ring; dy <= ring; dy++) {
+      for (let dx = -ring; dx <= ring; dx++) {
+        const test = {
+          x: candidate.x + dx * stepX,
+          y: candidate.y + dy * stepY,
+        };
+        if (test.y < 0 || test.x < 0) {continue;}
+        if (!overlaps(test)) {return test;}
+      }
+    }
+  }
+
+  // Fallback: place to the right of the widest point.
+  const maxX = nodes.reduce(
+    (max, node) =>
+      Math.max(max, node.position.x + estimateLayoutNodeSize(node).width + padding),
+    0
+  );
+  return { x: maxX, y: Math.max(0, preferred.y) };
+}
+
 /**
  * Arrange nodes into a layered left-to-right layout.
  *

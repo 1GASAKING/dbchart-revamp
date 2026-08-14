@@ -1,5 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { SchemaNode, ServerNode, EndpointNode } from "@dbchart/schema";
+import type { SchemaNode, ServerNode, EndpointNode, AreaNodeDataType } from "@dbchart/schema";
 
 /** All possible node types in the design system */
 export type DesignNode = SchemaNode | ServerNode | EndpointNode;
@@ -9,8 +9,16 @@ export interface DesignNodeData extends Record<string, unknown> {
   node: DesignNode;
 }
 
+/** Data payload carried by an area (visual grouping container) node. */
+export interface AreaNodeData extends Record<string, unknown> {
+  area: AreaNodeDataType;
+}
+
 /** React Flow node type for design nodes */
 export type DesignFlowNode = Node<DesignNodeData>;
+
+/** React Flow node type for area containers (visual only, no handles). */
+export type AreaFlowNode = Node<AreaNodeData>;
 
 /** Data payload passed to a design edge */
 export interface DesignEdgeData extends Record<string, unknown> {

@@ -1,23 +1,19 @@
 import type { SchemaNode } from "@dbchart/schema";
 import { generateNodeColor, generateNodeId } from "../utils/general-utils";
 
-/** Default values used when creating a new SchemaNode */
-const DEFAULT_SCHEMA_NODE: Omit<SchemaNode, "id"> = {
-  label: "New Table",
-  kind: "table",
-  color: generateNodeColor(),
-  fields: [],
-};
-
 /**
- * Create and return a new SchemaNode with a unique id.
+ * Create and return a new SchemaNode with a unique id and a randomly
+ * generated color.
  * @param overrides - partial node properties to override the defaults
  */
 export function createSchemaNode(
   overrides: Partial<Omit<SchemaNode, "id">> = {}
 ): SchemaNode {
   return {
-    ...DEFAULT_SCHEMA_NODE,
+    label: "New Table",
+    kind: "table",
+    color: generateNodeColor(),
+    fields: [],
     ...overrides,
     id: generateNodeId(),
   };

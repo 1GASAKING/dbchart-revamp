@@ -4,10 +4,11 @@ import type { ContextMenuData } from "../../types/schema-node-ui"
 
 interface ContextMenuComponentProps {
     contextMenu: ContextMenuData | null;
-    onCreateNode: (node: { label: string; kind: string }) => void;
+    onCreateNode: () => void;
+    onCreateRelationship: () => void;
 }
 
-const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
+const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship }: ContextMenuComponentProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const [adjustedPos, setAdjustedPos] = useState<ContextMenuData | null>(null);
 
@@ -43,7 +44,7 @@ const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
 
             <div>
                 <div className="canvas-context-menu-group  canvas-context-menu-group-border">
-                    <CanvasConntextMenuButton>
+                    <CanvasConntextMenuButton onClick={onCreateNode}>
                         <div>
 
                             <div>
@@ -53,13 +54,13 @@ const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
 
                             </div>
                             <div>
-                                <i className="codicon codicon-edit">
+                                <i className="codicon codicon-symbol-field">
 
                                 </i>
                             </div>
                         </div>
                     </CanvasConntextMenuButton>
-                    <CanvasConntextMenuButton>
+                    <CanvasConntextMenuButton onClick={onCreateRelationship}>
                         <div>
 
                             <div>
@@ -69,7 +70,7 @@ const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
 
                             </div>
                             <div>
-                                <i className="codicon codicon-edit">
+                                <i className="codicon codicon-debug-connected">
 
                                 </i>
                             </div>
@@ -88,7 +89,7 @@ const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
 
                             </div>
                             <div>
-                                <i className="codicon codicon-edit">
+                                <i className="codicon codicon-preview">
 
                                 </i>
                             </div>
@@ -104,7 +105,7 @@ const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
 
                             </div>
                             <div>
-                                <i className="codicon codicon-edit">
+                                <i className="codicon codicon-comment-discussion-quote">
 
                                 </i>
                             </div>
@@ -124,7 +125,7 @@ const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
 
                             </div>
                             <div>
-                                <i className="codicon codicon-edit">
+                                <i className="codicon codicon-multiple-windows">
 
                                 </i>
                             </div>
@@ -140,7 +141,7 @@ const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
 
                             </div>
                             <div>
-                                <i className="codicon codicon-edit">
+                                <i className="codicon codicon-cloud-download">
 
                                 </i>
                             </div>
@@ -150,33 +151,19 @@ const ContextMenuComponent = ({ contextMenu }: ContextMenuComponentProps) => {
                 </div>
 
                    <div className="canvas-context-menu-group   canvas-context-menu-group-border">
+                   
+                   
                     <CanvasConntextMenuButton>
                         <div>
 
                             <div>
                                 <p className="canvas-context-menu-text">
-                                    import  diagram
+                                    Save Version
                                 </p>
 
                             </div>
                             <div>
-                                <i className="codicon codicon-edit">
-
-                                </i>
-                            </div>
-                        </div>
-                    </CanvasConntextMenuButton>
-                    <CanvasConntextMenuButton>
-                        <div>
-
-                            <div>
-                                <p className="canvas-context-menu-text">
-                                    Import  SQL/DBML
-                                </p>
-
-                            </div>
-                            <div>
-                                <i className="codicon codicon-edit">
+                                <i className="codicon codicon-edit-session">
 
                                 </i>
                             </div>
