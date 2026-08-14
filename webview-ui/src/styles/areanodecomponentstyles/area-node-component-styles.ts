@@ -22,18 +22,13 @@ const AreaNodeComponentMainDiv = styled.div<AreaNodeComponentMainDivProp>`
     pointer-events: all;
     overflow: hidden;
     > div {
-
       justify-content: space-between;
-      gap:10px;
-      margin:4px 6px  4px 4px;
-      display:flex;
-
-
+      gap: 10px;
+      margin: 4px 6px 4px 4px;
+      display: flex;
     }
   }
   .area-label {
-   
-  
     max-width: 100%;
     padding: 8px 8px;
     font-size: 12px;
@@ -45,13 +40,10 @@ const AreaNodeComponentMainDiv = styled.div<AreaNodeComponentMainDivProp>`
     overflow: hidden;
     text-overflow: ellipsis;
     pointer-events: none;
-   
-    
-
   }
   .area-node-button {
-  margin-top:4px;
-    height:30px;
+    margin-top: 4px;
+    height: 30px;
     width: 30px;
   }
 `;

@@ -1,8 +1,14 @@
-import { NodeResizer, type NodeProps } from "@xyflow/react";
-import type { AreaFlowNode } from "../../types/schema-node-ui";
+import { NodeResizer, useReactFlow, type NodeProps } from "@xyflow/react";
+import { useState } from "react";
+import type { AreaNodeDataType } from "@dbchart/schema";
+import type { AreaFlowNode, CanvasNode } from "../../types/schema-node-ui";
+import { validateAreaName, getAreaNameErrorMessage } from "@lib/utils";
 import { AreaNodeComponentMainDiv } from "../../styles/areanodecomponentstyles/area-node-component-styles";
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles";
-import { useEffect, useState } from "react";
+import { useToast } from "../../contexts/toast-context";
+
+const isAreaNode = (node: CanvasNode): node is AreaFlowNode =>
+  node.type === "area";
 
 /**
  * Visual grouping container node (an "area").
@@ -11,54 +17,80 @@ import { useEffect, useState } from "react";
  * to other nodes. It is a purely visual indicator that other nodes can be
  * arranged inside.
  */
-const AreaNodeComponent = ({ data, selected }: NodeProps<AreaFlowNode>) => {
-    const area = data.area;
-    const [edit,setEdit ]= useState<boolean>(false)
-    const [name,setName] = useState<string>("")
-    const HandleEditOrSave =()=>{
-        if(edit){
-        
+const AreaNodeComponent = ({ id, data, selected }: NodeProps<AreaFlowNode>) => {
+  const area = data.area;
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(area.name);
+  const { getNodes, updateNodeData } = useReactFlow<CanvasNode>();
+  const { showToast } = useToast();
 
+  const getAllAreas = (): AreaNodeDataType[] =>
+    getNodes()
+      .filter(isAreaNode)
+      .map((n) => n.data.area);
 
-        }
-        else{
-            setEdit(false)
-
-        }
+  const save = () => {
+    const error = validateAreaName(name, area.id, getAllAreas());
+    if (error) {
+      showToast(getAreaNameErrorMessage(error));
+      return;
     }
-    useEffect(()=>{
-        setName(area.name)
-    },[setName,area])
+    updateNodeData(id, { area: { ...area, name: name.trim() } });
+    setEditing(false);
+  };
 
-    return (
-        <>
+  const toggleEdit = () => {
+    if (editing) {
+      save();
+    } else {
+      setName(area.name);
+      setEditing(true);
+    }
+  };
 
-            <AreaNodeComponentMainDiv $color={area.color}>
-                <NodeResizer
-                    isVisible={selected}
-                    minWidth={200}
-                    minHeight={120}
-                    color={area.color}
-                />
-                <div className="area-container">
-                    <div>
-                        <div className="area-label">{area.name}
-                            </div>
-                        <div className="area-node-button" onClick={()=> setEdit()}>
-                            <VsButton >
-                                <i className="codicon codicon-edit"></i>
-                            </VsButton>
-                        </div>
-
-                    </div>
-
-
-                </div>
-
-
-            </AreaNodeComponentMainDiv>
-        </>
-    );
+  return (
+    <AreaNodeComponentMainDiv $color={area.color}>
+      <NodeResizer
+        isVisible={selected}
+        minWidth={200}
+        minHeight={120}
+        color={area.color}
+      />
+      <div className="area-container">
+        <div>
+          {editing ? (
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") save();
+                if (e.key === "Escape") {
+                  setName(area.name);
+                  setEditing(false);
+                }
+              }}
+            />
+          ) : (
+            <div
+              className="area-label"
+              onDoubleClick={() => {
+                setName(area.name);
+                setEditing(true);
+              }}
+            >
+              {area.name}
+            </div>
+          )}
+          <div className="area-node-button" onClick={toggleEdit}>
+            <VsButton>
+              <i className={`codicon codicon-${editing ? "save" : "edit"}`} />
+            </VsButton>
+          </div>
+        </div>
+      </div>
+    </AreaNodeComponentMainDiv>
+  );
 };
 
 export default AreaNodeComponent;

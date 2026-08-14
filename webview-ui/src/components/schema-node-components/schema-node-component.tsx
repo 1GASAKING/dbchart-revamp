@@ -2,10 +2,11 @@ import { type NodeProps, Handle, Position, useReactFlow } from "@xyflow/react"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
 import { SchemaNodeComponentBody, SchemaNodeComponentEdgeHandle, SchemaNodeComponentEditInput, SchemaNodeComponentEditSelect, SchemaNodeComponentField, SchemaNodeComponentHeader, SchemaNodeComponentMainDiv, SchemaNodeComponentToolBar } from "../../styles/schemaNodeComponentStyles/schema-node-component-styles"
 import { ReactComponent as ExpandIcon } from "./assets/expand-square-4.svg?react"
-import type { DesignFlowNode } from "../../types/schema-node-ui"
+import { isDesignNode } from "../../types/schema-node-ui";
+import type { DesignFlowNode, CanvasNode } from "../../types/schema-node-ui"
 import type { FieldDataType, DesignField } from "@dbchart/schema"
 import { useEffect, useRef, useState } from "react"
-import { createDesignField, DATA_TYPES, validateFieldName, getFieldNameErrorMessage } from "@lib/utils"
+import { createDesignField, DATA_TYPES, validateFieldName, getFieldNameErrorMessage, validateSchemaName, getSchemaNameErrorMessage } from "@lib/utils"
 import { useToast } from "../../contexts/toast-context"
 
 type EditEntry = { name: string; dataType: FieldDataType }
@@ -20,7 +21,9 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const [localEdits, setLocalEdits] = useState<Record<string, EditEntry>>({})
     /** Fields that were just created and haven't been saved yet (for click-outside discard) */
     const [newFieldIds, setNewFieldIds] = useState<string[]>([])
-    const { updateNodeData } = useReactFlow()
+    const [editingName, setEditingName] = useState(false)
+    const [name, setName] = useState(node.label)
+    const { getNodes, updateNodeData } = useReactFlow<CanvasNode>()
     const { showToast } = useToast()
 
     const hasNewField = newFieldIds.length > 0
@@ -49,6 +52,16 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
         setNewFieldIds([])
         setLocalEdits({})
     }
+
+    const saveNodeName = () => {
+        const allLabels = getNodes()
+            .filter(isDesignNode)
+            .map((n) => ({ id: n.id, label: n.data.node.label }));
+        const error = validateSchemaName(name, id, allLabels);
+        if (error) { showToast(getSchemaNameErrorMessage(error)); return; }
+        updateNodeData(id, { node: { ...node, label: name.trim() } });
+        setEditingName(false);
+    };
 
     // --- add field ---
     const handleAddField = () => {
@@ -172,7 +185,24 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                             <div className="schema-label-header-indicator" />
                             <div className="schema-node-header-holder">
                                 <div className="schema-label-header" title={node.label}>
-                                    <h4 className="schema-label-text">{node.label}</h4>
+                                    {editingName ? (
+                                        <SchemaNodeComponentEditInput
+                                            autoFocus
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") { saveNodeName(); }
+                                                if (e.key === "Escape") { setName(node.label); setEditingName(false); }
+                                            }}
+                                        />
+                                    ) : (
+                                        <h4
+                                            className="schema-label-text"
+                                            onDoubleClick={() => { setName(node.label); setEditingName(true); }}
+                                        >
+                                            {node.label}
+                                        </h4>
+                                    )}
                                 </div>
                             </div>
                         </div>

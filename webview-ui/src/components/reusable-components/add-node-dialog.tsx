@@ -1,7 +1,7 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { DesignField, FieldDataType } from "@dbchart/schema";
-import { createDesignField, DATA_TYPES } from "@lib/utils";
+import { createDesignField, DATA_TYPES, validateSchemaName, getSchemaNameErrorMessage } from "@lib/utils";
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles";
 
 /** Data emitted when the user confirms the Create Table dialog. */
@@ -15,6 +15,8 @@ interface AddNodeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: AddNodeFormData) => void;
+  /** Existing schema node labels, used to reject duplicate names. */
+  existingLabels?: { id: string; label: string }[];
 }
 
 const inputStyle: React.CSSProperties = {
@@ -42,9 +44,10 @@ const defaultFields = (): DesignField[] => [
 interface AddNodeFormProps {
   onCancel: () => void;
   onSubmit: (data: AddNodeFormData) => void;
+  existingLabels: { id: string; label: string }[];
 }
 
-const AddNodeForm = ({ onCancel, onSubmit }: AddNodeFormProps) => {
+const AddNodeForm = ({ onCancel, onSubmit, existingLabels }: AddNodeFormProps) => {
   const [label, setLabel] = useState("");
   const [kind, setKind] = useState<"table" | "view">("table");
   const [fields, setFields] = useState<DesignField[]>(defaultFields);
@@ -71,8 +74,9 @@ const AddNodeForm = ({ onCancel, onSubmit }: AddNodeFormProps) => {
   };
 
   const handleSubmit = () => {
-    if (!label.trim()) {
-      setError("Table name is required");
+    const error = validateSchemaName(label, "", existingLabels);
+    if (error) {
+      setError(getSchemaNameErrorMessage(error));
       return;
     }
     onSubmit({
@@ -219,7 +223,7 @@ const AddNodeForm = ({ onCancel, onSubmit }: AddNodeFormProps) => {
   );
 };
 
-const AddNodeDialog = ({ open, onOpenChange, onSubmit }: AddNodeDialogProps) => {
+const AddNodeDialog = ({ open, onOpenChange, onSubmit, existingLabels = [] }: AddNodeDialogProps) => {
   const [formId, setFormId] = useState(0);
 
   return (
@@ -271,6 +275,7 @@ const AddNodeDialog = ({ open, onOpenChange, onSubmit }: AddNodeDialogProps) => 
           <AddNodeForm
             key={formId}
             onCancel={() => onOpenChange(false)}
+            existingLabels={existingLabels}
             onSubmit={(data) => {
               onSubmit(data);
               onOpenChange(false);

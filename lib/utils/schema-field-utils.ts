@@ -1,4 +1,4 @@
-import type { DesignField } from "@dbchart/schema";
+import type { DesignField, FieldDataType } from "@dbchart/schema";
 import { generateFieldId } from "./general-utils";
 
 /** Result of validating a field name */
@@ -28,6 +28,18 @@ export function validateFieldName(
     return "duplicate";
   }
   return null;
+}
+
+/**
+ * Whether two field data types are compatible for a relationship.
+ *
+ * Currently strict: a field may only connect to a field of the same type.
+ */
+export function areFieldTypesCompatible(
+  source: FieldDataType,
+  target: FieldDataType,
+): boolean {
+  return source === target;
 }
 
 export function getFieldNameErrorMessage(error: FieldNameError): string {
