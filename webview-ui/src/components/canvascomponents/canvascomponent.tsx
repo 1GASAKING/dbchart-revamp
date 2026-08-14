@@ -23,6 +23,10 @@ const edgeTypes = {
     schema: SchemaEdgeComponent,
 }
 
+// Keeps area nodes behind all other nodes even when selected (React Flow's
+// default elevation adds +1000 z-index to a selected node).
+const AREA_NODE_Z_INDEX = -2000;
+
 
 const CanvasComponent = () => {
 
@@ -97,7 +101,7 @@ const CanvasComponent = () => {
                 id: 'area-1',
                 type: 'area',
                 position: { x: 0, y: 300 },
-                zIndex: -1,
+                zIndex: AREA_NODE_Z_INDEX,
                 style: { width: 520, height: 280 },
                 data: {
                     area: {
@@ -197,7 +201,7 @@ const CanvasComponent = () => {
             type: "area",
             data: { area: areaData },
             position: freePos,
-            zIndex: -1,
+            zIndex: AREA_NODE_Z_INDEX,
             style: { width: 520, height: 280 },
         };
         setNodes((nds) => [...nds, newArea]);

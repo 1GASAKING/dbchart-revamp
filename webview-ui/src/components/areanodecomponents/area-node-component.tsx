@@ -22,6 +22,7 @@ const AreaNodeComponent = ({ data, selected }: NodeProps<AreaFlowNode>) => {
       />
       <AreaNodeComponentMainDiv $color={area.color}>
         <div className="area-label">{area.name}</div>
+        
       </AreaNodeComponentMainDiv>
     </>
   );

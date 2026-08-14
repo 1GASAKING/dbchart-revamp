@@ -5,7 +5,6 @@ interface SchemaNodeComponentMainDivProp {
   $bgColor: string;
 }
 const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
-  z-index: 10;
   padding: 2px;
   border: 2px dashed transparent;
   width: fit-content;
@@ -15,8 +14,10 @@ const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
   position: relative;
   background: ${(p) => p.$bgColor};
 
+
   &.selected {
     position: relative;
+    
 
     &::before {
       content: "";

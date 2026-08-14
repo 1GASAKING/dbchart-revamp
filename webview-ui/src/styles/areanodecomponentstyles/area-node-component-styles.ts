@@ -17,6 +17,7 @@ const AreaNodeComponentMainDiv = styled.div<AreaNodeComponentMainDivProp>`
   );
   pointer-events: all;
   overflow: hidden;
+  z-index:-1;
 
   .area-label {
     position: absolute;
@@ -34,6 +35,7 @@ const AreaNodeComponentMainDiv = styled.div<AreaNodeComponentMainDivProp>`
     text-overflow: ellipsis;
     pointer-events: none;
   }
+
 `;
 
 export { AreaNodeComponentMainDiv };
