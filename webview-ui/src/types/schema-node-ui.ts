@@ -27,8 +27,10 @@ export type CanvasNode = DesignFlowNode | AreaFlowNode;
  * Type guard: whether a canvas node is a design node (carries `data.node`)
  * versus a visual area node (carries `data.area`).
  */
-export function isDesignNode(node: CanvasNode): node is DesignFlowNode {
-  return "node" in node.data;
+export function isDesignNode(
+  node: CanvasNode | undefined
+): node is DesignFlowNode {
+  return !!node && "node" in node.data;
 }
 
 /** Data payload passed to a design edge */
