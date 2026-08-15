@@ -29,6 +29,19 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
     cursor: not-allowed;
   }
 
+  &.active {
+    background: var(--vscode-button-foreground, #e8e9e9);
+    color: var(--vscode-button-background, #0a0909);
+
+    svg {
+      fill: var(--vscode-button-background, #000000);
+    }
+
+    i {
+      color: var(--vscode-button-background, #000000);
+    }
+  }
+
   &.footer-button {
     width: fit-content;
     display: flex;

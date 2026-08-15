@@ -42,6 +42,15 @@ const CanvasComponentControls = styled.div`
 
   .button-holder {
     cursor: pointer;
+    &.active {
+      background: var(--vscode-button-background, #0e639c) !important;
+      border-color: var(--vscode-focusBorder, #007acc);
+      color: var(--vscode-button-foreground, #ffffff);
+
+      svg {
+        fill: var(--vscode-button-foreground, #ffffff);
+      }
+    }
   }
   .value-input-holder {
 
@@ -94,25 +103,7 @@ const CanvasComponentControls = styled.div`
       font-size: 12px;
     }
   }
-  button {
-    background: var(--vscode-editor-background, #1e1e1e);
-    color: var(--vscode-editor-foreground, #cccccc);
-    border: 1px solid var(--vscode-editorWidget-border, #454545);
-    border-radius: 4px;
-    transition: all 0.15s;
-    cursor: pointer;
-
-    &:hover {
-      background: var(--vscode-toolbar-hoverBackground, #3c3c3c);
-    }
-    &:active {
-      background: var(--vscode-toolbar-activeBackground, #555);
-    }
-
-    svg {
-      fill: var(--vscode-editor-foreground, #cccccc);
-    }
-  }
+  
 ` as typeof Controls;
 
 export {

@@ -49,6 +49,7 @@ const CanvasComponent = () => {
     const [edges, setEdges, onEdgesChange] = useEdgesState<DesignFlowEdge>([]);
     const [contextMenu, setContextMenu] = useState<ContextMenuData | null>(null);
     const [filterState,setFilterState] = useState<boolean>()
+    const [snapToGrid, setSnapToGrid] = useState(true)
     const [zoomValue, setZoomValue] = useState<string>("100")
     const [isAddNodeDialogOpen, setIsAddNodeDialogOpen] = useState(false)
     const [creationPosition, setCreationPosition] = useState<ContextMenuData | null>(null)
@@ -418,7 +419,7 @@ const CanvasComponent = () => {
                     minZoom={0.1}
 
                     isValidConnection={isValidConnection}
-                    snapToGrid={true}
+                    snapToGrid={snapToGrid}
                      deleteKeyCode={['Backspace', 'Delete']}
                     multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
                     snapGrid={[20, 20]}
@@ -466,9 +467,20 @@ const CanvasComponent = () => {
                             </VsButton>
 
                         </div>
+                       
                         <div className="button-holder" >
                             <VsButton onClick={handleAutoArrange} title="auto arrange">
                                 <i className="codicon codicon-layout" />
+                            </VsButton>
+
+                        </div>
+                         <div className="button-holder" >
+                            <VsButton
+                                onClick={()=>{setSnapToGrid(!snapToGrid)}}
+                                title={snapToGrid ? "Snap to grid: On" : "Snap to grid: Off"}
+                                className={snapToGrid ? "active" : ""}
+                            >
+                                <i className="codicon codicon-layout-panel-justify" />
                             </VsButton>
 
                         </div>
