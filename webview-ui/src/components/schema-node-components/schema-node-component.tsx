@@ -7,7 +7,8 @@ import type { DesignFlowNode, CanvasNode } from "../../types/schema-node-ui"
 import type { FieldDataType, DesignField } from "@dbchart/schema"
 import { useEffect, useRef, useState } from "react"
 import { createDesignField, DATA_TYPES, validateFieldName, getFieldNameErrorMessage, validateSchemaName, getSchemaNameErrorMessage } from "@lib/utils"
-import { useToast } from "../../contexts/toast-context"
+import { useToast } from "../../contexts/toastcontext/toast-context"
+import { useFieldSelectionContext } from "../../hooks/use-field-selection-hooks"
 
 type EditEntry = { name: string; dataType: FieldDataType }
 
@@ -25,6 +26,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const [name, setName] = useState(node.label)
     const { getNodes, updateNodeData } = useReactFlow<CanvasNode>()
     const { showToast } = useToast()
+    const { selectedField, selectField, highlightedNodeIds } = useFieldSelectionContext()
 
     const hasNewField = newFieldIds.length > 0
     const hasEdits = editingFieldIds.length > 0
@@ -147,11 +149,24 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const isEditAllMode = hasEdits && !hasNewField
     const editBtnLabel = isEditAllMode ? "Save" : "Edit"
 
+    const isNodeHighlighted = highlightedNodeIds.has(id)
+    const isFieldSelected = (fieldId: string) =>
+        selectedField?.nodeId === id && selectedField?.fieldId === fieldId
+
+    const handleFieldSelect = (field: DesignField) => {
+        if (field.connectable === false) return
+        if (isFieldSelected(field.id)) {
+            selectField(null)
+        } else {
+            selectField({ nodeId: id, fieldId: field.id })
+        }
+    }
+
     return (
         <SchemaNodeComponentMainDiv
             ref={mainDivRef}
             $bgColor={data.node.color}
-            className={(selected ? "selected " : "") + "schema-node-toolbar"}
+            className={(selected ? "selected " : "") + (isNodeHighlighted ? "highlighted " : "") + "schema-node-toolbar"}
         >
             <SchemaNodeComponentToolBar position={Position.Top} align={"end"}>
                 <div>
@@ -216,7 +231,11 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                             const edit = localEdits[field.id]
                             const isNew = newFieldIds.includes(field.id)
                             return (
-                                <SchemaNodeComponentField key={field.id}>
+                                <SchemaNodeComponentField
+                                    key={field.id}
+                                    className={isFieldSelected(field.id) ? "field-selected" : ""}
+                                    onClick={() => handleFieldSelect(field)}
+                                >
                                     <SchemaNodeComponentEdgeHandle $color={field.color} className="left">
                                         {field.connectable !== false && (
                                             <Handle className="handle" type="target" position={Position.Left} id={`${field.id}-target`} />

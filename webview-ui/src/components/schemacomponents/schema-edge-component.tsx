@@ -1,5 +1,6 @@
 import { BaseEdge, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
 import type { DesignFlowEdge } from "../../types/schema-node-ui";
+import { useFieldSelectionContext } from "../../hooks/use-field-selection-hooks";
 
 /**
  * Custom edge used for rendered connections between schema nodes.
@@ -22,6 +23,9 @@ const SchemaEdgeComponent = ({
   markerEnd,
   style,
 }: EdgeProps<DesignFlowEdge>) => {
+  const { highlightedEdgeIds } = useFieldSelectionContext();
+  const isHighlighted = highlightedEdgeIds.has(id);
+
   const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -33,8 +37,9 @@ const SchemaEdgeComponent = ({
   });
 
   // Fall back to the field color captured at connection time.
-  const color =
-    data?.color ?? "var(--vscode-editorHoverWidget-border, #2d2d2d)";
+  const color = isHighlighted
+    ? "var(--vscode-focusBorder, #007acc)"
+    : data?.color ?? "var(--vscode-editorHoverWidget-border, #2d2d2d)";
 
   return (
     <BaseEdge
@@ -44,7 +49,7 @@ const SchemaEdgeComponent = ({
       className="schema-edge"
       style={{
         stroke: color,
-        strokeWidth: selected ? 3 : 2,
+        strokeWidth: isHighlighted ? 4 : selected ? 3 : 2,
         strokeDasharray: "6 4",
         ...style,
       }}

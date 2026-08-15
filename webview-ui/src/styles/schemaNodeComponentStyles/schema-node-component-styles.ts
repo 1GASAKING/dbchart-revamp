@@ -14,6 +14,10 @@ const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
   position: relative;
   background: ${(p) => p.$bgColor};
 
+  &.highlighted {
+    border-color: var(--vscode-focusBorder, #007acc);
+  }
+
 
   &.selected {
     position: relative;
@@ -159,6 +163,10 @@ const SchemaNodeComponentField = styled.div`
   padding: 4px 6px;
   width: 100%;
   position: relative;
+
+  &.field-selected {
+    background: var(--vscode-list-activeSelectionBackground, #094771);
+  }
 
   > div {
     display: flex;

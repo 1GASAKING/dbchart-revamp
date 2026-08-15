@@ -1,4 +1,4 @@
-import { useEdgesState, useNodesState, Position, MiniMap, type Connection, addEdge, type ReactFlowInstance } from "@xyflow/react"
+import { useEdgesState, useNodesState, Position, MiniMap, type Connection, addEdge, type ReactFlowInstance, type OnConnectEnd } from "@xyflow/react"
 import { CanvasComponentMainDiv, CanvasComponentReactFlow, CanvasComponentControls, CanvasComponentBackground } from "../../styles/canvascomponentstyles/canvascomponentstyles"
 import SchemaNodeComponent from "../schema-node-components/schema-node-component"
 import AreaNodeComponent from "../areanodecomponents/area-node-component"
@@ -7,11 +7,14 @@ import SchemaEdgeComponent from "../schemacomponents/schema-edge-component"
 import ContextMenuComponent from "./contextmenu-component"
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
 import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, type AreaFlowNode, } from "../../types/schema-node-ui"
-import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData } from "@lib/utils"
-import { ToastProvider } from "../../contexts/toast-context"
+import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData, areFieldTypesCompatible } from "@lib/utils"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
 import AddNodeDialog, { type AddNodeFormData } from "../reusable-components/add-node-dialog"
 import AddRelationshipDialog, { type RelationshipFormData } from "../reusable-components/add-relationship-dialog"
+import { ToastProvider } from "../../contexts/toastcontext/toast-context-provider"
+import { FieldSelectionProvider } from "../../contexts/fieldselectioncontext/field-selection-provider"
+import { useToast } from "../../hooks/use-toast-hook"
+import type { ToastType } from "../../styles/toastcomponentstyles/toast-component-styles"
 
 
 const nodeTypes = {
@@ -27,6 +30,18 @@ const edgeTypes = {
 // default elevation adds +1000 z-index to a selected node).
 const AREA_NODE_Z_INDEX = -2000;
 
+interface ToastGetterProps {
+  onReady: (show: (message: string, type?: ToastType) => void) => void;
+}
+
+const ToastGetter = ({ onReady }: ToastGetterProps) => {
+  const toast = useToast();
+  useEffect(() => {
+    if (toast) onReady(toast.showToast);
+  }, [toast, onReady]);
+  return null;
+};
+
 
 const CanvasComponent = () => {
 
@@ -39,6 +54,7 @@ const CanvasComponent = () => {
     const [creationPosition, setCreationPosition] = useState<ContextMenuData | null>(null)
     const [isAddRelationshipOpen, setIsAddRelationshipOpen] = useState(false)
     const rfRef = useRef<ReactFlowInstance<CanvasNode, DesignFlowEdge> | null>(null);
+    const showToastRef = useRef<((message: string, type?: ToastType) => void) | null>(null);
     useEffect(() => {
 
         setNodes([
@@ -208,6 +224,57 @@ const CanvasComponent = () => {
         setContextMenu(null);
     };
 
+    const isValidConnection = useCallback(
+        (connection: Connection | DesignFlowEdge) => {
+            const sourceNode = nodes.find((n) => n.id === connection.source);
+            const targetNode = nodes.find((n) => n.id === connection.target);
+            const sourceFieldId = connection.sourceHandle?.replace(/-source$|-target$/, "");
+            const targetFieldId = connection.targetHandle?.replace(/-source$|-target$/, "");
+            const sourceField = isDesignNode(sourceNode)
+                ? sourceNode.data.node.fields.find((f) => f.id === sourceFieldId)
+                : undefined;
+            const targetField = isDesignNode(targetNode)
+                ? targetNode.data.node.fields.find((f) => f.id === targetFieldId)
+                : undefined;
+            if (!sourceField || !targetField) return false;
+            return areFieldTypesCompatible(sourceField.dataType, targetField.dataType);
+        },
+        [nodes]
+    );
+
+    const handleConnectEnd = useCallback<OnConnectEnd>(
+        (_event, state) => {
+            if (state.isValid !== false) return;
+            const fromNodeId = state.fromNode?.id;
+            const toNodeId = state.toNode?.id;
+            if (!fromNodeId || !toNodeId) return;
+
+            const sourceFieldId = state.fromHandle?.id?.replace(/-source$|-target$/, "");
+            const targetFieldId = state.toHandle?.id?.replace(/-source$|-target$/, "");
+
+            const sourceNode = nodes.find((n) => n.id === fromNodeId);
+            const targetNode = nodes.find((n) => n.id === toNodeId);
+            const sourceField = isDesignNode(sourceNode)
+                ? sourceNode.data.node.fields.find((f) => f.id === sourceFieldId)
+                : undefined;
+            const targetField = isDesignNode(targetNode)
+                ? targetNode.data.node.fields.find((f) => f.id === targetFieldId)
+                : undefined;
+
+            if (
+                sourceField &&
+                targetField &&
+                !areFieldTypesCompatible(sourceField.dataType, targetField.dataType)
+            ) {
+                showToastRef.current?.(
+                    `Cannot connect ${sourceField.dataType} → ${targetField.dataType}: field types must match`,
+                    "warning"
+                );
+            }
+        },
+        [nodes]
+    );
+
     const onConnect = useCallback(
         (connection: Connection) => {
             setEdges((eds) => {
@@ -274,7 +341,9 @@ const CanvasComponent = () => {
 
 
     return (
+        <FieldSelectionProvider edges={edges}>
         <ToastProvider>
+            <ToastGetter onReady={(show) => { showToastRef.current = show; }} />
             <CanvasComponentMainDiv>
                 <CanvasComponentReactFlow
                     nodes={nodes}
@@ -289,6 +358,8 @@ const CanvasComponent = () => {
                     onPaneContextMenu={handlePaneContextMenu}
                     onPaneClick={() => setContextMenu(null)}
                     onConnect={onConnect}
+                    onConnectEnd={handleConnectEnd}
+                    isValidConnection={isValidConnection}
                     onMove={(_, viewport) => syncZoomValue(viewport)}
 
 
@@ -371,6 +442,9 @@ const CanvasComponent = () => {
             <AddNodeDialog
                 open={isAddNodeDialogOpen}
                 onOpenChange={setIsAddNodeDialogOpen}
+                existingLabels={nodes
+                    .filter(isDesignNode)
+                    .map((n) => ({ id: n.id, label: n.data.node.label }))}
                 onSubmit={handleCreateNode}
             />
 
@@ -381,6 +455,7 @@ const CanvasComponent = () => {
                 onSubmit={handleCreateRelationship}
             />
         </ToastProvider>
+        </FieldSelectionProvider>
     )
 
 }

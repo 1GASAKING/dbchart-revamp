@@ -5,7 +5,7 @@ import type { AreaFlowNode, CanvasNode } from "../../types/schema-node-ui";
 import { validateAreaName, getAreaNameErrorMessage } from "@lib/utils";
 import { AreaNodeComponentMainDiv } from "../../styles/areanodecomponentstyles/area-node-component-styles";
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles";
-import { useToast } from "../../contexts/toast-context";
+import { useToast } from "../../contexts/toastcontext/toast-context";
 
 const isAreaNode = (node: CanvasNode): node is AreaFlowNode =>
   node.type === "area";
