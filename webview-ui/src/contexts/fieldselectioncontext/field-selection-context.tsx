@@ -4,14 +4,14 @@ import type { SelectedField } from "@lib/utils";
 export interface FieldSelectionContextValue {
   selectedField: SelectedField | null;
   selectField: (field: SelectedField | null) => void;
-  highlightedNodeIds: Set<string>;
+  /** Field-level keys (`${nodeId}:${fieldId}`) that should be highlighted. */
+  highlightedFieldKeys: Set<string>;
   highlightedEdgeIds: Set<string>;
 }
 
 export const FieldSelectionContext = createContext<FieldSelectionContextValue>({
   selectedField: null,
   selectField: () => {},
-  highlightedNodeIds: new Set(),
+  highlightedFieldKeys: new Set(),
   highlightedEdgeIds: new Set(),
 });
-

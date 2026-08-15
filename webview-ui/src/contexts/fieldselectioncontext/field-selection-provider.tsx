@@ -28,7 +28,7 @@ export function FieldSelectionProvider({
     () => ({
       selectedField,
       selectField: setSelectedField,
-      highlightedNodeIds: highlight.nodeIds,
+      highlightedFieldKeys: highlight.fieldKeys,
       highlightedEdgeIds: highlight.edgeIds,
     }),
     [selectedField, highlight],

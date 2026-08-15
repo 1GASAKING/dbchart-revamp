@@ -14,11 +14,6 @@ const SchemaNodeComponentMainDiv = styled.div<SchemaNodeComponentMainDivProp>`
   position: relative;
   background: ${(p) => p.$bgColor};
 
-  &.highlighted {
-    border-color: var(--vscode-focusBorder, #007acc);
-  }
-
-
   &.selected {
     position: relative;
     
@@ -168,6 +163,11 @@ const SchemaNodeComponentField = styled.div`
     background: var(--vscode-list-activeSelectionBackground, #094771);
   }
 
+  &.field-highlighted {
+    background: var(--vscode-list-inactiveSelectionBackground, #37373d);
+    outline: 1px solid var(--vscode-focusBorder, #007acc);
+  }
+
   > div {
     display: flex;
     align-items: flex-start;
@@ -291,6 +291,108 @@ const SchemaNodeComponentToolBar = styled(NodeToolbar)`
  
 `;
 
+const SchemaNodeColorPickerWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`;
+
+const SchemaNodeColorSwatch = styled.div<{ $color: string }>`
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: ${(p) => p.$color};
+  border: 1px solid var(--vscode-editorWidget-border, #454545);
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 0.8;
+    border-color: var(--vscode-focusBorder, var(--gray-70));
+  }
+`;
+
+const SchemaNodeColorPickerPopover = styled.div`
+  position: absolute;
+  bottom: 32px;
+  right: 0;
+  z-index: 100;
+  background: var(--vscode-dropdown-background, #3c3c3c);
+  border: 1px solid var(--vscode-dropdown-border, var(--gray-30));
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-flow: column;
+  gap: 8px;
+  width: fit-content;
+`;
+
+const SchemaNodeColorGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+`;
+
+const SchemaNodeCustomColorRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--vscode-editorWidget-border, #454545);
+`;
+
+const SchemaNodeCustomColorInput = styled.input`
+  width: 90px;
+  background: var(--vscode-input-background, #3c3c3c);
+  color: var(--vscode-input-foreground, #cccccc);
+  border: 1px solid var(--vscode-input-border, var(--gray-30));
+  padding: 4px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+  outline: none;
+  height: 24px;
+
+  &:focus {
+    border-color: var(--vscode-focusBorder, var(--gray-70));
+  }
+`;
+
+const SchemaNodeCustomColorApply = styled.button`
+  background: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #ffffff);
+  border: 1px solid var(--vscode-button-border, var(--gray-30));
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  height: 24px;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+const SchemaNodeColorOption = styled.div<{ $color: string; $active: boolean }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: ${(p) => p.$color};
+  cursor: pointer;
+  border: 2px solid
+    ${(p) =>
+      p.$active
+        ? "var(--vscode-focusBorder, #007acc)"
+        : "var(--vscode-editorWidget-border, #454545)"};
+  transition: all 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+    border-color: var(--vscode-focusBorder, var(--gray-70));
+  }
+`;
+
 interface SchemaNodeComponentEdgeHandleProp {
   $color?: string;
 }
@@ -334,4 +436,12 @@ export {
   SchemaNodeComponentEditInput,
   SchemaNodeComponentEditSelect,
   SchemaNodeComponentEditTrigger,
+  SchemaNodeColorGrid,
+  SchemaNodeColorOption,
+  SchemaNodeColorPickerPopover,
+  SchemaNodeColorPickerWrapper,
+  SchemaNodeColorSwatch,
+  SchemaNodeCustomColorApply,
+  SchemaNodeCustomColorInput,
+  SchemaNodeCustomColorRow,
 };

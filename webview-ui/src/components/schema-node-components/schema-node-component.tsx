@@ -1,12 +1,12 @@
 import { type NodeProps, Handle, Position, useReactFlow } from "@xyflow/react"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
-import { SchemaNodeComponentBody, SchemaNodeComponentEdgeHandle, SchemaNodeComponentEditInput, SchemaNodeComponentEditSelect, SchemaNodeComponentField, SchemaNodeComponentHeader, SchemaNodeComponentMainDiv, SchemaNodeComponentToolBar } from "../../styles/schemaNodeComponentStyles/schema-node-component-styles"
+import { SchemaNodeColorOption, SchemaNodeColorPickerPopover, SchemaNodeColorPickerWrapper, SchemaNodeColorSwatch, SchemaNodeComponentBody, SchemaNodeComponentEdgeHandle, SchemaNodeComponentEditInput, SchemaNodeComponentEditSelect, SchemaNodeComponentField, SchemaNodeComponentHeader, SchemaNodeComponentMainDiv, SchemaNodeComponentToolBar } from "../../styles/schemaNodeComponentStyles/schema-node-component-styles"
 import { ReactComponent as ExpandIcon } from "./assets/expand-square-4.svg?react"
 import { isDesignNode } from "../../types/schema-node-ui";
 import type { DesignFlowNode, CanvasNode } from "../../types/schema-node-ui"
 import type { FieldDataType, DesignField } from "@dbchart/schema"
 import { useEffect, useRef, useState } from "react"
-import { createDesignField, DATA_TYPES, validateFieldName, getFieldNameErrorMessage, validateSchemaName, getSchemaNameErrorMessage } from "@lib/utils"
+import { createDesignField, DATA_TYPES, validateFieldName, getFieldNameErrorMessage, validateSchemaName, getSchemaNameErrorMessage, fieldKey, NODE_COLORS } from "@lib/utils"
 import { useToast } from "../../contexts/toastcontext/toast-context"
 import { useFieldSelectionContext } from "../../hooks/use-field-selection-hooks"
 
@@ -24,9 +24,10 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const [newFieldIds, setNewFieldIds] = useState<string[]>([])
     const [editingName, setEditingName] = useState(false)
     const [name, setName] = useState(node.label)
+    const [showColorPicker, setShowColorPicker] = useState(false)
     const { getNodes, updateNodeData } = useReactFlow<CanvasNode>()
     const { showToast } = useToast()
-    const { selectedField, selectField, highlightedNodeIds } = useFieldSelectionContext()
+    const { selectedField, selectField, highlightedFieldKeys } = useFieldSelectionContext()
 
     const hasNewField = newFieldIds.length > 0
     const hasEdits = editingFieldIds.length > 0
@@ -146,12 +147,25 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
         return () => document.removeEventListener("mousedown", handler)
     }, [hasNewField, id, node, newFieldIds, updateNodeData])
 
+    // --- click outside the owning node deselects the active field ---
+    useEffect(() => {
+        if (selectedField?.nodeId !== id) return
+        const handler = (event: MouseEvent) => {
+            const target = event.target as HTMLElement
+            if (mainDivRef.current?.contains(target)) return
+            selectField(null)
+        }
+        document.addEventListener("click", handler)
+        return () => document.removeEventListener("mousedown", handler)
+    }, [selectedField, selectField, id])
+
     const isEditAllMode = hasEdits && !hasNewField
     const editBtnLabel = isEditAllMode ? "Save" : "Edit"
 
-    const isNodeHighlighted = highlightedNodeIds.has(id)
     const isFieldSelected = (fieldId: string) =>
         selectedField?.nodeId === id && selectedField?.fieldId === fieldId
+    const isFieldHighlighted = (fieldId: string) =>
+        highlightedFieldKeys.has(fieldKey(id, fieldId))
 
     const handleFieldSelect = (field: DesignField) => {
         if (field.connectable === false) return
@@ -162,11 +176,16 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
         }
     }
 
+    const handleColorSelect = (color: string) => {
+        updateNodeData(id, { node: { ...node, color } })
+        setShowColorPicker(false)
+    }
+
     return (
         <SchemaNodeComponentMainDiv
             ref={mainDivRef}
             $bgColor={data.node.color}
-            className={(selected ? "selected " : "") + (isNodeHighlighted ? "highlighted " : "") + "schema-node-toolbar"}
+            className={(selected ? "selected " : "") + "schema-node-toolbar"}
         >
             <SchemaNodeComponentToolBar position={Position.Top} align={"end"}>
                 <div>
@@ -189,6 +208,28 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                             <div><ExpandIcon width={16} height={19} /></div>
                             <div className="text-holder"><p className="button-text">Expand</p></div>
                         </VsButton>
+                    </div>
+                    <div className="schema-node-button ">
+                        <SchemaNodeColorPickerWrapper>
+                            <SchemaNodeColorSwatch
+                                $color={data.node.color}
+                                title="Change node color"
+                                onClick={() => setShowColorPicker((prev) => !prev)}
+                            />
+                            {showColorPicker && (
+                                <SchemaNodeColorPickerPopover>
+                                    {NODE_COLORS.map((color) => (
+                                        <SchemaNodeColorOption
+                                            key={color}
+                                            $color={color}
+                                            $active={color === data.node.color}
+                                            title={color}
+                                            onClick={() => handleColorSelect(color)}
+                                        />
+                                    ))}
+                                </SchemaNodeColorPickerPopover>
+                            )}
+                        </SchemaNodeColorPickerWrapper>
                     </div>
                 </div>
             </SchemaNodeComponentToolBar>
@@ -233,7 +274,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                             return (
                                 <SchemaNodeComponentField
                                     key={field.id}
-                                    className={isFieldSelected(field.id) ? "field-selected" : ""}
+                                    className={(isFieldSelected(field.id) ? "field-selected " : "") + (isFieldHighlighted(field.id) ? "field-highlighted" : "")}
                                     onClick={() => handleFieldSelect(field)}
                                 >
                                     <SchemaNodeComponentEdgeHandle $color={field.color} className="left">

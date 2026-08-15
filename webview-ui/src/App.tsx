@@ -12,7 +12,7 @@ import '@xyflow/react/dist/style.css'
 
 function App() {
 
-  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("editor");
+  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("");
 
   const handleMessage = useCallback((event: MessageEvent) => {
     const message: ExtensionMessage = event.data

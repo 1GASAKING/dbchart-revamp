@@ -359,12 +359,22 @@ const CanvasComponent = () => {
                     onPaneClick={() => setContextMenu(null)}
                     onConnect={onConnect}
                     onConnectEnd={handleConnectEnd}
+                     maxZoom={5}
+                    minZoom={0.1}
+
                     isValidConnection={isValidConnection}
+                    snapToGrid={true}
+                     deleteKeyCode={['Backspace', 'Delete']}
+                    multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
+                    snapGrid={[20, 20]}
+
+
                     onMove={(_, viewport) => syncZoomValue(viewport)}
 
 
                     onInit={(instance) => { rfRef.current = instance }}
                     proOptions={{ hideAttribution: true, }}>
+
                     <CanvasComponentControls  >
                         <div className="button-holder" >
                             <VsButton onClick={() => setFilterState(!filterState) } title="filter">

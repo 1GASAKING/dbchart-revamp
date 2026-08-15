@@ -14,73 +14,94 @@ export interface GraphEdge {
   targetHandle?: string | null;
 }
 
-/** A selected field reference (a specific handle on a specific node). */
+/** A selected field reference (a specific field on a specific node). */
 export interface SelectedField {
   nodeId: string;
   fieldId: string;
 }
 
 export interface FieldHighlightResult {
-  nodeIds: Set<string>;
+  /** Keys of all fields in the transitively connected field graph (`${nodeId}:${fieldId}`). */
+  fieldKeys: Set<string>;
+  /** Edges that connect any two highlighted fields. */
   edgeIds: Set<string>;
 }
 
+/** Build a stable key for a field reference. */
+export function fieldKey(nodeId: string, fieldId: string): string {
+  return `${nodeId}:${fieldId}`;
+}
+
+/** Strip the `-source` / `-target` suffix from a handle id. */
+function fieldIdFromHandle(handle?: string | null): string | null {
+  if (!handle) {return null;}
+  return handle.replace(/-source$|-target$/, "");
+}
+
 /**
- * Compute the nodes and edges to highlight when a field is selected.
+ * Compute the transitively connected set of fields and their edges when a
+ * field is selected.
  *
- * Highlights:
- * - the edge(s) connected to the selected field's handle,
- * - the directly connected node(s),
- * - and the node(s) connected to those nodes (one additional hop),
- * - plus every edge that links any two highlighted nodes.
- *
- * Returns empty sets when no field is selected.
+ * Starting at the selected field, it walks every edge attached to that field
+ * into the field on the other end, and continues walking that field's edges,
+ * and so on. This means the selected field, the fields directly connected to
+ * it, and the fields connected to those fields (and so on) are all highlighted
+ * at the field level — not the whole node.
  */
 export function computeFieldHighlight(
   field: SelectedField | null,
   edges: GraphEdge[],
 ): FieldHighlightResult {
-  if (!field) {
-    return { nodeIds: new Set(), edgeIds: new Set() };
-  }
+  const empty = { fieldKeys: new Set<string>(), edgeIds: new Set<string>() };
+  if (!field) {return empty;}
 
-  const sourceHandleId = `${field.fieldId}-source`;
-  const targetHandleId = `${field.fieldId}-target`;
+  // Build a field-level adjacency map (both directions).
+  const adjacency = new Map<string, Set<string>>();
+  const edgeKeyToId = new Map<string, string>();
 
-  // Edges that attach to the selected field's handle.
-  const fieldEdges = edges.filter(
-    (e) =>
-      (e.source === field.nodeId && e.sourceHandle === sourceHandleId) ||
-      (e.target === field.nodeId && e.targetHandle === targetHandleId),
-  );
+  const link = (a: string, b: string, edgeId: string) => {
+    if (!a || !b){ return;}
+    if (!adjacency.has(a)){ adjacency.set(a, new Set());}
+    if (!adjacency.has(b)) {adjacency.set(b, new Set());}
+    adjacency.get(a)!.add(b);
+    adjacency.get(b)!.add(a);
+    edgeKeyToId.set([a, b].sort().join("|"), edgeId);
+  };
 
-  const nodeIds = new Set<string>([field.nodeId]);
-  const edgeIds = new Set<string>(fieldEdges.map((e) => e.id));
-
-  // Direct neighbors.
-  const neighbors = new Set<string>();
-  for (const e of fieldEdges) {
-    const other = e.source === field.nodeId ? e.target : e.source;
-    neighbors.add(other);
-    nodeIds.add(other);
-  }
-
-  // One additional hop: neighbors of the direct neighbors.
   for (const e of edges) {
-    if (neighbors.has(e.source) && !nodeIds.has(e.target)) {
-      nodeIds.add(e.target);
-    }
-    if (neighbors.has(e.target) && !nodeIds.has(e.source)) {
-      nodeIds.add(e.source);
+    const sourceField = fieldIdFromHandle(e.sourceHandle);
+    const targetField = fieldIdFromHandle(e.targetHandle);
+    if (!sourceField || !targetField) {continue;}
+    link(fieldKey(e.source, sourceField), fieldKey(e.target, targetField), e.id);
+  }
+
+  const start = fieldKey(field.nodeId, field.fieldId);
+  const fieldKeys = new Set<string>();
+  const queue = [start];
+  fieldKeys.add(start);
+
+  while (queue.length > 0) {
+    const current = queue.shift() as string;
+    for (const neighbor of adjacency.get(current) ?? []) {
+      if (!fieldKeys.has(neighbor)) {
+        fieldKeys.add(neighbor);
+        queue.push(neighbor);
+      }
     }
   }
 
-  // Include every edge between highlighted nodes.
+  // Collect edges whose two endpoints are both in the highlighted set.
+  const edgeIds = new Set<string>();
   for (const e of edges) {
-    if (nodeIds.has(e.source) && nodeIds.has(e.target)) {
+    const sourceField = fieldIdFromHandle(e.sourceHandle);
+    const targetField = fieldIdFromHandle(e.targetHandle);
+    if (!sourceField || !targetField) {continue;}
+    const a = fieldKey(e.source, sourceField);
+    const b = fieldKey(e.target, targetField);
+    if (fieldKeys.has(a) && fieldKeys.has(b)) {
       edgeIds.add(e.id);
     }
   }
 
-  return { nodeIds, edgeIds };
+  return { fieldKeys, edgeIds };
 }
