@@ -20,6 +20,23 @@ export interface SelectedField {
   fieldId: string;
 }
 
+/** Minimal structural contract for a field source (for computing edge compatibility). */
+export interface FieldSource {
+  nodeId: string;
+  fieldId: string;
+  dataType: string;
+}
+
+/** Minimal edge contract that carries both source/target handles and a broken flag. */
+export interface CompatCheckEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+  broken?: boolean;
+}
+
 export interface FieldHighlightResult {
   /** Keys of all fields in the transitively connected field graph (`${nodeId}:${fieldId}`). */
   fieldKeys: Set<string>;
@@ -104,4 +121,36 @@ export function computeFieldHighlight(
   }
 
   return { fieldKeys, edgeIds };
+}
+
+/**
+ * Given all nodes (as field sources) and all edges, compute which edges are
+ * "broken" — i.e. the connected fields' data types are no longer compatible.
+ *
+ * This is used when a field's data type changes, so the UI can render a broken
+ * connection line for any relationship whose endpoint types no longer match.
+ */
+export function computeBrokenEdges(
+  fields: FieldSource[],
+  edges: CompatCheckEdge[],
+): Set<string> {
+  const broken = new Set<string>();
+  for (const e of edges) {
+    const sourceFieldId = fieldIdFromHandle(e.sourceHandle);
+    const targetFieldId = fieldIdFromHandle(e.targetHandle);
+    if (!sourceFieldId || !targetFieldId){ continue;}
+
+    const source = fields.find(
+      (f) => f.nodeId === e.source && f.fieldId === sourceFieldId,
+    );
+    const target = fields.find(
+      (f) => f.nodeId === e.target && f.fieldId === targetFieldId,
+    );
+    if (!source || !target) {continue;}
+
+    if (source.dataType !== target.dataType) {
+      broken.add(e.id);
+    }
+  }
+  return broken;
 }

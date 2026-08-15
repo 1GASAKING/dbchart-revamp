@@ -5,9 +5,9 @@ import AreaNodeComponent from "../areanodecomponents/area-node-component"
 import ConnectionLineComponent from "./connection-line-component"
 import SchemaEdgeComponent from "../schemacomponents/schema-edge-component"
 import ContextMenuComponent from "./contextmenu-component"
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
 import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, type AreaFlowNode, } from "../../types/schema-node-ui"
-import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData, areFieldTypesCompatible } from "@lib/utils"
+import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData, areFieldTypesCompatible, computeBrokenEdges } from "@lib/utils"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
 import AddNodeDialog, { type AddNodeFormData } from "../reusable-components/add-node-dialog"
 import AddRelationshipDialog, { type RelationshipFormData } from "../reusable-components/add-relationship-dialog"
@@ -143,6 +143,61 @@ const CanvasComponent = () => {
         ]);
 
     }, [setNodes, setEdges])
+
+    // --- broken relationship detection ---
+    // Whenever nodes (field types) or edges change, recompute which edges are
+    // broken (field types at the endpoints no longer match) and update their
+    // `broken` flag so the edge renders as a broken connection line.
+    const fieldSources = useMemo(() => {
+        const sources: Array<{ nodeId: string; fieldId: string; dataType: string }> = []
+        for (const n of nodes) {
+            if (isDesignNode(n)) {
+                for (const f of n.data.node.fields) {
+                    sources.push({ nodeId: n.id, fieldId: f.id, dataType: f.dataType });
+                }
+            }
+        }
+        return sources;
+    }, [nodes]);
+
+    useEffect(() => {
+        const brokenIds = computeBrokenEdges(fieldSources, edges);
+        let needsUpdate = false;
+        for (const e of edges) {
+            const isBroken = brokenIds.has(e.id);
+            if ((e.data?.broken ?? false) !== isBroken) {
+                needsUpdate = true;
+                break;
+            }
+        }
+        if (!needsUpdate) return;
+        setEdges((eds) =>
+            eds.map((e): DesignFlowEdge => {
+                const isBroken = brokenIds.has(e.id);
+                if ((e.data?.broken ?? false) !== isBroken) {
+                    return {
+                        ...e,
+                        data: {
+                            relationshipId: e.data?.relationshipId ?? e.id,
+                            ...(e.data?.color !== undefined ? { color: e.data.color } : {}),
+                            broken: isBroken,
+                        },
+                    };
+                }
+                return e;
+            })
+        );
+        // Show a toast for each edge that just became broken
+        for (const e of edges) {
+            const isBroken = brokenIds.has(e.id);
+            if (isBroken && (e.data?.broken ?? false) !== true) {
+                showToastRef.current?.(
+                    `Broken relationship: connected field types are no longer compatible (${e.source} → ${e.target})`,
+                    "warning"
+                );
+            }
+        }
+    }, [fieldSources, edges, setEdges]);
 
     const handlePaneContextMenu = (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
         event.preventDefault();

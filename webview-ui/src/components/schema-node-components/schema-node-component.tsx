@@ -1,7 +1,6 @@
 import { type NodeProps, Handle, Position, useReactFlow } from "@xyflow/react"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
-import { SchemaNodeColorOption, SchemaNodeColorPickerPopover, SchemaNodeColorPickerWrapper, SchemaNodeColorSwatch, SchemaNodeComponentBody, SchemaNodeComponentEdgeHandle, SchemaNodeComponentEditInput, SchemaNodeComponentEditSelect, SchemaNodeComponentField, SchemaNodeComponentHeader, SchemaNodeComponentMainDiv, SchemaNodeComponentToolBar } from "../../styles/schemaNodeComponentStyles/schema-node-component-styles"
-import { ReactComponent as ExpandIcon } from "./assets/expand-square-4.svg?react"
+import { SchemaNodeColorGrid, SchemaNodeColorOption, SchemaNodeColorPickerPopover, SchemaNodeColorPickerWrapper, SchemaNodeColorSwatch, SchemaNodeComponentBody, SchemaNodeComponentEdgeHandle, SchemaNodeComponentEditInput, SchemaNodeComponentEditSelect, SchemaNodeComponentField, SchemaNodeComponentHeader, SchemaNodeComponentMainDiv, SchemaNodeComponentToolBar, SchemaNodeCustomColorApply, SchemaNodeCustomColorInput, SchemaNodeCustomColorRow } from "../../styles/schemaNodeComponentStyles/schema-node-component-styles"
 import { isDesignNode } from "../../types/schema-node-ui";
 import type { DesignFlowNode, CanvasNode } from "../../types/schema-node-ui"
 import type { FieldDataType, DesignField } from "@dbchart/schema"
@@ -25,6 +24,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const [editingName, setEditingName] = useState(false)
     const [name, setName] = useState(node.label)
     const [showColorPicker, setShowColorPicker] = useState(false)
+    const [customColor, setCustomColor] = useState("")
     const { getNodes, updateNodeData } = useReactFlow<CanvasNode>()
     const { showToast } = useToast()
     const { selectedField, selectField, highlightedFieldKeys } = useFieldSelectionContext()
@@ -125,6 +125,10 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
             setLocalEdits({})
         } else {
             // Enter edit-all mode
+            // Clear any selected field so it doesn't stay highlighted during edit
+            if (selectedField?.nodeId === id) {
+                selectField(null)
+            }
             populateEdits(node.fields)
             setEditingFieldIds(node.fields.map((f) => f.id))
         }
@@ -156,7 +160,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
             selectField(null)
         }
         document.addEventListener("click", handler)
-        return () => document.removeEventListener("mousedown", handler)
+        return () => document.removeEventListener("click", handler)
     }, [selectedField, selectField, id])
 
     const isEditAllMode = hasEdits && !hasNewField
@@ -168,6 +172,8 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
         highlightedFieldKeys.has(fieldKey(id, fieldId))
 
     const handleFieldSelect = (field: DesignField) => {
+        // Don't allow field selection/highlighting while in edit mode
+        if (hasEdits) return
         if (field.connectable === false) return
         if (isFieldSelected(field.id)) {
             selectField(null)
@@ -178,6 +184,18 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
 
     const handleColorSelect = (color: string) => {
         updateNodeData(id, { node: { ...node, color } })
+        setShowColorPicker(false)
+    }
+
+    const handleCustomColorApply = () => {
+        const hex = customColor.trim()
+        // Validate hex color format (#RGB or #RRGGBB)
+        if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(hex)) {
+            showToast("Invalid hex color. Use format like #FF0000 or #F00")
+            return
+        }
+        updateNodeData(id, { node: { ...node, color: hex } })
+        setCustomColor("")
         setShowColorPicker(false)
     }
 
@@ -203,12 +221,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                             </VsButton>
                         </div>
                     )}
-                    <div className="schema-node-button ">
-                        <VsButton className="text-icon-reveal">
-                            <div><ExpandIcon width={16} height={19} /></div>
-                            <div className="text-holder"><p className="button-text">Expand</p></div>
-                        </VsButton>
-                    </div>
+                    
                     <div className="schema-node-button ">
                         <SchemaNodeColorPickerWrapper>
                             <SchemaNodeColorSwatch
@@ -218,15 +231,31 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                             />
                             {showColorPicker && (
                                 <SchemaNodeColorPickerPopover>
-                                    {NODE_COLORS.map((color) => (
-                                        <SchemaNodeColorOption
-                                            key={color}
-                                            $color={color}
-                                            $active={color === data.node.color}
-                                            title={color}
-                                            onClick={() => handleColorSelect(color)}
+                                    <SchemaNodeColorGrid>
+                                        {NODE_COLORS.map((color) => (
+                                            <SchemaNodeColorOption
+                                                key={color}
+                                                $color={color}
+                                                $active={color === data.node.color}
+                                                title={color}
+                                                onClick={() => handleColorSelect(color)}
+                                            />
+                                        ))}
+                                    </SchemaNodeColorGrid>
+                                    <SchemaNodeCustomColorRow>
+                                        <SchemaNodeCustomColorInput
+                                            type="text"
+                                            placeholder="#RRGGBB"
+                                            value={customColor}
+                                            onChange={(e) => setCustomColor(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") { handleCustomColorApply() }
+                                            }}
                                         />
-                                    ))}
+                                        <SchemaNodeCustomColorApply onClick={handleCustomColorApply}>
+                                            Apply
+                                        </SchemaNodeCustomColorApply>
+                                    </SchemaNodeCustomColorRow>
                                 </SchemaNodeColorPickerPopover>
                             )}
                         </SchemaNodeColorPickerWrapper>
@@ -274,7 +303,7 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
                             return (
                                 <SchemaNodeComponentField
                                     key={field.id}
-                                    className={(isFieldSelected(field.id) ? "field-selected " : "") + (isFieldHighlighted(field.id) ? "field-highlighted" : "")}
+                                    className={(!hasEdits && isFieldSelected(field.id) ? "field-selected " : "") + (!hasEdits && isFieldHighlighted(field.id) ? "field-highlighted" : "")}
                                     onClick={() => handleFieldSelect(field)}
                                 >
                                     <SchemaNodeComponentEdgeHandle $color={field.color} className="left">

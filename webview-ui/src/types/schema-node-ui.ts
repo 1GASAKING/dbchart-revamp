@@ -38,6 +38,8 @@ export interface DesignEdgeData extends Record<string, unknown> {
   relationshipId: string;
   /** Stroke color for the rendered edge, copied from the source field. */
   color?: string;
+  /** Whether this relationship is broken (field types no longer compatible). */
+  broken?: boolean;
 }
 
 /** React Flow edge type for design relationships */
