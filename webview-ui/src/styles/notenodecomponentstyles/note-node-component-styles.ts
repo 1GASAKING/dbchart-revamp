@@ -47,12 +47,36 @@ const NoteNodeComponentMainDiv = styled.div<NoteNodeComponentMainDivProp>`
     gap: 4px;
   }
 
-  textarea.note-editor {
+  /* Animated collapse/expand body using the CSS grid rows technique. */
+  .note-body {
+    display: grid;
+    grid-template-rows: 1fr;
+    min-height: 0;
     flex: 1;
+    transition:
+      grid-template-rows 0.2s ease,
+      opacity 0.2s ease;
+    opacity: 1;
+  }
+  .note-body-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+  &.collapsed .note-body {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  textarea.note-editor {
+    display: block;
+    width: 100%;
+    height: 100%;
     resize: none;
     border: none;
     outline: none;
     padding: 10px;
+    margin: 0;
     background: transparent;
     color: var(--vscode-editor-foreground, #cccccc);
     font-size: 13px;

@@ -148,14 +148,14 @@ const NoteNodeComponent = ({
     <NoteNodeComponentMainDiv
       ref={mainDivRef}
       $color={note.color}
-      className={selected ? "selected" : ""}
+      className={(selected ? "selected " : "") + (collapsed ? "collapsed" : "")}
     >
       <div className="note-header nodrag">
         <div
           className="note-pin-indicator"
           title={`Pinned to ${currentPinLabel}`}
         >
-          <i className="codicon codicon-pin" /> {currentPinLabel}
+         {currentPinLabel}
         </div>
         <div className="note-actions">
           <NoteHeaderButton
@@ -246,14 +246,16 @@ const NoteNodeComponent = ({
         )}
       </div>
 
-      {!collapsed && (
-        <textarea
-          className="note-editor nodrag"
-          placeholder="Write a note..."
-          defaultValue={note.content}
-          onBlur={(e) => saveContent(e.target.value)}
-        />
-      )}
+      <div className="note-body">
+        <div className="note-body-inner">
+          <textarea
+            className="note-editor nodrag"
+            placeholder="Write a note..."
+            defaultValue={note.content}
+            onBlur={(e) => saveContent(e.target.value)}
+          />
+        </div>
+      </div>
     </NoteNodeComponentMainDiv>
   );
 };

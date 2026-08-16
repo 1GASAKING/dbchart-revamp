@@ -102,3 +102,9 @@ https://github.com/microsoft/vscode/issues/213045
 .code-block-scrollable::-webkit-scrollbar-corner {
 	background-color: transparent;
 }
+
+/* Animate note node width/height (collapse/expand). React Flow applies these
+   as inline styles on the wrapper element of each note node. */
+.react-flow__node-note {
+	transition: width 0.2s ease, height 0.2s ease;
+}
