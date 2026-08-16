@@ -3,3 +3,4 @@ export * from "./schema-node";
 export * from "./schema-relationship";
 export * from "./schema-document";
 export * from "./area-node";
+export * from "./note-node";
