@@ -2,12 +2,13 @@ import { useEdgesState, useNodesState, Position, MiniMap, type Connection, addEd
 import { CanvasComponentMainDiv, CanvasComponentReactFlow, CanvasComponentControls, CanvasComponentBackground } from "../../styles/canvascomponentstyles/canvascomponentstyles"
 import SchemaNodeComponent from "../schema-node-components/schema-node-component"
 import AreaNodeComponent from "../areanodecomponents/area-node-component"
+import NoteNodeComponent from "../notenodecomponents/note-node-component"
 import ConnectionLineComponent from "./connection-line-component"
 import SchemaEdgeComponent from "../schemacomponents/schema-edge-component"
 import ContextMenuComponent from "./contextmenu-component"
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
-import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, type AreaFlowNode, } from "../../types/schema-node-ui"
-import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData, areFieldTypesCompatible, computeBrokenEdges } from "@lib/utils"
+import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, type AreaFlowNode, type NoteFlowNode } from "../../types/schema-node-ui"
+import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData, createNoteNodeData, areFieldTypesCompatible, computeBrokenEdges } from "@lib/utils"
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
 import AddNodeDialog, { type AddNodeFormData } from "../reusable-components/add-node-dialog"
 import AddRelationshipDialog, { type RelationshipFormData } from "../reusable-components/add-relationship-dialog"
@@ -20,6 +21,7 @@ import type { ToastType } from "../../styles/toastcomponentstyles/toast-componen
 const nodeTypes = {
     test: SchemaNodeComponent,
     area: AreaNodeComponent,
+    note: NoteNodeComponent,
 }
 
 const edgeTypes = {
@@ -280,6 +282,27 @@ const CanvasComponent = () => {
         setContextMenu(null);
     };
 
+    const handleCreateNote = (position?: ContextMenuData | null) => {
+        const noteData = createNoteNodeData();
+        const screenPos = position ?? { x: 100, y: 100 };
+        const flowPos = rfRef.current?.screenToFlowPosition(screenPos) ?? screenPos;
+        const freePos = findFreeNodePosition(
+            nodes,
+            flowPos,
+            { width: 220, height: 160 }
+        );
+
+        const newNote: NoteFlowNode = {
+            id: noteData.id,
+            type: "note",
+            data: { note: noteData },
+            position: freePos,
+            style: { width: 220, height: 160 },
+        };
+        setNodes((nds) => [...nds, newNote]);
+        setContextMenu(null);
+    };
+
     const isValidConnection = useCallback(
         (connection: Connection | DesignFlowEdge) => {
             const sourceNode = nodes.find((n) => n.id === connection.source);
@@ -507,6 +530,7 @@ const CanvasComponent = () => {
                             setIsAddRelationshipOpen(true);
                         }}
                         onCreateArea={() => handleCreateArea(contextMenu)}
+                        onCreateNote={() => handleCreateNote(contextMenu)}
                     />
 
 

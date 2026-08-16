@@ -6,10 +6,11 @@ interface ContextMenuComponentProps {
     contextMenu: ContextMenuData | null;
     onCreateNode: () => void;
     onCreateRelationship: () => void;
-    onCreateArea:()=> void ;
+    onCreateArea: () => void;
+    onCreateNote: () => void;
 }
 
-const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship,onCreateArea }: ContextMenuComponentProps) => {
+const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship, onCreateArea, onCreateNote }: ContextMenuComponentProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const [adjustedPos, setAdjustedPos] = useState<ContextMenuData | null>(null);
 
@@ -96,7 +97,7 @@ const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship,
                             </div>
                         </div>
                     </CanvasConntextMenuButton>
-                    <CanvasConntextMenuButton>
+                    <CanvasConntextMenuButton onClick={onCreateNote}>
                         <div>
 
                             <div>

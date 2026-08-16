@@ -3,4 +3,6 @@ export interface NoteNodeDataType {
   id: string;
   content: string;
   color: string;
+  /** Whether the note is collapsed to just its header bar. */
+  collapsed?: boolean;
 }
