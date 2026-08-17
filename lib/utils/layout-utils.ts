@@ -14,7 +14,16 @@ export interface LayoutNode {
   width?: number;
   height?: number;
   measured?: { width?: number; height?: number };
-  data?: { node?: { fields?: readonly unknown[] }; [key: string]: unknown };
+  /** Parent node id — sticky notes pin to their target via this field. */
+  parentId?: string;
+  data?: {
+    node?: { fields?: readonly unknown[] };
+    /** Present on sticky-note nodes. */
+    note?: unknown;
+    /** Present on visual area container nodes. */
+    area?: unknown;
+    [key: string]: unknown;
+  };
 }
 
 /** Minimal structural contract for a graph edge. */
@@ -133,11 +142,28 @@ export function autoArrangeNodes<
 
   const { horizontalGap, verticalGap } = { ...DEFAULT_OPTIONS, ...options };
 
-  const idSet = new Set(nodes.map((n) => n.id));
+  // Only design nodes (tables/views — nodes carrying `data.node`) participate
+  // in the layered layout. Areas, sticky notes, and any other node kind are
+  // static and keep their original positions.
+  //
+  // Pinned notes are React Flow children of their target (`parentId`), so when
+  // their target design node is repositioned, React Flow moves them by the same
+  // delta automatically. Their relative `position` must therefore NOT be
+  // modified here — translating it would double the movement.
+  const designNodes: TNode[] = [];
+  const staticNodes: TNode[] = [];
+  for (const node of nodes) {
+    if (node.data?.node) { designNodes.push(node); }
+    else { staticNodes.push(node); }
+  }
+
+  if (designNodes.length === 0) { return nodes; }
+
+  const idSet = new Set(designNodes.map((n) => n.id));
   const adjacency = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
 
-  nodes.forEach((n) => {
+  designNodes.forEach((n) => {
     adjacency.set(n.id, []);
     inDegree.set(n.id, 0);
   });
@@ -154,9 +180,9 @@ export function autoArrangeNodes<
   });
 
   const level = new Map<string, number>();
-  nodes.forEach((n) => level.set(n.id, 0));
+  designNodes.forEach((n) => level.set(n.id, 0));
 
-  const queue = nodes
+  const queue = designNodes
     .filter((n) => (inDegree.get(n.id) ?? 0) === 0)
     .map((n) => n.id);
   const processed = new Set<string>();
@@ -175,16 +201,16 @@ export function autoArrangeNodes<
     }
   }
 
-  // Remaining nodes are part of a cycle; place them after existing levels.
+  // Remaining design nodes are part of a cycle; place them after existing levels.
   let nextLevel = Math.max(0, ...level.values()) + 1;
-  nodes.forEach((n) => {
+  designNodes.forEach((n) => {
     if (!processed.has(n.id)) {
       level.set(n.id, nextLevel++);
     }
   });
 
   const columns = new Map<number, TNode[]>();
-  nodes.forEach((n) => {
+  designNodes.forEach((n) => {
     const lvl = level.get(n.id) ?? 0;
     const column = columns.get(lvl);
     if (column) {column.push(n);}
@@ -211,5 +237,8 @@ export function autoArrangeNodes<
     x += columnWidth + horizontalGap;
   });
 
-  return positioned;
+  // Parents (design nodes) must come before their children (pinned notes).
+  // `positioned` contains the moved design nodes first; static nodes (areas,
+  // board notes, and pinned notes) are appended after them in original order.
+  return [...positioned, ...staticNodes];
 }

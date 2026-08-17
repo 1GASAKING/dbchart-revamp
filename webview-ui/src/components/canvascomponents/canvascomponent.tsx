@@ -412,6 +412,10 @@ const CanvasComponent = () => {
     };
 
     const handleAutoArrange = useCallback(() => {
+        // Auto-arrange only repositions design nodes (tables/views), while
+        // areas and notes stay in place. Pinned notes are React Flow children
+        // of their target, so they follow their target automatically when it
+        // moves — `autoArrangeNodes` handles the static-node split internally.
         setNodes(autoArrangeNodes(nodes, edges));
         setTimeout(() => {
             rfRef.current?.fitView({ padding: 0.2, duration: 300 });

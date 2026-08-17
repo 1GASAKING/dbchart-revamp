@@ -18,12 +18,19 @@ interface PinTarget {
   label: string;
 }
 
+interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 const NOTE_WIDTH = 220;
 const NOTE_EXPANDED_HEIGHT = 160;
 const NOTE_COLLAPSED_HEIGHT = 32;
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), Math.max(min, max));
+const PIN_GAP = 16;
+// How far a pinned note may be dragged away from its target (each side).
+const PIN_MARGIN = 600;
 
 const getCanvasNodeLabel = (node: CanvasNode): string => {
   if (isDesignNode(node)) return node.data.node.label;
@@ -31,14 +38,19 @@ const getCanvasNodeLabel = (node: CanvasNode): string => {
   return node.id;
 };
 
+const intersects = (a: Rect, b: Rect) =>
+  a.x < b.x + b.width &&
+  a.x + a.width > b.x &&
+  a.y < b.y + b.height &&
+  a.y + a.height > b.y;
+
 /**
  * A sticky note that can be left on the board or pinned to a node/area.
  *
- * Pinning is implemented via React Flow's `parentId`:
- *  - pinned to a design node/area  -> `parentId` is that node's id and
- *    `extent: "parent"` keeps the note draggable only inside that element.
- *  - pinned to the board           -> `parentId` is undefined, so the note
- *    can be dragged anywhere.
+ * When pinned, the note remains a child of that node (so it follows it) but is
+ * placed to the side/top of the target — never covering it — and is constrained
+ * by a padded extent so it can be dragged near the target but not far away.
+ * On the board it has no parent, so it can be dragged anywhere.
  */
 const NoteNodeComponent = ({
   id,
@@ -51,7 +63,7 @@ const NoteNodeComponent = ({
   height,
 }: NodeProps<NoteFlowNode>) => {
   const note = data.note;
-  const { getNodes, getInternalNode, updateNode, updateNodeData } =
+  const { getNodes, getNode, getInternalNode, updateNode, updateNodeData } =
     useReactFlow<CanvasNode>();
   const mainDivRef = useRef<HTMLDivElement>(null);
 
@@ -72,6 +84,47 @@ const NoteNodeComponent = ({
     currentPinId === NOTE_BOARD_TARGET
       ? "Board"
       : pinTargets.find((t) => t.id === currentPinId)?.label ?? currentPinId;
+
+  /** Absolute bounds (flow coordinates) of a canvas node. */
+  const getNodeBounds = (nodeId: string): Rect => {
+    const internal = getInternalNode(nodeId);
+    const user = getNode(nodeId);
+    let w = internal?.measured?.width ?? user?.width ?? user?.measured?.width;
+    let h = internal?.measured?.height ?? user?.height ?? user?.measured?.height;
+
+    if (w === undefined || h === undefined) {
+      if (user && isDesignNode(user)) {
+        w = 300;
+        h = 60 + (user.data.node.fields?.length ?? 0) * 28;
+      } else if (user && isAreaNode(user)) {
+        const style = user.style as
+          | { width?: number | string; height?: number | string }
+          | undefined;
+        w = Number(style?.width) || 520;
+        h = Number(style?.height) || 280;
+      } else {
+        w = NOTE_WIDTH;
+        h = NOTE_EXPANDED_HEIGHT;
+      }
+    }
+    const pos =
+      internal?.internals.positionAbsolute ??
+      user?.position ?? { x: 0, y: 0 };
+    return { x: pos.x, y: pos.y, width: w, height: h };
+  };
+
+  const isFreePlacement = (
+    absX: number,
+    absY: number,
+    ignoreNodeId: string
+  ) =>
+    getNodes().every((n) => {
+      if (n.id === id || n.id === ignoreNodeId) return true;
+      return !intersects(
+        { x: absX, y: absY, width: noteWidth, height: noteHeight },
+        getNodeBounds(n.id)
+      );
+    });
 
   const saveContent = (content: string) => {
     updateNodeData(id, { note: { ...note, content } });
@@ -103,7 +156,7 @@ const NoteNodeComponent = ({
 
   const handlePinSelect = (targetId: string) => {
     if (targetId === NOTE_BOARD_TARGET) {
-      // Unpin: move note back to board coordinates (absolute position).
+      // Unpin: board-level node, free dragging anywhere.
       updateNode(id, {
         parentId: undefined,
         extent: undefined,
@@ -113,32 +166,43 @@ const NoteNodeComponent = ({
         },
         position: { x: positionAbsoluteX, y: positionAbsoluteY },
       });
-    } else {
-      const parentInternal = getInternalNode(targetId);
-      const parentAbs = parentInternal?.internals.positionAbsolute ?? {
-        x: 0,
-        y: 0,
-      };
-      const parentWidth = parentInternal?.measured?.width ?? 0;
-      const parentHeight = parentInternal?.measured?.height ?? 0;
-
-      // Convert the note's absolute position into parent-relative coordinates
-      // and clamp it fully inside the parent bounds.
-      const relativeX = positionAbsoluteX - parentAbs.x;
-      const relativeY = positionAbsoluteY - parentAbs.y;
-      const x = clamp(relativeX, 8, parentWidth - noteWidth - 8);
-      const y = clamp(relativeY, 8, parentHeight - noteHeight - 8);
-
-      updateNode(id, {
-        parentId: targetId,
-        extent: "parent",
-        style: {
-          width: noteWidth,
-          height: collapsed ? NOTE_COLLAPSED_HEIGHT : NOTE_EXPANDED_HEIGHT,
-        },
-        position: { x, y },
-      });
+      setOpenPopover(null);
+      return;
     }
+
+    const parent = getNodeBounds(targetId);
+    const w = noteWidth;
+    const h = collapsed ? NOTE_COLLAPSED_HEIGHT : NOTE_EXPANDED_HEIGHT;
+
+    // Candidate parent-relative placements: side/top preferred, never covering.
+    const candidates: Array<{ x: number; y: number }> = [
+      { x: parent.width + PIN_GAP, y: 0 }, // right
+      { x: 0, y: -h - PIN_GAP }, // top
+      { x: -w - PIN_GAP, y: 0 }, // left
+      { x: 0, y: parent.height + PIN_GAP }, // bottom
+    ];
+
+    let chosen = candidates[0];
+    for (const candidate of candidates) {
+      const absX = parent.x + candidate.x;
+      const absY = parent.y + candidate.y;
+      if (absX >= 0 && absY >= 0 && isFreePlacement(absX, absY, targetId)) {
+        chosen = candidate;
+        break;
+      }
+    }
+
+    updateNode(id, {
+      parentId: targetId,
+      // Padded extent (in parent-relative coordinates) so the note can be
+      // dragged around the target but stays near it.
+      extent: [
+        [-PIN_MARGIN, -PIN_MARGIN],
+        [parent.width + PIN_MARGIN, parent.height + PIN_MARGIN],
+      ],
+      style: { width: w, height: h },
+      position: { x: chosen.x, y: chosen.y },
+    });
     setOpenPopover(null);
   };
 
@@ -150,14 +214,14 @@ const NoteNodeComponent = ({
       $color={note.color}
       className={(selected ? "selected " : "") + (collapsed ? "collapsed" : "")}
     >
-      <div className="note-header nodrag">
+      <div className="note-header">
         <div
           className="note-pin-indicator"
           title={`Pinned to ${currentPinLabel}`}
         >
-         {currentPinLabel}
+          {currentPinLabel}
         </div>
-        <div className="note-actions">
+        <div className="note-actions nodrag">
           <NoteHeaderButton
             title="Change color"
             onClick={() =>
@@ -187,7 +251,7 @@ const NoteNodeComponent = ({
         </div>
 
         {popoverVisible === "color" && (
-          <div className="note-color-popover">
+          <div className="note-color-popover nodrag">
             <div className="note-color-grid">
               {NODE_COLORS.map((color) => (
                 <button
@@ -222,7 +286,7 @@ const NoteNodeComponent = ({
         )}
 
         {popoverVisible === "pin" && (
-          <div className="note-pin-popover">
+          <div className="note-pin-popover nodrag">
             <div className="note-pin-list">
               <NotePinOption
                 className={
