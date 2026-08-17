@@ -24,4 +24,16 @@ export interface DesignField {
   dataType: FieldDataType;
   connectable?: boolean;
   color?: string;
+  /** Whether this field is a primary key (imported schemas). */
+  isPrimary?: boolean;
+  /** Whether this field is a foreign key (imported schemas). */
+  isForeign?: boolean;
+  /** Whether this field allows NULL (imported schemas). */
+  isNullable?: boolean;
+  /** Whether this field is unique (imported schemas). */
+  isUnique?: boolean;
+  /** Whether this field is a nested/embedded document (JSON/NoSQL). */
+  isNested?: boolean;
+  /** Sub-fields when this field is a nested/embedded object. */
+  nestedFields?: DesignField[];
 }

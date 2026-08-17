@@ -5,6 +5,7 @@ import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from '@shared/extensionmessage/extensionmessage';
 import type { WebviewMessage } from "@shared/webview/type";
 import { vscode } from './utils/vscode';
+import { resolveFileOpened, resolveFileSaved } from './utils/file-operations';
 import EditorPage from './pages/editor/editor-page';
 import '@xyflow/react/dist/style.css'
 
@@ -24,6 +25,12 @@ function App() {
         if (message.mode) {
           setAppMode(message.mode);
         }
+        break;
+      case ExtensionMessageType.FILE_OPENED:
+        resolveFileOpened(message.payload);
+        break;
+      case ExtensionMessageType.FILE_SAVE_RESULT:
+        resolveFileSaved(message.payload);
         break;
 
       default:
