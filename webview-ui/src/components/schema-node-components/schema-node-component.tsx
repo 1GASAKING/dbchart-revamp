@@ -29,6 +29,21 @@ const SchemaNodeComponent = ({ id, data, selected }: NodeProps<DesignFlowNode>) 
     const { showToast } = useToast()
     const { selectedField, selectField, highlightedFieldKeys } = useFieldSelectionContext()
 
+    // When the canvas requests edit mode (e.g. via the node context menu),
+    // enter inline name-editing automatically. The setState calls live inside
+    // the event-listener callback (external system update), not the effect body.
+    useEffect(() => {
+        const handler = (event: Event) => {
+            const detail = (event as CustomEvent<{ nodeId?: string }>).detail;
+            if (detail?.nodeId === id) {
+                setName(node.label);
+                setEditingName(true);
+            }
+        };
+        window.addEventListener("dbchart:request-edit-node", handler);
+        return () => window.removeEventListener("dbchart:request-edit-node", handler);
+    }, [id, node.label]);
+
     const hasNewField = newFieldIds.length > 0
     const hasEdits = editingFieldIds.length > 0
 

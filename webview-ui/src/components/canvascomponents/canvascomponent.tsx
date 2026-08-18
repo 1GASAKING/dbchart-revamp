@@ -7,9 +7,10 @@ import ConnectionLineComponent from "./connection-line-component"
 import SchemaEdgeComponent from "../schemacomponents/schema-edge-component"
 import ContextMenuComponent from "./contextmenu-component"
 import NodeContextMenuComponent from "./node-context-menu-component"
+import AreaContextMenuComponent from "./area-context-menu-component"
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
 import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, isAreaNode, type AreaFlowNode, type NoteFlowNode } from "../../types/schema-node-ui"
-import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, generateNodeId, generateFieldId, createAreaNodeData, createNoteNodeData, areFieldTypesCompatible, computeBrokenEdges } from "@lib/utils"
+import { autoArrangeNodes, findFreeNodePosition, estimateLayoutNodeSize, createSchemaNode, generateId, generateNodeId, generateFieldId, createAreaNodeData, createNoteNodeData, areFieldTypesCompatible, computeBrokenEdges } from "@lib/utils"
 import {
   parseSchema,
   canonicalToDesign,
@@ -44,6 +45,75 @@ const edgeTypes = {
 // default elevation adds +1000 z-index to a selected node).
 const AREA_NODE_Z_INDEX = -2000;
 
+/**
+ * Lay out design nodes whose center is inside the given area as a flowing grid
+ * within that area's bounds (left-to-right, top-to-bottom, wrapping).
+ */
+const arrangeNodesInsideArea = (nodes: CanvasNode[], areaId: string): CanvasNode[] => {
+  const area = nodes.find((n) => n.id === areaId);
+  if (!area || !isAreaNode(area)) return nodes;
+
+  const style = (area.style ?? {}) as { width?: number | string; height?: number | string };
+  const areaWidth = Number(style.width) || 520;
+  const areaHeight = Number(style.height) || 280;
+  const rect = { x: area.position.x, y: area.position.y, width: areaWidth, height: areaHeight };
+
+  const padding = 20;
+  const gapX = 40;
+  const gapY = 40;
+
+  let cursorX = rect.x + padding;
+  let cursorY = rect.y + padding;
+  let rowHeight = 0;
+
+  // Track how far the laid-out content extends from the area's top-left.
+  let maxRight = rect.x + rect.width;
+  let maxBottom = rect.y + rect.height;
+
+  const laidOut = nodes.map((node) => {
+    if (node.id === areaId || !isDesignNode(node)) return null;
+
+    const size = estimateLayoutNodeSize(node);
+    const centerX = node.position.x + size.width / 2;
+    const centerY = node.position.y + size.height / 2;
+    const inside =
+      centerX >= rect.x &&
+      centerX <= rect.x + rect.width &&
+      centerY >= rect.y &&
+      centerY <= rect.y + rect.height;
+    if (!inside) return null;
+
+    if (cursorX + size.width > rect.x + rect.width - padding) {
+      cursorX = rect.x + padding;
+      cursorY += rowHeight + gapY;
+      rowHeight = 0;
+    }
+
+    const placed = { ...node, position: { x: cursorX, y: cursorY } };
+    maxRight = Math.max(maxRight, placed.position.x + size.width);
+    maxBottom = Math.max(maxBottom, placed.position.y + size.height + padding);
+    cursorX += size.width + gapX;
+    rowHeight = Math.max(rowHeight, size.height);
+    return placed;
+  });
+
+  // Expand the area container if the laid-out nodes overflow its bounds.
+  const neededWidth = maxRight - rect.x + padding;
+  const neededHeight = maxBottom - rect.y;
+  const newWidth = Math.max(areaWidth, neededWidth);
+  const newHeight = Math.max(areaHeight, neededHeight);
+
+  return nodes.map((node) => {
+    if (node.id === areaId) {
+      return {
+        ...node,
+        style: { ...(node.style ?? {}), width: newWidth, height: newHeight },
+      };
+    }
+    return laidOut.find((n) => n?.id === node.id) ?? node;
+  });
+};
+
 interface ToastGetterProps {
   onReady: (show: (message: string, type?: ToastType) => void) => void;
 }
@@ -71,6 +141,7 @@ const CanvasComponent = () => {
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
     const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
     const [nodeContextMenu, setNodeContextMenu] = useState<ContextMenuData | null>(null)
+    const [areaContextMenu, setAreaContextMenu] = useState<ContextMenuData | null>(null)
     const rfRef = useRef<ReactFlowInstance<CanvasNode, DesignFlowEdge> | null>(null);
     const showToastRef = useRef<((message: string, type?: ToastType) => void) | null>(null);
     const flowWrapperRef = useRef<HTMLDivElement>(null);
@@ -221,14 +292,23 @@ const CanvasComponent = () => {
     const handlePaneContextMenu = (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
         event.preventDefault();
         setNodeContextMenu(null);
+        setAreaContextMenu(null);
         setContextMenu({ x: event.clientX, y: event.clientY });
     };
 
     const handleNodeContextMenu = (event: React.MouseEvent, node: CanvasNode) => {
         event.preventDefault();
+        // Area containers get their own context menu.
+        if (isAreaNode(node)) {
+            setContextMenu(null);
+            setNodeContextMenu(null);
+            setAreaContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
+            return;
+        }
         // Only design nodes (tables/views) get the node context menu.
         if (!isDesignNode(node)) return;
         setContextMenu(null);
+        setAreaContextMenu(null);
         setNodeContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
     };
 
@@ -241,10 +321,13 @@ const CanvasComponent = () => {
         return isDesignNode(node) ? node : null;
     };
 
-    /** Select the node so its inline edit toolbar becomes available. */
+    /** Ask the node to enter inline name-edit mode via a custom event. */
     const handleEditTable = () => {
         const id = nodeContextMenu?.nodeId;
         if (!id) return;
+        window.dispatchEvent(
+            new CustomEvent("dbchart:request-edit-node", { detail: { nodeId: id } })
+        );
         setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === id })));
         closeNodeMenu();
     };
@@ -285,14 +368,14 @@ const CanvasComponent = () => {
         setIsAddRelationshipOpen(true);
     };
 
-    /** Move the node into the first available area's top-left inset. */
-    const handleMoveToArea = () => {
+    /** Move the node into the chosen area's top-left inset. */
+    const handleMoveToArea = (areaId: string) => {
         const id = nodeContextMenu?.nodeId;
         if (!id) return;
 
-        const area = nodes.find(isAreaNode);
-        if (!area) {
-            showToastRef.current?.("No area exists yet. Create one first (right-click → New area).", "warning");
+        const area = nodes.find((n) => n.id === areaId);
+        if (!area || !isAreaNode(area)) {
+            showToastRef.current?.("Area no longer exists.", "warning");
             closeNodeMenu();
             return;
         }
@@ -308,6 +391,33 @@ const CanvasComponent = () => {
         setNodes((nds) => nds.filter((n) => n.id !== id));
         setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
         closeNodeMenu();
+    };
+
+    // --- area context menu actions ---
+    const closeAreaMenu = () => setAreaContextMenu(null);
+
+    const handleAreaEditName = () => {
+        const id = areaContextMenu?.nodeId;
+        if (!id) return;
+        window.dispatchEvent(
+            new CustomEvent("dbchart:request-edit-area", { detail: { nodeId: id } })
+        );
+        setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === id })));
+        closeAreaMenu();
+    };
+
+    const handleAreaAutoArrange = () => {
+        const id = areaContextMenu?.nodeId;
+        if (!id) return;
+        setNodes((nds) => arrangeNodesInsideArea(nds, id));
+        closeAreaMenu();
+    };
+
+    const handleAreaDelete = () => {
+        const id = areaContextMenu?.nodeId;
+        if (!id) return;
+        setNodes((nds) => nds.filter((n) => n.id !== id));
+        closeAreaMenu();
     };
 
     const handleCreateNode = (data: AddNodeFormData) => {
@@ -732,7 +842,7 @@ const CanvasComponent = () => {
 
                     onPaneContextMenu={handlePaneContextMenu}
                     onNodeContextMenu={handleNodeContextMenu}
-                    onPaneClick={() => { setContextMenu(null); closeNodeMenu(); }}
+                    onPaneClick={() => { setContextMenu(null); closeNodeMenu(); closeAreaMenu(); }}
                     onConnect={onConnect}
                     onConnectEnd={handleConnectEnd}
                      maxZoom={5}
@@ -817,11 +927,19 @@ const CanvasComponent = () => {
 
                     <NodeContextMenuComponent
                         contextMenu={nodeContextMenu}
+                        areas={nodes.filter(isAreaNode)}
                         onEditTable={handleEditTable}
                         onDuplicateTable={handleDuplicateTable}
                         onAddRelationship={handleAddRelationship}
                         onMoveToArea={handleMoveToArea}
                         onDeleteTable={handleDeleteTable}
+                    />
+
+                    <AreaContextMenuComponent
+                        contextMenu={areaContextMenu}
+                        onEditName={handleAreaEditName}
+                        onAutoArrange={handleAreaAutoArrange}
+                        onDeleteArea={handleAreaDelete}
                     />
 
                     <ContextMenuComponent

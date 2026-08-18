@@ -21,14 +21,18 @@ const MenuItem = ({
   onClick,
   danger,
   children,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   label: string;
   icon: string;
   onClick?: () => void;
   danger?: boolean;
   children?: React.ReactNode;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }) => (
-  <div className="node-menu-item-wrap">
+  <div className="node-menu-item-wrap" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
     <CanvasConntextMenuButton onClick={onClick}>
       <div>
         <div>
@@ -133,7 +137,12 @@ const NodeContextMenuComponent = ({
             <MenuItem label="Edit table" icon="codicon-edit" onClick={onEditTable} />
             <MenuItem label="Duplicate table" icon="codicon-copy" onClick={onDuplicateTable} />
             <MenuItem label="Add relationship" icon="codicon-debug-connected" onClick={onAddRelationship} />
-            <MenuItem label="Move to area" icon="codicon-layout-panel">
+            <MenuItem
+              label="Move to area"
+              icon="codicon-layout-panel"
+              onMouseEnter={() => setShowMoveFlyout(true)}
+              onMouseLeave={() => setShowMoveFlyout(false)}
+            >
               {showMoveFlyout && (
                 <div
                   className="move-flyout"

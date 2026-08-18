@@ -7,6 +7,8 @@ export type DesignNode = SchemaNode | ServerNode | EndpointNode;
 /** Data payload passed to the custom node component */
 export interface DesignNodeData extends Record<string, unknown> {
   node: DesignNode;
+  /** Transient signal; when it changes, the node enters name-edit mode. */
+  requestEditSignal?: number;
 }
 
 /** Data payload carried by an area (visual grouping container) node. */

@@ -1,5 +1,5 @@
 import { NodeResizer, useReactFlow, type NodeProps } from "@xyflow/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AreaNodeDataType } from "@dbchart/schema";
 import type { AreaFlowNode, CanvasNode } from "../../types/schema-node-ui";
 import { validateAreaName, getAreaNameErrorMessage } from "@lib/utils";
@@ -23,6 +23,19 @@ const AreaNodeComponent = ({ id, data, selected }: NodeProps<AreaFlowNode>) => {
   const [name, setName] = useState(area.name);
   const { getNodes, updateNodeData } = useReactFlow<CanvasNode>();
   const { showToast } = useToast();
+
+  // Enter name-edit mode when the area context menu requests it.
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ nodeId?: string }>).detail;
+      if (detail?.nodeId === id) {
+        setName(area.name);
+        setEditing(true);
+      }
+    };
+    window.addEventListener("dbchart:request-edit-area", handler);
+    return () => window.removeEventListener("dbchart:request-edit-area", handler);
+  }, [id, area.name]);
 
   const getAllAreas = (): AreaNodeDataType[] =>
     getNodes()
