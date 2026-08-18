@@ -16,6 +16,7 @@
         "@types/vscode-webview": "^1.57.5",
         "@vscode/webview-ui-toolkit": "^1.4.0",
         "@xyflow/react": "^12.11.2",
+        "html-to-image": "^1.11.13",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
         "styled-components": "^6.5.0"

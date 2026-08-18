@@ -56,7 +56,7 @@ export function parseDbml(input: string): ParseResult {
     let colMatch: RegExpExecArray | null;
     while ((colMatch = columnRegex.exec(body)) !== null) {
       // Skip index definitions and other non-column statements.
-      if (/^(indexes|note)\s*\{/i.test(body)) break;
+      if (/^(indexes|note)\s*\{/i.test(body)) {break;}
       fields.push({
         name: colMatch[1],
         dataType: colMatch[2].split("|")[0].trim(),
@@ -109,7 +109,7 @@ export function parseDbml(input: string): ParseResult {
 
   for (const ref of refs) {
     const [a, b] = ref.endpoints;
-    if (!a || !b) continue;
+    if (!a || !b){ continue;}
     const sourceEntity = entityByName.get(a.entity.toLowerCase());
     const targetEntity = entityByName.get(b.entity.toLowerCase());
     if (!sourceEntity) {
@@ -127,7 +127,7 @@ export function parseDbml(input: string): ParseResult {
     const targetField = targetEntity.fields.find(
       (f) => f.name.toLowerCase() === b.field.toLowerCase()
     );
-    if (!sourceField || !targetField) continue;
+    if (!sourceField || !targetField) {continue;}
 
     relations.push({
       id: irId("rel"),

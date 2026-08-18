@@ -35,10 +35,10 @@ export function serializeSql(schema: CanonicalSchema): string {
     for (const field of entity.fields) {
       const type = TYPE_SQL_MAP[field.dataType] ?? "JSON";
       let def = `  ${ident(field.name)} ${type}`;
-      if (field.isPrimary && !field.isNullable) def += " NOT NULL";
-      else if (field.isNullable === false) def += " NOT NULL";
+      if (field.isPrimary && !field.isNullable) {def += " NOT NULL";}
+      else if (field.isNullable === false) {def += " NOT NULL";}
       columnLines.push(def);
-      if (field.isPrimary) pkCols.push(ident(field.name));
+      if (field.isPrimary) {pkCols.push(ident(field.name));}
     }
 
     if (pkCols.length > 0) {
@@ -56,7 +56,7 @@ export function serializeSql(schema: CanonicalSchema): string {
   for (const rel of schema.relations) {
     const source = entityIdByName.get(rel.sourceEntityName.toLowerCase());
     const target = entityIdByName.get(rel.targetEntityName.toLowerCase());
-    if (!source || !target) continue;
+    if (!source || !target){ continue;}
 
     lines.push(
       `ALTER TABLE ${ident(source.name)} ADD CONSTRAINT ${ident(

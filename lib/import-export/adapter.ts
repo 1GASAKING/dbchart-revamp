@@ -54,7 +54,7 @@ export function canonicalToDesign(schema: CanonicalSchema): SchemaDesign {
   for (const rel of schema.relations) {
     const sourceNodeId = nodeIdByName.get(rel.sourceEntityName.toLowerCase());
     const targetNodeId = nodeIdByName.get(rel.targetEntityName.toLowerCase());
-    if (!sourceNodeId || !targetNodeId) continue;
+    if (!sourceNodeId || !targetNodeId){ continue;}
 
     const sourceFieldId = fieldIdByKey.get(
       fieldKey(rel.sourceEntityName, rel.sourceFieldName)
@@ -62,7 +62,7 @@ export function canonicalToDesign(schema: CanonicalSchema): SchemaDesign {
     const targetFieldId = fieldIdByKey.get(
       fieldKey(rel.targetEntityName, rel.targetFieldName)
     );
-    if (!sourceFieldId || !targetFieldId) continue;
+    if (!sourceFieldId || !targetFieldId){ continue;}
 
     relations.push({
       id: generateNodeId(),
@@ -143,11 +143,11 @@ export function designToCanonical(design: SchemaDesign): CanonicalSchema {
     .map((rel): CanonicalRelation | null => {
       const sourceNode = nodeById.get(rel.sourceNodeId);
       const targetNode = nodeById.get(rel.targetNodeId);
-      if (!sourceNode || !targetNode) return null;
+      if (!sourceNode || !targetNode) {return null;}
 
       const sourceField = sourceNode.fields.find((f) => f.id === rel.sourceFieldId);
       const targetField = targetNode.fields.find((f) => f.id === rel.targetFieldId);
-      if (!sourceField || !targetField) return null;
+      if (!sourceField || !targetField) {return null;}
 
       return {
         id: rel.id,

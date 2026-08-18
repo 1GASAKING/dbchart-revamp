@@ -1,5 +1,8 @@
 import * as vscode from "vscode";
 
+/** Supported content encodings for reading/writing files. */
+export type FileEncoding = "utf8" | "base64";
+
 /**
  * Read a UTF-8 text file from a VS Code URI.
  *
@@ -12,13 +15,18 @@ export async function readFile(uri: vscode.Uri): Promise<string> {
 }
 
 /**
- * Write UTF-8 text content to a VS Code URI, creating the file if needed.
+ * Write content to a VS Code URI, creating the file if needed.
  *
- * @param uri     the destination path
- * @param content the string to write
+ * @param uri      the destination path
+ * @param content  the string to write
+ * @param encoding how to decode `content` into bytes. @default "utf8"
  */
-export async function writeFile(uri: vscode.Uri, content: string): Promise<void> {
-  const bytes = encodeUtf8(content);
+export async function writeFile(
+  uri: vscode.Uri,
+  content: string,
+  encoding: FileEncoding = "utf8"
+): Promise<void> {
+  const bytes = encoding === "base64" ? decodeBase64(content) : encodeUtf8(content);
   await vscode.workspace.fs.writeFile(uri, bytes);
 }
 
@@ -92,5 +100,38 @@ function encodeUtf8(input: string): Uint8Array {
       );
     }
   }
+  return new Uint8Array(bytes);
+}
+
+/** Decode a base64 string into bytes. */
+function decodeBase64(input: string): Uint8Array {
+  const clean = input.replace(/\s/g, "");
+  const alphabet =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const lookup = new Map<string, number>();
+  for (let i = 0; i < alphabet.length; i++) {
+    lookup.set(alphabet[i], i);
+  }
+
+  const bytes: number[] = [];
+  let buffer = 0;
+  let bits = 0;
+
+  for (const char of clean) {
+    if (char === "=") {
+      break;
+    }
+    const value = lookup.get(char);
+    if (value === undefined) {
+      continue;
+    }
+    buffer = (buffer << 6) | value;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      bytes.push((buffer >> bits) & 0xff);
+    }
+  }
+
   return new Uint8Array(bytes);
 }

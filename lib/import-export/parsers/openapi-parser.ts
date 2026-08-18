@@ -100,7 +100,7 @@ function mapOpenApiType(prop: {
   format?: string;
   $ref?: string;
 }): FieldDataType {
-  if (prop.$ref) return normalizeDataType("uuid");
+  if (prop.$ref){ return normalizeDataType("uuid");}
   switch (prop.type) {
     case "integer":
       return normalizeDataType("bigint");
@@ -109,9 +109,9 @@ function mapOpenApiType(prop: {
     case "boolean":
       return normalizeDataType("boolean");
     case "string":
-      if (prop.format === "date-time") return normalizeDataType("timestamp");
-      if (prop.format === "date") return normalizeDataType("date");
-      if (prop.format === "uuid") return normalizeDataType("uuid");
+      if (prop.format === "date-time"){ return normalizeDataType("timestamp");}
+      if (prop.format === "date") {return normalizeDataType("date");}
+      if (prop.format === "uuid"){ return normalizeDataType("uuid");}
       return normalizeDataType("varchar");
     case "array":
       return normalizeDataType("json");
@@ -125,7 +125,7 @@ function mapOpenApiType(prop: {
 /** Detect whether a raw JSON string is an OpenAPI document. */
 export function isOpenApiDocument(input: string): boolean {
   const trimmed = input.trimStart();
-  if (!trimmed.startsWith("{")) return false;
+  if (!trimmed.startsWith("{")){ return false;}
   try {
     const doc = JSON.parse(input) as { openapi?: string; swagger?: string };
     return typeof doc.openapi === "string" || typeof doc.swagger === "string";

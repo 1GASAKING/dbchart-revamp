@@ -8,9 +8,11 @@ interface ContextMenuComponentProps {
     onCreateRelationship: () => void;
     onCreateArea: () => void;
     onCreateNote: () => void;
+    onImport: () => void;
+    onExport: () => void;
 }
 
-const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship, onCreateArea, onCreateNote }: ContextMenuComponentProps) => {
+const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship, onCreateArea, onCreateNote, onImport, onExport }: ContextMenuComponentProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const [adjustedPos, setAdjustedPos] = useState<ContextMenuData | null>(null);
 
@@ -117,7 +119,7 @@ const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship,
                 </div>
 
                    <div className="canvas-context-menu-group   canvas-context-menu-group-border">
-                    <CanvasConntextMenuButton>
+                    <CanvasConntextMenuButton onClick={onImport}>
                         <div>
 
                             <div>
@@ -133,12 +135,12 @@ const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship,
                             </div>
                         </div>
                     </CanvasConntextMenuButton>
-                    <CanvasConntextMenuButton>
+                    <CanvasConntextMenuButton onClick={onExport}>
                         <div>
 
                             <div>
                                 <p className="canvas-context-menu-text">
-                                    Import  SQL/DBML
+                                    Export  Diagram
                                 </p>
 
                             </div>
@@ -155,12 +157,12 @@ const ContextMenuComponent = ({ contextMenu, onCreateNode, onCreateRelationship,
                    <div className="canvas-context-menu-group   canvas-context-menu-group-border">
                    
                    
-                    <CanvasConntextMenuButton>
+                    <CanvasConntextMenuButton onClick={onExport}>
                         <div>
 
                             <div>
                                 <p className="canvas-context-menu-text">
-                                    Save Version
+                                    Save version
                                 </p>
 
                             </div>

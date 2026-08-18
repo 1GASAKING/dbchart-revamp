@@ -3,29 +3,34 @@ import * as Dialog from "@radix-ui/react-dialog";
 import type { SchemaFormat } from "@lib/import-export";
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles";
 
+/** Everything the export dialog can emit. */
+export type ExportKind = SchemaFormat | "svg" | "png";
+
 interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Number of tables/entities being exported (shown for context). */
   entityCount: number;
   /** Called with the chosen format when the user confirms. */
-  onExport: (format: SchemaFormat) => void;
+  onExport: (kind: ExportKind) => void;
 }
 
-const EXPORT_FORMATS: Array<{ format: SchemaFormat; label: string; hint: string }> = [
-  { format: "sql", label: "SQL DDL", hint: "CREATE TABLE + FOREIGN KEY statements" },
-  { format: "dbml", label: "DBML", hint: "Database Markup Language" },
-  { format: "json", label: "JSON", hint: "Canonical schema (round-trip safe)" },
+const EXPORT_FORMATS: Array<{ kind: ExportKind; label: string; hint: string }> = [
+  { kind: "sql", label: "SQL DDL", hint: "CREATE TABLE + FOREIGN KEY statements" },
+  { kind: "dbml", label: "DBML", hint: "Database Markup Language" },
+  { kind: "json", label: "JSON", hint: "Canonical schema (round-trip safe)" },
+  { kind: "svg", label: "SVG", hint: "Vector image — sharp at any zoom, best for printing" },
+  { kind: "png", label: "PNG", hint: "Raster image — best for easy sharing" },
 ];
 
 const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialogProps) => {
-  const [format, setFormat] = useState<SchemaFormat>("sql");
+  const [kind, setKind] = useState<ExportKind>("sql");
 
   return (
     <Dialog.Root
       open={open}
       onOpenChange={(next) => {
-        if (next) setFormat("sql");
+        if (next) setKind("sql");
         onOpenChange(next);
       }}
     >
@@ -78,8 +83,8 @@ const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialo
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {EXPORT_FORMATS.map((item) => (
               <button
-                key={item.format}
-                onClick={() => setFormat(item.format)}
+                key={item.kind}
+                onClick={() => setKind(item.kind)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -89,11 +94,11 @@ const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialo
                   borderRadius: "6px",
                   cursor: "pointer",
                   background:
-                    format === item.format
+                    kind === item.kind
                       ? "var(--vscode-button-background, #0e639c)"
                       : "var(--vscode-input-background, #3c3c3c)",
                   color:
-                    format === item.format
+                    kind === item.kind
                       ? "var(--vscode-button-foreground, #ffffff)"
                       : "var(--vscode-input-foreground, #cccccc)",
                   border: "1px solid var(--vscode-input-border, #454545)",
@@ -101,8 +106,8 @@ const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialo
               >
                 <input
                   type="radio"
-                  checked={format === item.format}
-                  onChange={() => setFormat(item.format)}
+                  checked={kind === item.kind}
+                  onChange={() => setKind(item.kind)}
                   style={{ margin: 0 }}
                 />
                 <span style={{ flex: 1 }}>
@@ -132,7 +137,7 @@ const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialo
             <VsButton
               className="footer-button"
               onClick={() => {
-                onExport(format);
+                onExport(kind);
                 onOpenChange(false);
               }}
             >

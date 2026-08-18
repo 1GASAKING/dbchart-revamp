@@ -46,7 +46,7 @@ export function parseSql(input: string): ParseResult {
 
   for (const statement of statements) {
     const trimmed = statement.trim();
-    if (!trimmed) continue;
+    if (!trimmed) {continue;}
 
     // CREATE TABLE / VIEW handling
     const createMatch =
@@ -66,7 +66,7 @@ export function parseSql(input: string): ParseResult {
         columns,
         tableConstraints,
       });
-      continue;
+      {continue;}
     }
 
     // ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY
@@ -89,7 +89,7 @@ export function parseSql(input: string): ParseResult {
       } else {
         warnings.push(`ALTER TABLE references unknown table "${sourceTable}"`);
       }
-      continue;
+      {continue;}
     }
 
     // ALTER TABLE ... ADD FOREIGN KEY (without constraint name)
@@ -109,7 +109,7 @@ export function parseSql(input: string): ParseResult {
           references: { entity: targetTable, field: targetCol },
         });
       }
-      continue;
+      {continue;}
     }
   }
 
@@ -152,10 +152,10 @@ export function parseSql(input: string): ParseResult {
 
   for (const def of tables.values()) {
     const sourceEntity = entitiesByName.get(def.name.toLowerCase());
-    if (!sourceEntity) continue;
+    if (!sourceEntity) {continue;}
 
     for (const constraint of def.tableConstraints) {
-      if (constraint.type !== "fk" || !constraint.references) continue;
+      if (constraint.type !== "fk" || !constraint.references) {continue;}
       const targetEntity = entitiesByName.get(constraint.references.entity.toLowerCase());
       // A single-column FK maps to one relation.
       const sourceField = sourceEntity.fields.find(
@@ -168,9 +168,9 @@ export function parseSql(input: string): ParseResult {
         warnings.push(
           `Foreign key on "${def.name}" references missing table "${constraint.references.entity}"`
         );
-        continue;
+        {continue;}
       }
-      if (!sourceField || !targetField) continue;
+      if (!sourceField || !targetField) {continue;}
 
       relations.push({
         id: irId("rel"),
@@ -196,8 +196,8 @@ function splitStatements(input: string): string[] {
   let depth = 0;
   let current = "";
   for (const char of input) {
-    if (char === "(") depth++;
-    if (char === ")") depth--;
+    if (char === "(") {{depth++;}}
+    if (char === ")") {{depth--;}}
     if (char === ";" && depth === 0) {
       statements.push(current);
       current = "";
@@ -205,21 +205,21 @@ function splitStatements(input: string): string[] {
       current += char;
     }
   }
-  if (current.trim()) statements.push(current);
+  if (current.trim()) {statements.push(current);}
   return statements;
 }
 
 /** Extract the parenthesized body of a CREATE statement. */
 function extractBody(statement: string): string {
   const start = statement.indexOf("(");
-  if (start === -1) return "";
+  if (start === -1) {return "";}
   // find matching close parent; body is the interior.
   let depth = 0;
   for (let i = start; i < statement.length; i++) {
-    if (statement[i] === "(") depth++;
+    if (statement[i] === "(") {depth++;}
     if (statement[i] === ")") {
-      depth--;
-      if (depth === 0) return statement.slice(start + 1, i);
+      {depth--;}
+      if (depth === 0) {return statement.slice(start + 1, i);}
     }
   }
   return statement.slice(start + 1);
@@ -231,8 +231,8 @@ function splitTopLevelCommas(body: string): string[] {
   let depth = 0;
   let current = "";
   for (const char of body) {
-    if (char === "(") depth++;
-    if (char === ")") depth--;
+    if (char === "(") {depth++;}
+    if (char === ")") {depth--;}
     if (char === "," && depth === 0) {
       parts.push(current);
       current = "";
@@ -240,7 +240,7 @@ function splitTopLevelCommas(body: string): string[] {
       current += char;
     }
   }
-  if (current.trim()) parts.push(current);
+  if (current.trim()){ parts.push(current);}
   return parts;
 }
 
@@ -249,11 +249,11 @@ function parseColumns(body: string, warnings: string[]): ColumnDef[] {
   const columns: ColumnDef[] = [];
   for (const raw of splitTopLevelCommas(body)) {
     // Skip table-level constraints (they begin with CONSTRAINT, PRIMARY, FOREIGN, UNIQUE, CHECK).
-    if (/^CONSTRAINT\b/i.test(raw.trim())) continue;
-    if (/^(PRIMARY|FOREIGN|UNIQUE|CHECK)\b/i.test(raw.trim())) continue;
+    if (/^CONSTRAINT\b/i.test(raw.trim())) {continue;}
+    if (/^(PRIMARY|FOREIGN|UNIQUE|CHECK)\b/i.test(raw.trim())) {continue;}
 
     const col = parseColumnDefinition(raw, warnings);
-    if (col) columns.push(col);
+    if (col) {columns.push(col);}
   }
   return columns;
 }
@@ -262,7 +262,7 @@ function parseColumns(body: string, warnings: string[]): ColumnDef[] {
 function parseColumnDefinition(raw: string, _warnings: string[]): ColumnDef | null {
   // Patterns: "col_name TYPE [constraints]" or "col_name TYPE," etc.
   const m = raw.trim().match(/^["`']?([^\s"`']+)["`']?\s+([^\s,()]+)(.*)$/i);
-  if (!m) return null;
+  if (!m) {return null;}
 
   const name = unquoteIdentifier(m[1]);
   const dataType = m[2];
@@ -270,11 +270,11 @@ function parseColumnDefinition(raw: string, _warnings: string[]): ColumnDef | nu
 
   const def: ColumnDef = { name, dataType };
 
-  if (/NOT\s+NULL/.test(rest)) def.isNullable = false;
-  else def.isNullable = true;
+  if (/NOT\s+NULL/.test(rest)) {def.isNullable = false;}
+  else {def.isNullable = true;}
 
-  if (/PRIMARY\s+KEY/.test(rest)) def.isPrimary = true;
-  if (/UNIQUE/.test(rest)) def.isUnique = true;
+  if (/PRIMARY\s+KEY/.test(rest)) {def.isPrimary = true;}
+  if (/UNIQUE/.test(rest)) {def.isUnique = true;}
 
   const ref = raw.match(/REFERENCES\s+["`']?([^\s("`']+)["`']?\s*\(([^)]+)\)/i);
   if (ref) {
@@ -302,7 +302,7 @@ function parseTableConstraints(
         type: "pk",
         columns: splitIdentifierList(pk[1]),
       });
-      continue;
+      {continue;}
     }
 
     const fk = t.match(
@@ -317,7 +317,7 @@ function parseTableConstraints(
           field: stripQuotesAndSpace(fk[3]),
         },
       });
-      continue;
+      {continue;}
     }
   }
 

@@ -1,4 +1,4 @@
-import { useEdgesState, useNodesState, Position, MiniMap, type Connection, addEdge, type ReactFlowInstance, type OnConnectEnd } from "@xyflow/react"
+import { useEdgesState, useNodesState, Position, MiniMap, type Connection, addEdge, type ReactFlowInstance, type OnConnectEnd, getViewportForBounds } from "@xyflow/react"
 import { CanvasComponentMainDiv, CanvasComponentReactFlow, CanvasComponentControls, CanvasComponentBackground } from "../../styles/canvascomponentstyles/canvascomponentstyles"
 import SchemaNodeComponent from "../schema-node-components/schema-node-component"
 import AreaNodeComponent from "../areanodecomponents/area-node-component"
@@ -9,6 +9,17 @@ import ContextMenuComponent from "./contextmenu-component"
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
 import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, type AreaFlowNode, type NoteFlowNode } from "../../types/schema-node-ui"
 import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData, createNoteNodeData, areFieldTypesCompatible, computeBrokenEdges } from "@lib/utils"
+import {
+  parseSchema,
+  canonicalToDesign,
+  designToCanonical,
+  serializeSchema,
+} from "@lib/import-export";
+import type { SchemaDesign, SchemaNode } from "@dbchart/schema";
+import ImportDialog, { type ImportResult } from "../import-export/import-dialog";
+import ExportDialog, { type ExportKind } from "../import-export/export-dialog";
+import { requestOpenFile, requestSaveFile } from "../../utils/file-operations";
+import { toPng, toSvg } from "html-to-image";
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles"
 import AddNodeDialog, { type AddNodeFormData } from "../reusable-components/add-node-dialog"
 import AddRelationshipDialog, { type RelationshipFormData } from "../reusable-components/add-relationship-dialog"
@@ -51,13 +62,16 @@ const CanvasComponent = () => {
     const [edges, setEdges, onEdgesChange] = useEdgesState<DesignFlowEdge>([]);
     const [contextMenu, setContextMenu] = useState<ContextMenuData | null>(null);
     const [filterState,setFilterState] = useState<boolean>()
-    const [snapToGrid, setSnapToGrid] = useState(true)
+    const [snapToGrid, setSnapToGrid] = useState(false)
     const [zoomValue, setZoomValue] = useState<string>("100")
     const [isAddNodeDialogOpen, setIsAddNodeDialogOpen] = useState(false)
     const [creationPosition, setCreationPosition] = useState<ContextMenuData | null>(null)
     const [isAddRelationshipOpen, setIsAddRelationshipOpen] = useState(false)
+    const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
+    const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
     const rfRef = useRef<ReactFlowInstance<CanvasNode, DesignFlowEdge> | null>(null);
     const showToastRef = useRef<((message: string, type?: ToastType) => void) | null>(null);
+    const flowWrapperRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
 
         setNodes([
@@ -422,12 +436,201 @@ const CanvasComponent = () => {
         }, 80);
     }, [nodes, edges, setNodes]);
 
+    // --- import / export ---
+    /** Build a SchemaDesign from the current canvas state. */
+    const buildSchemaDesign = (): SchemaDesign => ({
+        type: "schema",
+        nodes: nodes
+            .filter(isDesignNode)
+            .filter((n) => n.data.node.kind === "table" || n.data.node.kind === "view")
+            .map((n) => n.data.node as SchemaNode),
+        relationships: edges.map((e) => ({
+            id: e.id,
+            sourceNodeId: e.source,
+            sourceFieldId: e.sourceHandle?.replace(/-source$|-target$/, "") ?? "",
+            targetNodeId: e.target,
+            targetFieldId: e.targetHandle?.replace(/-source$|-target$/, "") ?? "",
+        })),
+    });
+
+    /** Replace all nodes/edges with a freshly imported design and auto-layout. */
+    const applyImportedSchema = (design: SchemaDesign) => {
+        const newNodes: DesignFlowNode[] = design.nodes.map((node) => ({
+            id: node.id,
+            type: "test",
+            data: { node },
+            position: { x: 0, y: 0 },
+            sourcePosition: Position.Right,
+        }));
+
+        const newEdges: DesignFlowEdge[] = design.relationships.map((rel) => ({
+            id: rel.id,
+            source: rel.sourceNodeId,
+            target: rel.targetNodeId,
+            sourceHandle: `${rel.sourceFieldId}-source`,
+            targetHandle: `${rel.targetFieldId}-target`,
+            type: "schema",
+            animated: true,
+            data: { relationshipId: rel.id },
+        }));
+
+        setNodes(newNodes);
+        setEdges(newEdges);
+
+        setTimeout(() => {
+            setNodes((nds) => autoArrangeNodes(nds, newEdges));
+            setTimeout(() => {
+                rfRef.current?.fitView({ padding: 0.2, duration: 300 });
+            }, 80);
+        }, 0);
+    };
+
+    const handleImport = (result: ImportResult) => {
+        try {
+            const parsed = parseSchema(result.format, result.content);
+            const design = canonicalToDesign(parsed.schema);
+            applyImportedSchema(design);
+
+            if (parsed.warnings.length > 0) {
+                showToastRef.current?.(
+                    `Imported with warnings: ${parsed.warnings.join("; ")}`,
+                    "warning"
+                );
+            } else {
+                showToastRef.current?.("Schema imported successfully", "notification");
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            showToastRef.current?.(`Import failed: ${message}`, "error");
+        }
+    };
+
+    /** Capture the current flow viewport as an SVG/PNG image. */
+    const captureImage = async (kind: "svg" | "png"): Promise<string | null> => {
+        const wrapper = flowWrapperRef.current;
+        const viewport = wrapper?.querySelector<HTMLElement>(".react-flow__viewport");
+        if (!wrapper || !viewport) return null;
+
+        // Compute a viewport that fits all nodes for a clean export.
+        const nodesBounds = rfRef.current?.getNodesBounds(nodes) ?? null;
+        if (nodesBounds) {
+            const width = wrapper.clientWidth || 1024;
+            const height = wrapper.clientHeight || 768;
+            try {
+                const vp = getViewportForBounds(nodesBounds, width, height, 0.05, 2, 0.1);
+                await rfRef.current?.setViewport(vp, { duration: 0 });
+                // Give the DOM one frame to apply the transform before capture.
+                await new Promise((resolve) => requestAnimationFrame(resolve));
+            } catch {
+                /* layout viewport fallback: use current view */
+            }
+        }
+
+        const options = {
+            filter: (node: HTMLElement) =>
+                !node?.classList?.contains("react-flow__minimap") &&
+                !node?.classList?.contains("react-flow__controls"),
+            backgroundColor: "var(--vscode-editor-background, #1e1e1e)",
+        };
+
+        return kind === "svg"
+            ? await toSvg(viewport, options)
+            : await toPng(viewport, { ...options, pixelRatio: 2 });
+    };
+
+    const handleExport = async (kind: ExportKind) => {
+        try {
+            if (kind === "svg" || kind === "png") {
+                const dataUrl = await captureImage(kind);
+                if (!dataUrl) {
+                    showToastRef.current?.("Nothing to export", "warning");
+                    return;
+                }
+
+                if (kind === "png") {
+                    // toPng returns a base64 data URL.
+                    const base64 = dataUrl.replace(/^data:image\/png;base64,/, "");
+                    const result = await requestSaveFile(
+                        `diagram.png`,
+                        ["png"],
+                        base64,
+                        "base64"
+                    );
+                    if (result && result.success) {
+                        showToastRef.current?.("Image exported successfully", "notification");
+                    } else if (result && !result.success) {
+                        showToastRef.current?.(
+                            `Export failed: ${result.error ?? "unknown error"}`,
+                            "error"
+                        );
+                    }
+                } else {
+                    // toSvg returns a URL-encoded UTF-8 data URL; decode to raw SVG.
+                    const svg = decodeURIComponent(
+                        dataUrl.replace(/^data:image\/svg\+xml(;charset=utf-8)?,/, "")
+                    );
+                    const result = await requestSaveFile(`diagram.svg`, ["svg"], svg, "utf8");
+                    if (result && result.success) {
+                        showToastRef.current?.("Image exported successfully", "notification");
+                    } else if (result && !result.success) {
+                        showToastRef.current?.(
+                            `Export failed: ${result.error ?? "unknown error"}`,
+                            "error"
+                        );
+                    }
+                }
+                return;
+            }
+
+            const design = buildSchemaDesign();
+            const canonical = designToCanonical(design);
+            const content = serializeSchema(kind, canonical);
+            const defaultFileName = `diagram.${kind}`;
+            const extensions = kind === "dbml" ? ["dbml"] : [kind];
+
+            const result = await requestSaveFile(defaultFileName, extensions, content);
+            if (result === null) return; // cancelled
+            if (result.success) {
+                showToastRef.current?.("Schema exported successfully", "notification");
+            } else {
+                showToastRef.current?.(
+                    `Export failed: ${result.error ?? "unknown error"}`,
+                    "error"
+                );
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            showToastRef.current?.(`Export failed: ${message}`, "error");
+        }
+    };
+
+    const handlePickFile = async (extensions: string[]): Promise<string | null> => {
+        const result = await requestOpenFile(extensions);
+        return result?.content ?? null;
+    };
+
+    const handleFetchUrl = async (url: string): Promise<string | null> => {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return await response.text();
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            showToastRef.current?.(`Failed to fetch URL: ${message}`, "error");
+            return null;
+        }
+    };
+
+    const entityCount = nodes.filter(isDesignNode).length;
+
 
     return (
         <FieldSelectionProvider edges={edges}>
         <ToastProvider>
             <ToastGetter onReady={(show) => { showToastRef.current = show; }} />
-            <CanvasComponentMainDiv>
+            <CanvasComponentMainDiv ref={flowWrapperRef}>
                 <CanvasComponentReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -535,6 +738,14 @@ const CanvasComponent = () => {
                         }}
                         onCreateArea={() => handleCreateArea(contextMenu)}
                         onCreateNote={() => handleCreateNote(contextMenu)}
+                        onImport={() => {
+                            setContextMenu(null);
+                            setIsImportDialogOpen(true);
+                        }}
+                        onExport={() => {
+                            setContextMenu(null);
+                            setIsExportDialogOpen(true);
+                        }}
                     />
 
 
@@ -558,6 +769,21 @@ const CanvasComponent = () => {
                 onOpenChange={setIsAddRelationshipOpen}
                 nodes={nodes.filter(isDesignNode)}
                 onSubmit={handleCreateRelationship}
+            />
+
+            <ImportDialog
+                open={isImportDialogOpen}
+                onOpenChange={setIsImportDialogOpen}
+                onImport={handleImport}
+                onPickFile={handlePickFile}
+                onFetchUrl={handleFetchUrl}
+            />
+
+            <ExportDialog
+                open={isExportDialogOpen}
+                onOpenChange={setIsExportDialogOpen}
+                entityCount={entityCount}
+                onExport={handleExport}
             />
         </ToastProvider>
         </FieldSelectionProvider>

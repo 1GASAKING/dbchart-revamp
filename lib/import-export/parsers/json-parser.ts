@@ -97,8 +97,7 @@ export function parseJson(input: string): ParseResult {
   // Implicit key + reference detection to build relations.
   const relations: CanonicalRelation[] = buildImplicitRelations(
     entities,
-    entitiesByName,
-    warnings
+    entitiesByName
   );
 
   if (entities.length === 0) {
@@ -113,7 +112,7 @@ function isCanonicalSchema(data: unknown): data is {
   entities: CanonicalEntity[];
   relations: CanonicalRelation[];
 } {
-  if (!data || typeof data !== "object") return false;
+  if (!data || typeof data !== "object") {return false;}
   const obj = data as Record<string, unknown>;
   return Array.isArray(obj.entities) && Array.isArray(obj.relations);
 }
@@ -151,19 +150,19 @@ function sampleDocuments(documents: JsonValue[]): SampledField[] {
 
 /** Infer a canonical data type from a JSON runtime value. */
 function inferJsonType(value: JsonValue): string {
-  if (value === null) return "varchar";
-  if (Array.isArray(value)) return "json";
-  if (typeof value === "boolean") return "boolean";
+  if (value === null){ return "varchar";}
+  if (Array.isArray(value)) {return "json";}
+  if (typeof value === "boolean"){ return "boolean";}
   if (typeof value === "number") {
     return Number.isInteger(value) ? "bigint" : "decimal";
   }
   if (typeof value === "string") {
     // Heuristic: ISO date/timestamp detection.
-    if (/^\d{4}-\d{2}-\d{2}T/.test(value)) return "timestamp";
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return "date";
+    if (/^\d{4}-\d{2}-\d{2}T/.test(value)){ return "timestamp";}
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)){ return "date";}
     return "varchar";
   }
-  if (typeof value === "object") return "json";
+  if (typeof value === "object"){ return "json";}
   return "varchar";
 }
 
@@ -179,7 +178,7 @@ function isObjectLike(value: JsonValue): boolean {
 function sampleNestedObject(value: JsonValue): SampledField[] | undefined {
   if (Array.isArray(value)) {
     const firstObject = value.find((item) => item !== null && typeof item === "object");
-    if (!firstObject || typeof firstObject !== "object") return undefined;
+    if (!firstObject || typeof firstObject !== "object") {return undefined;}
     return Object.entries(firstObject as Record<string, JsonValue>).map(
       ([key, child]) => ({
         name: key,
@@ -220,24 +219,23 @@ function sampledToCanonical(field: SampledField): CanonicalField {
 /** Detect convention-based foreign keys and link them to matching entities. */
 function buildImplicitRelations(
   entities: CanonicalEntity[],
-  entitiesByName: Map<string, CanonicalEntity>,
-  warnings: string[]
+  entitiesByName: Map<string, CanonicalEntity>
 ): CanonicalRelation[] {
   const relations: CanonicalRelation[] = [];
 
   for (const entity of entities) {
     for (const field of entity.fields) {
-      if (field.name === "id" || field.name === "_id") continue;
-      if (!field.name.endsWith("Id") && !field.name.endsWith("_id")) continue;
+      if (field.name === "id" || field.name === "_id"){ continue;}
+      if (!field.name.endsWith("Id") && !field.name.endsWith("_id")){ continue;}
 
       // candidate target entity name = field name minus suffix.
       const targetName = field.name.replace(/[_-]?[Ii]d$/, "");
       const targetEntity = entitiesByName.get(targetName.toLowerCase());
-      if (!targetEntity) continue;
+      if (!targetEntity){ continue;}
 
       const targetField =
         targetEntity.fields.find((f) => f.isPrimary) ?? targetEntity.fields[0];
-      if (!targetField) continue;
+      if (!targetField){ continue;}
 
       relations.push({
         id: irId("rel"),

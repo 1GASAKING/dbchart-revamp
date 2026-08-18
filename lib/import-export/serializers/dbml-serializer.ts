@@ -38,7 +38,7 @@ export function serializeDbml(schema: CanonicalSchema): string {
   for (const rel of schema.relations) {
     const source = entityIdByName.get(rel.sourceEntityName.toLowerCase());
     const target = entityIdByName.get(rel.targetEntityName.toLowerCase());
-    if (!source || !target) continue;
+    if (!source || !target) {continue;}
 
     lines.push(`Ref { ${rel.sourceEntityName}.${rel.sourceFieldName} < ${rel.targetEntityName}.${rel.targetFieldName} }`);
   }
@@ -49,9 +49,9 @@ export function serializeDbml(schema: CanonicalSchema): string {
 /** Build the DBML `[settings]` suffix for a field. */
 function fieldSettings(field: CanonicalField): string {
   const settings: string[] = [];
-  if (field.isPrimary) settings.push("pk");
-  if (field.isUnique && !field.isPrimary) settings.push("unique");
-  if (field.isNullable === false) settings.push("not null");
-  if (settings.length === 0) return "";
+  if (field.isPrimary) {settings.push("pk");}
+  if (field.isUnique && !field.isPrimary) {settings.push("unique");}
+  if (field.isNullable === false) {settings.push("not null");}
+  if (settings.length === 0) {return "";}
   return ` [${settings.join(", ")}]`;
 }

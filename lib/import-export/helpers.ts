@@ -92,23 +92,23 @@ export function normalizeDataType(raw: string): FieldDataType {
 
 /** Whether two schemas are structurally equal (used mostly in tests). */
 export function isSameSchema(a: CanonicalSchema, b: CanonicalSchema): boolean {
-  if (a.entities.length !== b.entities.length) return false;
-  if (a.relations.length !== b.relations.length) return false;
+  if (a.entities.length !== b.entities.length) {return false;}
+  if (a.relations.length !== b.relations.length) {return false;}
   const byName = new Map(a.entities.map((e) => [e.name, e]));
   for (const eb of b.entities) {
     const ea = byName.get(eb.name);
-    if (!ea) return false;
-    if (ea.kind !== eb.kind) return false;
-    if (ea.fields.length !== eb.fields.length) return false;
+    if (!ea){ return false;}
+    if (ea.kind !== eb.kind){ return false;}
+    if (ea.fields.length !== eb.fields.length){ return false;}
     const fa = new Map(ea.fields.map((f) => [f.name, f]));
     for (const fb of eb.fields) {
       const f = fa.get(fb.name);
-      if (!f) return false;
-      if (f.dataType !== fb.dataType) return false;
-      if (f.isPrimary !== fb.isPrimary) return false;
-      if (f.isForeign !== fb.isForeign) return false;
-      if (f.isNullable !== fb.isNullable) return false;
-      if (f.isUnique !== fb.isUnique) return false;
+      if (!f){ return false;}
+      if (f.dataType !== fb.dataType){ return false;}
+      if (f.isPrimary !== fb.isPrimary){ return false;}
+      if (f.isForeign !== fb.isForeign){ return false;}
+      if (f.isNullable !== fb.isNullable){ return false;}
+      if (f.isUnique !== fb.isUnique){ return false;}
     }
   }
   return true;

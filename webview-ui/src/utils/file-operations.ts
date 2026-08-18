@@ -1,4 +1,4 @@
-import { vscode } from "./vscode";
+ import { vscode } from "./vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import type {
   FileOpenedPayload,
@@ -83,13 +83,14 @@ export function requestOpenFile(extensions: string[]): Promise<OpenFileResult | 
 export function requestSaveFile(
   defaultFileName: string,
   extensions: string[],
-  content: string
+  content: string,
+  encoding: "utf8" | "base64" = "utf8"
 ): Promise<SaveFileResult | null> {
   return new Promise((resolve) => {
     saveResolver = resolve;
     vscode._postMessage({
       messageType: WebviewMessageType.REQUEST_SAVE_FILE,
-      payload: { defaultFileName, extensions, content },
+      payload: { defaultFileName, extensions, content, encoding },
     });
   });
 }

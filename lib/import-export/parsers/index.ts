@@ -22,3 +22,4 @@ export function parseSchema(format: SchemaFormat, input: string): ParseResult {
 export { parseSql } from "./sql-parser";
 export { parseDbml } from "./dbml-parser";
 export { parseJson } from "./json-parser";
+export { parseOpenApi, isOpenApiDocument } from "./openapi-parser";

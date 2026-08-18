@@ -15,6 +15,8 @@ export interface SaveFilePayload {
   extensions: string[];
   /** The serialized content to write. */
   content: string;
+  /** How `content` should be decoded before writing. @default "utf8" */
+  encoding?: "utf8" | "base64";
 }
 
 /**

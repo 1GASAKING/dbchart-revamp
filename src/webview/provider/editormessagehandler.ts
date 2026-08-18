@@ -93,7 +93,7 @@ export class EditorMessageHandler implements ImessageHandler {
                 return;
             }
 
-            await writeFile(uri, payload.content);
+            await writeFile(uri, payload.content, payload.encoding ?? "utf8");
 
             this._provider.sendMessageToWebview({
                 type: ExtensionMessageType.FILE_SAVE_RESULT,
