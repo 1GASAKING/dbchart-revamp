@@ -6,9 +6,10 @@ import NoteNodeComponent from "../notenodecomponents/note-node-component"
 import ConnectionLineComponent from "./connection-line-component"
 import SchemaEdgeComponent from "../schemacomponents/schema-edge-component"
 import ContextMenuComponent from "./contextmenu-component"
+import NodeContextMenuComponent from "./node-context-menu-component"
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react"
-import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, type AreaFlowNode, type NoteFlowNode } from "../../types/schema-node-ui"
-import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, createAreaNodeData, createNoteNodeData, areFieldTypesCompatible, computeBrokenEdges } from "@lib/utils"
+import { type DesignFlowNode, type DesignFlowEdge, type ContextMenuData, type CanvasNode, isDesignNode, isAreaNode, type AreaFlowNode, type NoteFlowNode } from "../../types/schema-node-ui"
+import { autoArrangeNodes, findFreeNodePosition, createSchemaNode, generateId, generateNodeId, generateFieldId, createAreaNodeData, createNoteNodeData, areFieldTypesCompatible, computeBrokenEdges } from "@lib/utils"
 import {
   parseSchema,
   canonicalToDesign,
@@ -69,6 +70,7 @@ const CanvasComponent = () => {
     const [isAddRelationshipOpen, setIsAddRelationshipOpen] = useState(false)
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
     const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
+    const [nodeContextMenu, setNodeContextMenu] = useState<ContextMenuData | null>(null)
     const rfRef = useRef<ReactFlowInstance<CanvasNode, DesignFlowEdge> | null>(null);
     const showToastRef = useRef<((message: string, type?: ToastType) => void) | null>(null);
     const flowWrapperRef = useRef<HTMLDivElement>(null);
@@ -218,7 +220,94 @@ const CanvasComponent = () => {
 
     const handlePaneContextMenu = (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
         event.preventDefault();
+        setNodeContextMenu(null);
         setContextMenu({ x: event.clientX, y: event.clientY });
+    };
+
+    const handleNodeContextMenu = (event: React.MouseEvent, node: CanvasNode) => {
+        event.preventDefault();
+        // Only design nodes (tables/views) get the node context menu.
+        if (!isDesignNode(node)) return;
+        setContextMenu(null);
+        setNodeContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
+    };
+
+    const closeNodeMenu = () => setNodeContextMenu(null);
+
+    const getTargetNode = () => {
+        const id = nodeContextMenu?.nodeId;
+        if (!id) return null;
+        const node = nodes.find((n) => n.id === id);
+        return isDesignNode(node) ? node : null;
+    };
+
+    /** Select the node so its inline edit toolbar becomes available. */
+    const handleEditTable = () => {
+        const id = nodeContextMenu?.nodeId;
+        if (!id) return;
+        setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === id })));
+        closeNodeMenu();
+    };
+
+    /** Clone the node (with new field ids) and place it slightly offset. */
+    const handleDuplicateTable = () => {
+        const source = getTargetNode();
+        if (!source) return;
+
+        const newFields = source.data.node.fields.map((f) => ({
+            ...f,
+            id: generateFieldId(),
+            nestedFields: f.nestedFields?.map((nf) => ({ ...nf, id: generateFieldId() })),
+        }));
+
+        const duplicateId = generateNodeId();
+        const duplicate: DesignFlowNode = {
+            id: duplicateId,
+            type: "test",
+            data: {
+                node: {
+                    ...source.data.node,
+                    id: duplicateId,
+                    label: `${source.data.node.label}_copy`,
+                    fields: newFields,
+                },
+            },
+            position: { x: source.position.x + 40, y: source.position.y + 40 },
+            sourcePosition: Position.Right,
+        };
+
+        setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), duplicate]);
+        closeNodeMenu();
+    };
+
+    const handleAddRelationship = () => {
+        closeNodeMenu();
+        setIsAddRelationshipOpen(true);
+    };
+
+    /** Move the node into the first available area's top-left inset. */
+    const handleMoveToArea = () => {
+        const id = nodeContextMenu?.nodeId;
+        if (!id) return;
+
+        const area = nodes.find(isAreaNode);
+        if (!area) {
+            showToastRef.current?.("No area exists yet. Create one first (right-click → New area).", "warning");
+            closeNodeMenu();
+            return;
+        }
+
+        const target = { x: area.position.x + 20, y: area.position.y + 20 };
+        setNodes((nds) => nds.map((n) => (n.id === id ? { ...n, position: target } : n)));
+        closeNodeMenu();
+    };
+
+    const handleDeleteTable = () => {
+        const id = nodeContextMenu?.nodeId;
+        if (!id) return;
+        setNodes((nds) => nds.filter((n) => n.id !== id));
+        setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+        closeNodeMenu();
     };
 
     const handleCreateNode = (data: AddNodeFormData) => {
@@ -642,7 +731,8 @@ const CanvasComponent = () => {
                     connectionLineComponent={ConnectionLineComponent}
 
                     onPaneContextMenu={handlePaneContextMenu}
-                    onPaneClick={() => setContextMenu(null)}
+                    onNodeContextMenu={handleNodeContextMenu}
+                    onPaneClick={() => { setContextMenu(null); closeNodeMenu(); }}
                     onConnect={onConnect}
                     onConnectEnd={handleConnectEnd}
                      maxZoom={5}
@@ -724,6 +814,15 @@ const CanvasComponent = () => {
                         style={{ width: 200, border: "1px solid #454545" }}
                     />
                     <CanvasComponentBackground />
+
+                    <NodeContextMenuComponent
+                        contextMenu={nodeContextMenu}
+                        onEditTable={handleEditTable}
+                        onDuplicateTable={handleDuplicateTable}
+                        onAddRelationship={handleAddRelationship}
+                        onMoveToArea={handleMoveToArea}
+                        onDeleteTable={handleDeleteTable}
+                    />
 
                     <ContextMenuComponent
                         contextMenu={contextMenu}
