@@ -71,6 +71,8 @@ export type DesignFlowEdge = Edge<DesignEdgeData>;
 export interface ContextMenuData {
   x: number;
   y: number;
+  /** Present when the context menu targets a specific node. */
+  nodeId?: string;
 }
 
 /** Sentinel target id meaning "pinned to the board" (no parent node). */

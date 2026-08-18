@@ -12,7 +12,7 @@ interface ExportDialogProps {
   /** Number of tables/entities being exported (shown for context). */
   entityCount: number;
   /** Called with the chosen format when the user confirms. */
-  onExport: (kind: ExportKind) => void;
+  onExport: (kind: ExportKind) => void | Promise<void>;
 }
 
 const EXPORT_FORMATS: Array<{ kind: ExportKind; label: string; hint: string }> = [
@@ -23,17 +23,42 @@ const EXPORT_FORMATS: Array<{ kind: ExportKind; label: string; hint: string }> =
   { kind: "png", label: "PNG", hint: "Raster image — best for easy sharing" },
 ];
 
+const spinnerStyle: React.CSSProperties = {
+  width: "14px",
+  height: "14px",
+  boxSizing: "border-box",
+  border: "2px solid rgba(255, 255, 255, 0.25)",
+  borderTopColor: "currentColor",
+  borderRadius: "50%",
+  animation: "dbchart-spin 0.8s linear infinite",
+};
+
 const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialogProps) => {
   const [kind, setKind] = useState<ExportKind>("sql");
+  const [exporting, setExporting] = useState(false);
+
+  const handleConfirm = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await onExport(kind);
+    } finally {
+      setExporting(false);
+      onOpenChange(false);
+    }
+  };
+
+  const handleOpenChange = (next: boolean) => {
+    // Prevent closing the dialog (e.g. overlay click / Escape) while exporting.
+    if (exporting && !next) return;
+    if (next) setKind("sql");
+    onOpenChange(next);
+  };
 
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(next) => {
-        if (next) setKind("sql");
-        onOpenChange(next);
-      }}
-    >
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
+      {/* Spinner keyframes injected once per dialog. */}
+      <style>{`@keyframes dbchart-spin { to { transform: rotate(360deg); } }`}</style>
       <Dialog.Portal>
         <Dialog.Overlay
           style={{
@@ -84,7 +109,8 @@ const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialo
             {EXPORT_FORMATS.map((item) => (
               <button
                 key={item.kind}
-                onClick={() => setKind(item.kind)}
+                onClick={() => !exporting && setKind(item.kind)}
+                disabled={exporting}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -92,7 +118,8 @@ const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialo
                   textAlign: "left",
                   padding: "10px 12px",
                   borderRadius: "6px",
-                  cursor: "pointer",
+                  cursor: exporting ? "not-allowed" : "pointer",
+                  opacity: exporting ? 0.6 : 1,
                   background:
                     kind === item.kind
                       ? "var(--vscode-button-background, #0e639c)"
@@ -107,7 +134,8 @@ const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialo
                 <input
                   type="radio"
                   checked={kind === item.kind}
-                  onChange={() => setKind(item.kind)}
+                  onChange={() => !exporting && setKind(item.kind)}
+                  disabled={exporting}
                   style={{ margin: 0 }}
                 />
                 <span style={{ flex: 1 }}>
@@ -130,19 +158,29 @@ const ExportDialog = ({ open, onOpenChange, entityCount, onExport }: ExportDialo
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "20px" }}>
             <Dialog.Close asChild>
-              <VsButton className="footer-button" onClick={() => onOpenChange(false)}>
+              <VsButton
+                className="footer-button"
+                onClick={() => !exporting && onOpenChange(false)}
+              >
                 Cancel
               </VsButton>
             </Dialog.Close>
             <VsButton
               className="footer-button"
-              onClick={() => {
-                onExport(kind);
-                onOpenChange(false);
-              }}
+              style={{ opacity: exporting ? 0.7 : 1, gap: "8px" }}
+              onClick={handleConfirm}
             >
-              <i className="codicon codicon-save" />
-              Export
+              {exporting ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <span style={spinnerStyle} />
+                  Exporting…
+                </span>
+              ) : (
+                <>
+                  <i className="codicon codicon-save" />
+                  Export
+                </>
+              )}
             </VsButton>
           </div>
         </Dialog.Content>
