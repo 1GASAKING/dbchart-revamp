@@ -1,6 +1,6 @@
 import { WebviewMessageType } from "./webviewmessage";
 import type { DesignFile } from "@dbchart/schema";
-import { ConnectionConfig } from "../../database/types/connection-config";
+import type { ConnectionConfig } from "../../database/types/connection-config";
 
 /** Payload for {@link WebviewMessageType.REQUEST_OPEN_FILE}. */
 export interface OpenFilePayload {

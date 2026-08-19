@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { randomUUID } from "crypto";
-import { ConnectionConfig, SavedConnection } from "./types/connection-config";
+import type { ConnectionConfig, SavedConnection } from "./types/connection-config";
 import { IDatabaseDriver } from "./drivers/database-driver";
 import { getDatabaseDefinition } from "./registry";
 
