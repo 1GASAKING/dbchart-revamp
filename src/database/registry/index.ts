@@ -1,4 +1,4 @@
-import { DatabaseDefinition } from "../types/database-definition";
+import type { DatabaseDefinition } from "../types/database-definition";
 import { DATABASE_DEFINITIONS } from "./database-registry";
 import { EXTENDED_DATABASE_DEFINITIONS } from "./extended-databases";
 

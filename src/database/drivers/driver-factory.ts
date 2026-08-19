@@ -1,4 +1,4 @@
-import { IDatabaseDriver } from "./database-driver";
+import type { IDatabaseDriver } from "./database-driver";
 import { PostgreSQLDriver } from "./postgresql-driver";
 import { MySQLDriver } from "./mysql-driver";
 import { MongoDBDriver } from "./mongodb-driver";

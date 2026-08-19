@@ -1,5 +1,5 @@
-import { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
-import { QueryResult, SchemaColumn, SchemaRelationship, SchemaTable } from "./database-driver";
+import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
+import type { QueryResult, SchemaColumn } from "./database-driver";
 import { BaseSQLDriver } from "./sql-driver";
 
 /**

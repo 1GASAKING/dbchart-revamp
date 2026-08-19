@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { randomUUID } from "crypto";
 import type { ConnectionConfig, SavedConnection } from "./types/connection-config";
-import { IDatabaseDriver } from "./drivers/database-driver";
+import type { IDatabaseDriver } from "./drivers/database-driver";
 import { getDatabaseDefinition } from "./registry";
 
 const STORAGE_KEY = "dbchat.savedConnections";

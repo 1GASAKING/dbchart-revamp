@@ -1,4 +1,4 @@
-import { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
+import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
 
 export interface QueryResult {
   columns: string[];

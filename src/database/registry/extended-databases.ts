@@ -1,4 +1,5 @@
-import { DatabaseDefinition, DatabaseCategory, ConnectionMethod, QueryLanguage } from "../types/database-definition";
+import { DatabaseCategory, ConnectionMethod, QueryLanguage } from "../types/database-definition";
+import type { DatabaseDefinition } from "../types/database-definition";
 import { ConnectionFieldType } from "../types/connection-config";
 
 /**

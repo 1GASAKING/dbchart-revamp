@@ -1,5 +1,5 @@
-import { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
-import { QueryResult, SchemaColumn } from "./database-driver";
+import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
+import type { QueryResult, SchemaColumn } from "./database-driver";
 import { BaseSQLDriver } from "./sql-driver";
 
 export class SQLiteDriver extends BaseSQLDriver {

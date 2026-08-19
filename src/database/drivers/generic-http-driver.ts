@@ -1,6 +1,6 @@
 import axios from "axios";
-import { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
-import { DatabaseSchema, IDatabaseDriver, QueryResult } from "./database-driver";
+import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
+import type { DatabaseSchema, IDatabaseDriver, QueryResult } from "./database-driver";
 
 const HTTP_CLIENT = axios;
 

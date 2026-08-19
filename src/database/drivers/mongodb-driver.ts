@@ -1,5 +1,5 @@
-import { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
-import { DatabaseSchema, IDatabaseDriver, QueryResult, SchemaColumn, SchemaTable } from "./database-driver";
+import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
+import type { DatabaseSchema, IDatabaseDriver, QueryResult, SchemaColumn, SchemaTable } from "./database-driver";
 
 export class MongoDBDriver implements IDatabaseDriver {
   readonly databaseId = "mongodb";

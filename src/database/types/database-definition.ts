@@ -1,4 +1,4 @@
-import { ConnectionField } from "./connection-config";
+import type { ConnectionField } from "./connection-config";
 
 /**
  * Categories of databases supported by the client.

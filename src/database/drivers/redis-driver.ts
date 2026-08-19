@@ -1,5 +1,5 @@
-import { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
-import { DatabaseSchema, IDatabaseDriver, QueryResult, SchemaTable } from "./database-driver";
+import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
+import type { DatabaseSchema, IDatabaseDriver, QueryResult, SchemaTable } from "./database-driver";
 
 export class RedisDriver implements IDatabaseDriver {
   readonly databaseId = "redis";

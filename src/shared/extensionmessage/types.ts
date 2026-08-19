@@ -1,6 +1,6 @@
-import { DatabaseSchema } from '../../database/drivers/database-driver';
-import { ConnectionConfig, ConnectionTestResult, SavedConnection } from '../../database';
-import { QueryResult } from '../../database/drivers/database-driver';
+import type { DatabaseSchema } from '../../database/drivers/database-driver';
+import type { ConnectionConfig, ConnectionTestResult, SavedConnection } from '../../database';
+import type { QueryResult } from '../../database/drivers/database-driver';
 import { ExtensionMessageType } from './extensionmessage';
 
 /** Payload delivered with a {@link ExtensionMessageType.FILE_OPENED} message. */
