@@ -1,8 +1,20 @@
 export const ExtensionMessageType = {
-    WORKSPACEUPDATED: 0,
-    SET_APP_MODE: 1,
-    FILE_OPENED: 2,
-    FILE_SAVE_RESULT: 3,
+  WORKSPACEUPDATED: 0,
+  SET_APP_MODE: 1,
+  FILE_OPENED: 2,
+  FILE_SAVE_RESULT: 3,
+
+  // Database responses
+  DB_DATABASES_LISTED: 100,
+  DB_CONNECTIONS_LISTED: 101,
+  DB_CONNECTION_SAVED: 102,
+  DB_CONNECTION_TESTED: 103,
+  DB_CONNECTED: 104,
+  DB_DISCONNECTED: 105,
+  DB_QUERY_RESULT: 106,
+  DB_SCHEMA: 107,
+  DB_ERROR: 108,
+  DB_CONNECTION_CONFIG: 109,
 } as const;
 
 export type ExtensionMessageType = (typeof ExtensionMessageType)[keyof typeof ExtensionMessageType];

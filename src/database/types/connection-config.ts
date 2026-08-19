@@ -24,7 +24,7 @@ export interface ConnectionField {
   required?: boolean;
   placeholder?: string;
   defaultValue?: string | number | boolean;
-  options?: ConnectionFieldOption[];
+  options?: readonly ConnectionFieldOption[];
   helpText?: string;
   sensitive?: boolean;
   group?: string;

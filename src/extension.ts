@@ -1,29 +1,49 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { DBChatSidebarProvider } from './webview/sidebarProvider';
 import { Logger } from './services/logging/logger';
+import { ConnectionManager } from './database/connection-manager';
+import { createDrivers } from './database/drivers/driver-factory';
+import { DRIVER_ALIASES } from './database/drivers/driver-factory';
 
 let outputChannel: vscode.OutputChannel;
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  outputChannel = vscode.window.createOutputChannel("DBCHAT");
+  context.subscriptions.push(outputChannel);
+  Logger.getInstance().initialize(outputChannel);
+  Logger.getInstance().log("DBCHAT extension activated");
 
-	outputChannel = vscode.window.createOutputChannel("DBCHAT");
-	context.subscriptions.push(outputChannel);
-	Logger.getInstance().initialize(outputChannel);
-	Logger.getInstance().log("DBCHAT extension activated ");
+  // Initialize the database connection manager
+  const connectionManager = ConnectionManager.getInstance();
+  connectionManager.initialize(context);
 
-	
+  // Register all database drivers
+  const drivers = createDrivers();
+  for (const driver of drivers) {
+    connectionManager.registerDriver(driver);
+  }
 
-	// Register the sidebar provider
-	const sidebarProvider = new DBChatSidebarProvider(context);
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(DBChatSidebarProvider.viewType, sidebarProvider)
-	);
-	
+  // Register driver aliases for compatible databases
+  for (const [alias, baseDriver] of Object.entries(DRIVER_ALIASES)) {
+    const base = connectionManager.getDriver(baseDriver);
+    if (base) {
+      connectionManager.registerDriver({
+        ...base,
+        databaseId: alias,
+      } as any);
+    }
+  }
+
+  Logger.getInstance().log(`Registered ${drivers.length} database drivers`);
+
+  // Register the sidebar provider
+  const sidebarProvider = new DBChatSidebarProvider(context);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(DBChatSidebarProvider.viewType, sidebarProvider)
+  );
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+  // Disconnect any active database connections
+  ConnectionManager.getInstance().disconnect();
+}
