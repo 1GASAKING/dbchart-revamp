@@ -5,7 +5,9 @@ interface ButtonComponentMainDivProp {
   $borderColor?: string;
 }
 
-const VsButton = styled.div<ButtonComponentMainDivProp>`
+const VsButton = styled.button.attrs<ButtonComponentMainDivProp>(() => ({
+  type: "button",
+}))<ButtonComponentMainDivProp>`
   border: 1px solid var(--vscode-button-border, var(--gray-30));
   background-color: var(--vscode-button-background, transparent);
   padding: 4px;
@@ -19,7 +21,7 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
   text-transform: inherit;
 
   text-align: inherit;
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.7;
     border-color: var(--vscode-focusBorder, var(--gray-70));
   }
@@ -27,6 +29,7 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    pointer-events: none;
   }
 
   &.active {
