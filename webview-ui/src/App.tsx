@@ -8,6 +8,7 @@ import { vscode } from './utils/vscode';
 import { resolveFileOpened, resolveFileSaved } from './utils/file-operations';
 import EditorPage from './pages/editor/editor-page';
 import '@xyflow/react/dist/style.css'
+import DbViewerPage from './pages/dbviewer/db-viewer-page';
 
 
 
@@ -57,10 +58,11 @@ function App() {
       <div className='webview-container'>
 
 
-        {appMode === "editor" && <EditorPage />}
+        {appMode === "editor" && <DbViewerPage />}
 
 
         {appMode === "sidebar" && <SideBarPage />}
+        {appMode === "" && <EditorPage />}
 
       </div>
 
