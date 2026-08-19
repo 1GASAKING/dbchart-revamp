@@ -6,6 +6,7 @@
 		"lib": [
 			"ES2022"
 		],
+		"types": ["node"],
 		"sourceMap": true,
 		"paths": {
 			"@dbchart/schema": ["./packages/schema/src/index.ts"]

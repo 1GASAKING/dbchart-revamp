@@ -101,8 +101,8 @@ const DBViewerComponent = () => {
   const [undoStack, setUndoStack] = useState<unknown[]>([]);
   const [redoStack, setRedoStack] = useState<unknown[]>([]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [originalRowsPseudo] = useState<DBRowData[]>(pseudoRows); // for revert
+  void originalRowsPseudo;
 
   /* ── Derived data ─────────────────────────────────────────────── */
   const filteredRows = useMemo(() => {
@@ -157,8 +157,7 @@ const DBViewerComponent = () => {
     setSelectedRows(new Set());
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleRevert = (_rowId: string, columnId: string) => {
+  const handleRevert = (_rowId: string, _columnId: string) => {
     // Pseudo: restore original value from originalRowsPseudo
     // const originalRow = originalRowsPseudo.find(r => r.id === rowId);
     // patchCell(rowId, columnId, originalRow?.[columnId]);
