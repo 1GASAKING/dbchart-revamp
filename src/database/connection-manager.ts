@@ -96,6 +96,14 @@ export class ConnectionManager {
     return project;
   }
 
+  public async copyConnection(connectionId: string): Promise<SavedConnection> {
+    const config = await this.getConnectionConfig(connectionId);
+    if (!config) { throw new Error(`Connection not found: ${connectionId}`); }
+
+    const name = `${config.name || "Connection"} (copy)`;
+    return this.saveConnection({ ...config, name, createdAt: 0 });
+  }
+
   public async assignConnectionToProject(connectionId: string, projectId?: string): Promise<SavedConnection> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
@@ -279,6 +287,10 @@ export class ConnectionManager {
     }
     this._activeConnectionId = undefined;
     this._activeConfig = undefined;
+  }
+
+  public getActiveConnectionId(): string | undefined {
+    return this._activeConnectionId;
   }
 
   public async getActiveConnection(): Promise<ConnectionConfig | null> {

@@ -105,6 +105,12 @@ export class DatabaseMessageHandler {
         }
         return true;
 
+      case WebviewMessageType.DB_COPY_CONNECTION:
+        if (message.payload) {
+          await this._handleCopyConnection(message.payload.connectionId);
+        }
+        return true;
+
       default:
         return false;
     }
@@ -164,10 +170,11 @@ export class DatabaseMessageHandler {
   private async _handleConnect(payload: { connectionId?: string; config?: any }) {
     const manager = ConnectionManager.getInstance();
     try {
+      const connectionId = typeof payload.connectionId === "string" ? payload.connectionId : null;
       const driver = await manager.connect(payload.connectionId ?? payload.config);
       this._sendMessage({
         type: ExtensionMessageType.DB_CONNECTED,
-        payload: { connected: true, databaseId: driver.databaseId },
+        payload: { connected: true, databaseId: driver.databaseId, connectionId: connectionId ?? undefined },
       });
     } catch (err) {
       this._sendError(err);
@@ -313,6 +320,19 @@ export class DatabaseMessageHandler {
       this._sendMessage({
         type: ExtensionMessageType.DB_PROJECT_ASSIGNED,
         payload: { connection },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
+  private async _handleCopyConnection(connectionId: string) {
+    const manager = ConnectionManager.getInstance();
+    try {
+      const saved = await manager.copyConnection(connectionId);
+      this._sendMessage({
+        type: ExtensionMessageType.DB_CONNECTION_SAVED,
+        payload: { connection: saved },
       });
     } catch (err) {
       this._sendError(err);

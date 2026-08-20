@@ -77,6 +77,11 @@ export interface AssignConnectionToProjectPayload {
   projectId?: string;
 }
 
+/** Payload for {@link WebviewMessageType.DB_COPY_CONNECTION}. */
+export interface CopyConnectionPayload {
+  connectionId: string;
+}
+
 /**
  * Messages sent from the webview to the extension host.
  */
@@ -139,6 +144,10 @@ export type WebviewMessage =
   | {
       messageType: typeof WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT;
       payload: AssignConnectionToProjectPayload;
+    }
+  | {
+      messageType: typeof WebviewMessageType.DB_COPY_CONNECTION;
+      payload: CopyConnectionPayload;
     };
 
 /** A design file payload (unused by the union above, kept for compatibility). */

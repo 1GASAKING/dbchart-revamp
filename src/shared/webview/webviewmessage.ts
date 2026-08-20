@@ -21,6 +21,7 @@ export const WebviewMessageType = {
   DB_UPDATE_PROJECT: "DB_UPDATE_PROJECT",
   DB_DELETE_PROJECT: "DB_DELETE_PROJECT",
   DB_ASSIGN_CONNECTION_TO_PROJECT: "DB_ASSIGN_CONNECTION_TO_PROJECT",
+  DB_COPY_CONNECTION: "DB_COPY_CONNECTION",
 } as const;
 
 export type WebViewMessageType = (typeof WebviewMessageType)[keyof typeof WebviewMessageType];

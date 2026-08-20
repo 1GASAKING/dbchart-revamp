@@ -1,6 +1,7 @@
 import Tooltip from "../shared/Tooltip";
 import { SideBarMainDiv, SideBarSection, SideBarSectionHeader, SideBarContent, ToggleCheckbox } from "../../styles/sidebarcomponentsstyles/sidebarcomponentstyles";
 import ConnectionComponent from "./connectionscomponents/connectioncomponent";
+import ProjectsComponent from "./projectscomponents/projectscomponent";
 import { vscode } from "../../utils/vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 
@@ -14,6 +15,38 @@ const SideBarComponent = () => {
     return (
         <SideBarMainDiv>
             <div>
+                <SideBarSection>
+                    <div>
+                        <ToggleCheckbox id="projects-toggle" defaultChecked />
+                        <SideBarSectionHeader>
+                            <div className="section-header">
+                                <label htmlFor="projects-toggle" className="section-label-holder">
+                                    <div className="icon-container">
+                                        <i className="codicon codicon-chevron-up"></i>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-container">
+                                            Projects
+                                        </h4>
+                                    </div>
+                                </label>
+
+                                <div className="section-action-group-holder">
+                                    <Tooltip text="new project">
+                                        <div className="icon-container section-action-holder">
+                                            <i className="codicon codicon-folder-opened"></i>
+                                        </div>
+                                    </Tooltip>
+                                </div>
+                            </div>
+                        </SideBarSectionHeader>
+
+                        <SideBarContent>
+                            <ProjectsComponent />
+                        </SideBarContent>
+                    </div>
+                </SideBarSection>
+
                 <SideBarSection >
                     <div>
                         <ToggleCheckbox id="connections-toggle" defaultChecked />

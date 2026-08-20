@@ -38,6 +38,7 @@ export interface DBConnectionTestedPayload {
 export interface DBConnectedPayload {
   connected: boolean;
   databaseId: string;
+  connectionId?: string;
 }
 
 export interface DBQueryResultPayload {

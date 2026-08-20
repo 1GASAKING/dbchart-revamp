@@ -166,10 +166,11 @@ export class SidebarMessageHandler implements ImessageHandler {
   private async _handleConnect(payload: { connectionId?: string; config?: any }) {
     const manager = ConnectionManager.getInstance();
     try {
+      const connectionId = typeof payload.connectionId === "string" ? payload.connectionId : null;
       const driver = await manager.connect(payload.connectionId ?? payload.config);
       this._provider.HandleSendMessageToWebview({
         type: ExtensionMessageType.DB_CONNECTED,
-        payload: { connected: true, databaseId: driver.databaseId },
+        payload: { connected: true, databaseId: driver.databaseId, connectionId: connectionId ?? undefined },
       });
     } catch (err) {
       this._sendError(err);
