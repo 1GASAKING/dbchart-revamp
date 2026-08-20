@@ -1,6 +1,7 @@
 import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
 import type { QueryResult, SchemaColumn } from "./database-driver";
 import { BaseSQLDriver } from "./sql-driver";
+import { normalizeConnectionError } from "../errors";
 
 export class SQLiteDriver extends BaseSQLDriver {
   readonly databaseId = "sqlite";
@@ -30,12 +31,13 @@ export class SQLiteDriver extends BaseSQLDriver {
       db.close();
       return { success: true, message: "Connected successfully" };
     } catch (err) {
-      return { success: false, message: err instanceof Error ? err.message : String(err) };
+      const normalized = normalizeConnectionError(err, config);
+      return { success: false, message: normalized.message, details: normalized.details };
     }
   }
 
   async query(sql: string, params?: unknown[]): Promise<QueryResult> {
-    if (!this._db) throw new Error("Not connected");
+    if (!this._db){ throw new Error("Not connected");}
     const start = Date.now();
 
     const isSelect = /^\s*(SELECT|PRAGMA|WITH|EXPLAIN)/i.test(sql);

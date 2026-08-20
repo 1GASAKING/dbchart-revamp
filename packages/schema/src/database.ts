@@ -82,9 +82,18 @@ export interface ConnectionField {
   multiple?: boolean;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
 export interface ConnectionConfig {
   name: string;
   databaseId: string;
+  projectId?: string;
   host?: string;
   port?: number;
   database?: string;
@@ -122,6 +131,7 @@ export interface SavedConnection {
   id: string;
   name: string;
   databaseId: string;
+  projectId?: string;
   host?: string;
   database?: string;
   username?: string;

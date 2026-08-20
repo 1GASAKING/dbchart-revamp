@@ -7,4 +7,5 @@ export {
   type ConnectionConfig,
   type SavedConnection,
   type ConnectionTestResult,
+  type Project,
 } from "@dbchart/schema";

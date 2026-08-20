@@ -5,11 +5,13 @@ import { ExtensionMessageType } from "../../shared/extensionmessage/extensionmes
 import { getWebviewHtmlContent, getWebviewHORContent } from "../shared/sharedWebviewHtml";
 import { EditorMessageHandler } from "./editormessagehandler";
 import { ExtensionMessage } from "../../shared/extensionmessage/types";
+import { ConnectionManager } from "../../database/connection-manager";
 
 export class EditorPanelProvider {
   private static readonly viewType = "dbchat.editorPanel";
   private _panel: vscode.WebviewPanel | undefined;
   private _messageHandler!: EditorMessageHandler;
+  private _onConnectionsChangedDisposable?: { dispose(): void };
 
   public async openEditor(context: vscode.ExtensionContext) {
     Logger.getInstance().log("Opening editor panel", true);
@@ -47,7 +49,23 @@ export class EditorPanelProvider {
     });
 
     this._panel.onDidDispose(() => {
+      this._onConnectionsChangedDisposable?.dispose();
+      this._onConnectionsChangedDisposable = undefined;
       this._panel = undefined;
+    });
+
+    // Push the latest connection list to this webview whenever the
+    // connection list changes elsewhere (e.g. sidebar or another panel).
+    this._onConnectionsChangedDisposable = ConnectionManager.getInstance().onConnectionsChanged(async () => {
+      await this._pushConnections();
+    });
+  }
+
+  private async _pushConnections(): Promise<void> {
+    const connections = await ConnectionManager.getInstance().getAllConnections();
+    this.sendMessageToWebview({
+      type: ExtensionMessageType.DB_CONNECTIONS_LISTED,
+      payload: { connections },
     });
   }
 

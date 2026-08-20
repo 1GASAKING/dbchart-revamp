@@ -188,10 +188,10 @@ export const DBQueryEditor = ({ connected, onConnect }: Props) => {
           />
 
           <div style={TOOLBAR_STYLES}>
-            <VsButton onClick={handleExecute} disabled={executing || !query.trim()}>
+            <VsButton onClick={handleExecute} $disabled={executing || !query.trim()}>
               <i className="codicon codicon-play" /> {executing ? "Executing..." : "Execute"}
             </VsButton>
-            <VsButton onClick={() => setQuery("")} disabled={!query}>
+            <VsButton onClick={() => setQuery("")} $disabled={!query}>
               <i className="codicon codicon-clear-all" /> Clear
             </VsButton>
           </div>

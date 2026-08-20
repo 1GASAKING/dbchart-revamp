@@ -5,11 +5,14 @@ import { ExtensionMessage } from "../../shared/extensionmessage/types";
 import { ImessageHandler } from "./IMessageHandler";
 import { SidebarMessageHandler } from "./sidebarmessagehandler";
 import { getWebviewHtmlContent, getWebviewHORContent } from "../shared/sharedWebviewHtml";
+import { ConnectionManager } from "../../database/connection-manager";
+import { ExtensionMessageType } from "../../shared/extensionmessage/extensionmessage";
 
 export class WebviewProvider implements vscode.WebviewViewProvider, ISidebarProvider {
   protected _webviemessagehanler!: ImessageHandler;
   protected _view?: vscode.WebviewView;
   protected readonly _context: vscode.ExtensionContext;
+  private _onConnectionsChangedDisposable?: { dispose(): void };
 
   constructor(readonly context: vscode.ExtensionContext) {
     this._context = context;
@@ -35,6 +38,17 @@ export class WebviewProvider implements vscode.WebviewViewProvider, ISidebarProv
         ? await getWebviewHORContent(webviewView.webview, this._context.extensionUri)
         : getWebviewHtmlContent(webviewView.webview, this._context.extensionUri);
     this._setWebViewMessageListner(webviewView.webview);
+
+    // Push the latest connection list to this webview whenever the
+    // connection list changes elsewhere (e.g. the editor panel).
+    this._onConnectionsChangedDisposable = ConnectionManager.getInstance().onConnectionsChanged(() => {
+      void this._pushConnections();
+    });
+
+    webviewView.onDidDispose(() => {
+      this._onConnectionsChangedDisposable?.dispose();
+      this._onConnectionsChangedDisposable = undefined;
+    });
   }
 
   public HandleSendMessageToWebview(message: ExtensionMessage) {
@@ -50,6 +64,14 @@ export class WebviewProvider implements vscode.WebviewViewProvider, ISidebarProv
     webview.onDidReceiveMessage((e) =>
       this._webviemessagehanler!.handleMessage(e),
     );
+  }
+
+  private async _pushConnections(): Promise<void> {
+    const connections = await ConnectionManager.getInstance().getAllConnections();
+    this.HandleSendMessageToWebview({
+      type: ExtensionMessageType.DB_CONNECTIONS_LISTED,
+      payload: { connections },
+    });
   }
 
   /**

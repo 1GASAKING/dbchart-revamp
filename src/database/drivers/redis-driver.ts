@@ -1,5 +1,6 @@
 import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
 import type { DatabaseSchema, IDatabaseDriver, QueryResult, SchemaTable } from "./database-driver";
+import { normalizeConnectionError } from "../errors";
 
 export class RedisDriver implements IDatabaseDriver {
   readonly databaseId = "redis";
@@ -49,12 +50,13 @@ export class RedisDriver implements IDatabaseDriver {
       await client.quit();
       return { success: true, message: "Connected successfully" };
     } catch (err) {
-      return { success: false, message: err instanceof Error ? err.message : String(err) };
+      const normalized = normalizeConnectionError(err, resolved);
+      return { success: false, message: normalized.message, details: normalized.details };
     }
   }
 
   async query(sql: string, _params?: unknown[]): Promise<QueryResult> {
-    if (!this._client) throw new Error("Not connected");
+    if (!this._client) {{throw new Error("Not connected");}}
     const start = Date.now();
     const parts = sql.trim().split(/\s+/);
     const command = parts[0].toUpperCase();
@@ -77,7 +79,7 @@ export class RedisDriver implements IDatabaseDriver {
   }
 
   async getSchema(): Promise<DatabaseSchema> {
-    if (!this._client) throw new Error("Not connected");
+    if (!this._client) {throw new Error("Not connected");}
     const keys = await this._client.keys("*");
     const tables: SchemaTable[] = [];
     const typeMap = new Map<string, number>();
@@ -118,7 +120,7 @@ export class RedisDriver implements IDatabaseDriver {
   }
 
   private resolveConfig(config: ConnectionConfig): ConnectionConfig {
-    if (!config.connectionString) return config;
+    if (!config.connectionString) {return config;}
     try {
       const url = new URL(config.connectionString);
       return {

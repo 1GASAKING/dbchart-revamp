@@ -79,6 +79,34 @@ export class SidebarMessageHandler implements ImessageHandler {
         }
         break;
 
+      case WebviewMessageType.DB_LIST_PROJECTS:
+        this._handleListProjects();
+        break;
+
+      case WebviewMessageType.DB_CREATE_PROJECT:
+        if (message.payload) {
+          await this._handleCreateProject(message.payload.name, message.payload.description);
+        }
+        break;
+
+      case WebviewMessageType.DB_UPDATE_PROJECT:
+        if (message.payload) {
+          await this._handleUpdateProject(message.payload.id, message.payload.name, message.payload.description);
+        }
+        break;
+
+      case WebviewMessageType.DB_DELETE_PROJECT:
+        if (message.payload) {
+          await this._handleDeleteProject(message.payload.projectId);
+        }
+        break;
+
+      case WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT:
+        if (message.payload) {
+          await this._handleAssignConnectionToProject(message.payload.connectionId, message.payload.projectId);
+        }
+        break;
+
       default:
         break;
     }
@@ -207,11 +235,72 @@ export class SidebarMessageHandler implements ImessageHandler {
     });
   }
 
+  private _handleListProjects() {
+    const manager = ConnectionManager.getInstance();
+    this._provider.HandleSendMessageToWebview({
+      type: ExtensionMessageType.DB_PROJECTS_LISTED,
+      payload: { projects: manager.getProjects() },
+    });
+  }
+
+  private async _handleCreateProject(name: string, description?: string) {
+    const manager = ConnectionManager.getInstance();
+    try {
+      const project = await manager.createProject(name, description);
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_PROJECT_CREATED,
+        payload: { project },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
+  private async _handleUpdateProject(id: string, name: string, description?: string) {
+    const manager = ConnectionManager.getInstance();
+    try {
+      const project = await manager.updateProject(id, name, description);
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_PROJECT_UPDATED,
+        payload: { project },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
+  private async _handleDeleteProject(projectId: string) {
+    const manager = ConnectionManager.getInstance();
+    try {
+      await manager.deleteProject(projectId);
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_PROJECT_DELETED,
+        payload: { projectId },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
+  private async _handleAssignConnectionToProject(connectionId: string, projectId?: string) {
+    const manager = ConnectionManager.getInstance();
+    try {
+      const connection = await manager.assignConnectionToProject(connectionId, projectId);
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_PROJECT_ASSIGNED,
+        payload: { connection },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
   private _sendError(err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
+    const details = (err as { details?: Record<string, unknown> } | undefined)?.details;
     this._provider.HandleSendMessageToWebview({
       type: ExtensionMessageType.DB_ERROR,
-      payload: { error: message },
+      payload: { error: message, details },
     });
   }
 }

@@ -42,6 +42,41 @@ export interface GetConnectionConfigPayload {
   connectionId: string;
 }
 
+/** Payload for {@link WebviewMessageType.DB_DELETE_CONNECTION}. */
+export interface DeleteConnectionPayload {
+  connectionId: string;
+}
+
+/** Payload for {@link WebviewMessageType.DB_UPDATE_CONNECTION}. */
+export interface UpdateConnectionPayload {
+  id: string;
+  config: ConnectionConfig;
+}
+
+/** Payload for {@link WebviewMessageType.DB_CREATE_PROJECT}. */
+export interface CreateProjectPayload {
+  name: string;
+  description?: string;
+}
+
+/** Payload for {@link WebviewMessageType.DB_UPDATE_PROJECT}. */
+export interface UpdateProjectPayload {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+/** Payload for {@link WebviewMessageType.DB_DELETE_PROJECT}. */
+export interface DeleteProjectPayload {
+  projectId: string;
+}
+
+/** Payload for {@link WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT}. */
+export interface AssignConnectionToProjectPayload {
+  connectionId: string;
+  projectId?: string;
+}
+
 /**
  * Messages sent from the webview to the extension host.
  */
@@ -79,6 +114,31 @@ export type WebviewMessage =
   | {
       messageType: typeof WebviewMessageType.DB_GET_CONNECTION_CONFIG;
       payload: GetConnectionConfigPayload;
+    }
+  | {
+      messageType: typeof WebviewMessageType.DB_DELETE_CONNECTION;
+      payload: DeleteConnectionPayload;
+    }
+  | {
+      messageType: typeof WebviewMessageType.DB_UPDATE_CONNECTION;
+      payload: UpdateConnectionPayload;
+    }
+  | { messageType: typeof WebviewMessageType.DB_LIST_PROJECTS }
+  | {
+      messageType: typeof WebviewMessageType.DB_CREATE_PROJECT;
+      payload: CreateProjectPayload;
+    }
+  | {
+      messageType: typeof WebviewMessageType.DB_UPDATE_PROJECT;
+      payload: UpdateProjectPayload;
+    }
+  | {
+      messageType: typeof WebviewMessageType.DB_DELETE_PROJECT;
+      payload: DeleteProjectPayload;
+    }
+  | {
+      messageType: typeof WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT;
+      payload: AssignConnectionToProjectPayload;
     };
 
 /** A design file payload (unused by the union above, kept for compatibility). */

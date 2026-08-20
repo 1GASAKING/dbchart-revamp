@@ -1,11 +1,13 @@
 import * as vscode from "vscode";
 import { randomUUID } from "crypto";
-import type { ConnectionConfig, SavedConnection } from "./types/connection-config";
+import type { ConnectionConfig, Project, SavedConnection } from "./types/connection-config";
 import type { IDatabaseDriver } from "./drivers/database-driver";
 import { getDatabaseDefinition } from "./registry";
+import { normalizeConnectionError } from "./errors";
 
 const STORAGE_KEY = "dbchat.savedConnections";
 const WORKSPACE_KEY = "dbchat.workspaceConnections";
+const PROJECTS_KEY = "dbchat.projects";
 const DEFAULT_SENSITIVE = ["password", "apiToken", "secretKey", "authToken", "clientSecret", "serviceRoleKey", "anonKey", "apiKey"];
 
 export class ConnectionManager {
@@ -16,6 +18,8 @@ export class ConnectionManager {
   private _activeConfig?: ConnectionConfig;
   private _savedConnections: SavedConnection[] = [];
   private _workspaceConnections: SavedConnection[] = [];
+  private _projects: Project[] = [];
+  private _listeners: Set<() => void> = new Set();
 
   private constructor() {}
 
@@ -31,6 +35,17 @@ export class ConnectionManager {
     this._loadConnections();
   }
 
+  /**
+   * Subscribe to connection-list changes (create/update/delete).
+   * Returns a handle with `dispose()` to unsubscribe.
+   */
+  public onConnectionsChanged(listener: () => void): { dispose(): void } {
+    this._listeners.add(listener);
+    return {
+      dispose: () => this._listeners.delete(listener),
+    };
+  }
+
   public registerDriver(driver: IDatabaseDriver): void {
     this._drivers.set(driver.databaseId, driver);
   }
@@ -41,6 +56,79 @@ export class ConnectionManager {
 
   public hasDriver(databaseId: string): boolean {
     return this._drivers.has(databaseId);
+  }
+
+  public getProjects(): Project[] {
+    return [...this._projects].sort((a, b) => a.createdAt - b.createdAt);
+  }
+
+  public getProject(projectId: string): Project | undefined {
+    return this._projects.find((p) => p.id === projectId);
+  }
+
+  public async createProject(name: string, description?: string): Promise<Project> {
+    if (!this._context) { throw new Error("ConnectionManager not initialized"); }
+
+    const project: Project = {
+      id: randomUUID(),
+      name,
+      description,
+      createdAt: Date.now(),
+    };
+
+    this._projects.push(project);
+    this._context.globalState.update(PROJECTS_KEY, this._projects);
+    this._notifyConnectionsChanged();
+    return project;
+  }
+
+  public async updateProject(projectId: string, name: string, description?: string): Promise<Project> {
+    if (!this._context) { throw new Error("ConnectionManager not initialized"); }
+
+    const project = this._projects.find((p) => p.id === projectId);
+    if (!project) { throw new Error(`Project not found: ${projectId}`); }
+
+    project.name = name;
+    project.description = description;
+    project.updatedAt = Date.now();
+    this._context.globalState.update(PROJECTS_KEY, this._projects);
+    this._notifyConnectionsChanged();
+    return project;
+  }
+
+  public async assignConnectionToProject(connectionId: string, projectId?: string): Promise<SavedConnection> {
+    if (!this._context) { throw new Error("ConnectionManager not initialized"); }
+
+    const conn = this._savedConnections.find((c) => c.id === connectionId)
+      ?? this._workspaceConnections.find((c) => c.id === connectionId);
+    if (!conn) { throw new Error(`Connection not found: ${connectionId}`); }
+
+    conn.projectId = projectId;
+    if (this._savedConnections.some((c) => c.id === connectionId)) {
+      this._saveConnections();
+    } else {
+      this._saveWorkspaceConnections();
+    }
+
+    this._notifyConnectionsChanged();
+    return conn;
+  }
+
+  public async deleteProject(projectId: string): Promise<void> {
+    if (!this._context) { throw new Error("ConnectionManager not initialized"); }
+
+    this._projects = this._projects.filter((p) => p.id !== projectId);
+    this._context.globalState.update(PROJECTS_KEY, this._projects);
+
+    // Orphan the connections that belonged to this project.
+    for (const conn of this._savedConnections) {
+      if (conn.projectId === projectId) {
+        conn.projectId = undefined;
+      }
+    }
+    this._saveConnections();
+
+    this._notifyConnectionsChanged();
   }
 
   public async saveConnection(config: ConnectionConfig): Promise<SavedConnection> {
@@ -57,6 +145,7 @@ export class ConnectionManager {
       id: connectionId,
       name: config.name,
       databaseId: config.databaseId,
+      projectId: config.projectId,
       host: config.host,
       database: config.database,
       username: config.username,
@@ -74,6 +163,7 @@ export class ConnectionManager {
       this._saveConnections();
     }
 
+    this._notifyConnectionsChanged();
     return saved;
   }
 
@@ -97,6 +187,8 @@ export class ConnectionManager {
       this._workspaceConnections.splice(workspaceIdx, 1);
       this._saveWorkspaceConnections();
     }
+
+    this._notifyConnectionsChanged();
   }
 
   public async getAllConnections(): Promise<SavedConnection[]> {
@@ -133,9 +225,11 @@ export class ConnectionManager {
       result.elapsedMs = Date.now() - startTime;
       return result;
     } catch (err) {
+      const normalized = normalizeConnectionError(err, config);
       return {
         success: false,
-        message: err instanceof Error ? err.message : String(err),
+        message: normalized.message,
+        details: normalized.details,
         elapsedMs: Date.now() - startTime,
       };
     }
@@ -156,7 +250,14 @@ export class ConnectionManager {
     const driver = this.getDriver(config.databaseId);
     if (!driver) {throw new Error(`No driver registered for database type: ${config.databaseId}`);}
 
-    await driver.connect(config);
+    try {
+      await driver.connect(config);
+    } catch (err) {
+      const normalized = normalizeConnectionError(err, config);
+      const error = new Error(normalized.message) as Error & { details?: Record<string, unknown> };
+      error.details = normalized.details;
+      throw error;
+    }
 
     // Track the active config so query/getSchema work even when
     // connecting directly (not via a saved connection id).
@@ -237,6 +338,7 @@ export class ConnectionManager {
   private _loadConnections(): void {
     this._savedConnections = this._context?.globalState.get<SavedConnection[]>(STORAGE_KEY, []) ?? [];
     this._workspaceConnections = this._context?.workspaceState.get<SavedConnection[]>(WORKSPACE_KEY, []) ?? [];
+    this._projects = this._context?.globalState.get<Project[]>(PROJECTS_KEY, []) ?? [];
   }
 
   private _saveConnections(): void {
@@ -245,6 +347,12 @@ export class ConnectionManager {
 
   private _saveWorkspaceConnections(): void {
     this._context?.workspaceState.update(WORKSPACE_KEY, this._workspaceConnections);
+  }
+
+  private _notifyConnectionsChanged(): void {
+    for (const listener of this._listeners) {
+      listener();
+    }
   }
 
   private async _updateLastUsed(connectionId: string): Promise<void> {

@@ -1,5 +1,6 @@
 import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
 import type { DatabaseSchema, IDatabaseDriver, QueryResult, SchemaColumn, SchemaTable } from "./database-driver";
+import { normalizeConnectionError } from "../errors";
 
 export class MongoDBDriver implements IDatabaseDriver {
   readonly databaseId = "mongodb";
@@ -39,7 +40,8 @@ export class MongoDBDriver implements IDatabaseDriver {
       await client.close();
       return { success: true, message: "Connected successfully" };
     } catch (err) {
-      return { success: false, message: err instanceof Error ? err.message : String(err) };
+      const normalized = normalizeConnectionError(err, resolved);
+      return { success: false, message: normalized.message, details: normalized.details };
     }
   }
 

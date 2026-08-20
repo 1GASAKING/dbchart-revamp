@@ -1,6 +1,7 @@
 import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
 import type { QueryResult, SchemaColumn } from "./database-driver";
 import { BaseSQLDriver } from "./sql-driver";
+import { normalizeConnectionError } from "../errors";
 
 /**
  * PostgreSQL driver using the `pg` package.
@@ -54,7 +55,8 @@ export class PostgreSQLDriver extends BaseSQLDriver {
       await client.end();
       return { success: true, message: "Connected successfully" };
     } catch (err) {
-      return { success: false, message: err instanceof Error ? err.message : String(err) };
+      const normalized = normalizeConnectionError(err, resolved);
+      return { success: false, message: normalized.message, details: normalized.details };
     }
   }
 

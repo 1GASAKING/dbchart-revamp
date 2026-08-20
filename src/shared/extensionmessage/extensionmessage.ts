@@ -15,6 +15,13 @@ export const ExtensionMessageType = {
   DB_SCHEMA: 107,
   DB_ERROR: 108,
   DB_CONNECTION_CONFIG: 109,
+  DB_CONNECTION_DELETED: 110,
+  DB_CONNECTION_UPDATED: 111,
+  DB_PROJECTS_LISTED: 112,
+  DB_PROJECT_CREATED: 113,
+  DB_PROJECT_DELETED: 114,
+  DB_PROJECT_UPDATED: 115,
+  DB_PROJECT_ASSIGNED: 116,
 } as const;
 
 export type ExtensionMessageType = (typeof ExtensionMessageType)[keyof typeof ExtensionMessageType];
