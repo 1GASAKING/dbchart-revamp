@@ -523,13 +523,13 @@ export const DBConnectionDialog = ({ onClose, onConnected }: Props) => {
 
         {selectedDb && (
           <div style={FOOTER_STYLES}>
-            <VsButton onClick={handleTest} disabled={testing}>
+            <VsButton onClick={handleTest} $disabled={testing}>
               <i className="codicon codicon-debug-start" /> {testing ? "Testing..." : "Test"}
             </VsButton>
             <VsButton onClick={handleSave}>
               <i className="codicon codicon-save" /> Save
             </VsButton>
-            <VsButton onClick={() => handleConnect()} disabled={connecting}>
+            <VsButton onClick={() => handleConnect()} $disabled={connecting}>
               <i className="codicon codicon-plug" /> {connecting ? "Connecting..." : "Connect"}
             </VsButton>
           </div>

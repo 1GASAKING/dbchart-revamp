@@ -3,27 +3,7 @@ import { vscode } from "../../utils/vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from "@shared/extensionmessage/extensionmessage";
 import type { ExtensionMessage } from "@shared/extensionmessage/types";
-
-interface ColumnDef {
-  name: string;
-  type: string;
-  nullable?: boolean;
-  primaryKey?: boolean;
-}
-
-interface SchemaData {
-  databaseName: string;
-  tables: { name: string; columns: ColumnDef[] }[];
-}
-
-interface QueryResultData {
-  columns: string[];
-  rows: Record<string, unknown>[];
-  rowCount?: number;
-  executionTimeMs: number;
-  isResultSet: boolean;
-  rawOutput?: string;
-}
+import type { DatabaseSchema, SchemaColumn } from "@dbchart/schema";
 
 interface Props {
   onConnect: () => void;
@@ -127,13 +107,24 @@ const BTN: React.CSSProperties = {
 };
 
 export const DatabaseBrowser = ({ onConnect }: Props) => {
-  const [schema, setSchema] = useState<SchemaData | null>(null);
+  const [schema, setSchema] = useState<DatabaseSchema | null>(null);
   const [activeTable, setActiveTable] = useState<string | null>(null);
-  const [columns, setColumns] = useState<ColumnDef[]>([]);
+  const [columns, setColumns] = useState<SchemaColumn[]>([]);
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("");
+
+  const refreshSchema = () => {
+    setError(null);
+    vscode._postMessage({ messageType: WebviewMessageType.DB_GET_SCHEMA });
+  };
+
+  useEffect(() => {
+    // Only post the message (external side-effect) — no synchronous setState here,
+    // to avoid a cascading render.
+    vscode._postMessage({ messageType: WebviewMessageType.DB_GET_SCHEMA });
+  }, []);
 
   useEffect(() => {
     const handle = (event: MessageEvent) => {
@@ -141,17 +132,25 @@ export const DatabaseBrowser = ({ onConnect }: Props) => {
       switch (message.type) {
         case ExtensionMessageType.DB_SCHEMA:
           if ("schema" in message.payload) {
-            setSchema(message.payload.schema as SchemaData);
+            setSchema(message.payload.schema as DatabaseSchema);
           }
           break;
         case ExtensionMessageType.DB_QUERY_RESULT:
           if (message.payload.result.columns.length || message.payload.result.rows.length) {
-            setColumns(cs => cs.length > 0 ? cs : message.payload.result.columns.map(c => ({ name: c, type: "", nullable: true, primaryKey: false })));
+            setColumns((cs) =>
+              cs.length > 0
+                ? cs
+                : message.payload.result.columns.map((c) => ({
+                    name: c,
+                    type: "",
+                    nullable: true,
+                    primaryKey: false,
+                  }))
+            );
             setRows(message.payload.result.rows);
             setStatus(`${message.payload.result.rows.length} row(s) · ${message.payload.result.executionTimeMs}ms`);
             setError(null);
           } else {
-            // write result
             setStatus(`${message.payload.result.rowCount ?? 0} row(s) affected`);
             setError(null);
           }
@@ -170,61 +169,47 @@ export const DatabaseBrowser = ({ onConnect }: Props) => {
     return () => window.removeEventListener("message", handle);
   }, []);
 
-  const refreshSchema = () => {
-    setError(null);
-    vscode._postMessage({ messageType: WebviewMessageType.DB_GET_SCHEMA });
-  };
-
-  useEffect(() => {
-    refreshSchema();
-  }, []);
-
   const openTable = (name: string) => {
     setActiveTable(name);
     setLoading(true);
     setError(null);
     const cols = schema?.tables.find((t) => t.name === name)?.columns ?? [];
     setColumns(cols);
-    const quoted = quoteIdent(name);
     vscode._postMessage({
       messageType: WebviewMessageType.DB_EXECUTE_QUERY,
-      payload: { query: `SELECT * FROM ${quoted} LIMIT 200` },
+      payload: { query: `SELECT * FROM ${quoteIdent(name)} LIMIT 200` },
     });
   };
 
-  const pk = columns.find((c) => c.primaryKey)?.name ?? columns.find((c) => c.name.toLowerCase() === "id")?.name;
-
-  const editCell = (row: Record<string, unknown>, col: ColumnDef, value: string) => {
-    if (!pk) { setError("No primary key / id column detected for row updates."); return; }
-    const id = row[pk];
-    const quoted = quoteIdent(activeTable!);
-    const qcol = quoteIdent(col.name);
-    const sql = `UPDATE ${quoted} SET ${qcol} = ${toSqlValue(value)} WHERE ${quoteIdent(pk)} = ${toSqlValue(String(id))}`;
-    run(sql);
-  };
-
-  const addRow = () => {
-    if (!columns.length) { return; }
-    const quoted = quoteIdent(activeTable!);
-    const cols = columns.filter((c) => !c.primaryKey);
-    if (!cols.length) { setError("No writable columns."); return; }
-    const colList = cols.map((c) => quoteIdent(c.name)).join(", ");
-    const valList = cols.map(() => "NULL").join(", ");
-    const sql = `INSERT INTO ${quoted} (${colList}) VALUES (${valList})`;
-    run(sql);
-    setTimeout(openTable.bind(null, activeTable!), 300);
-  };
-
-  const deleteRow = (row: Record<string, unknown>) => {
-    if (!pk) { setError("No primary key / id column detected for row deletes."); return; }
-    const sql = `DELETE FROM ${quoteIdent(activeTable!)} WHERE ${quoteIdent(pk)} = ${toSqlValue(String(row[pk]))}`;
-    run(sql);
-    setTimeout(openTable.bind(null, activeTable!), 300);
-  };
+  const pk =
+    columns.find((c) => c.primaryKey)?.name ??
+    columns.find((c) => c.name.toLowerCase() === "id")?.name;
 
   const run = (sql: string) => {
     setLoading(true);
     vscode._postMessage({ messageType: WebviewMessageType.DB_EXECUTE_QUERY, payload: { query: sql } });
+  };
+
+  const editCell = (row: Record<string, unknown>, col: SchemaColumn, value: string) => {
+    if (!pk) { setError("No primary key / id column detected for row updates."); return; }
+    const sql = `UPDATE ${quoteIdent(activeTable!)} SET ${quoteIdent(col.name)} = ${toSqlValue(value)} WHERE ${quoteIdent(pk)} = ${toSqlValue(String(row[pk]))}`;
+    run(sql);
+  };
+
+  const addRow = () => {
+    if (!activeTable || columns.length === 0) { return; }
+    const columnsWritable = columns.filter((c) => !c.primaryKey);
+    if (columnsWritable.length === 0) { setError("No writable columns."); return; }
+    const cols = columnsWritable.map((c) => quoteIdent(c.name)).join(", ");
+    const vals = columnsWritable.map(() => "NULL").join(", ");
+    run(`INSERT INTO ${quoteIdent(activeTable)} (${cols}) VALUES (${vals})`);
+    setTimeout(() => openTable(activeTable), 250);
+  };
+
+  const deleteRow = (row: Record<string, unknown>) => {
+    if (!pk) { setError("No primary key / id column detected for row deletes."); return; }
+    run(`DELETE FROM ${quoteIdent(activeTable!)} WHERE ${quoteIdent(pk)} = ${toSqlValue(String(row[pk]))}`);
+    setTimeout(() => openTable(activeTable!), 250);
   };
 
   if (!schema || !schema.tables.length) {
@@ -252,7 +237,11 @@ export const DatabaseBrowser = ({ onConnect }: Props) => {
         {schema.tables.map((t) => (
           <div
             key={t.name}
-            style={{ ...TABLE_ITEM, background: activeTable === t.name ? "var(--vscode-list-activeSelectionBackground)" : "transparent", color: activeTable === t.name ? "var(--vscode-list-activeSelectionForeground)" : undefined }}
+            style={{
+              ...TABLE_ITEM,
+              background: activeTable === t.name ? "var(--vscode-list-activeSelectionBackground)" : "transparent",
+              color: activeTable === t.name ? "var(--vscode-list-activeSelectionForeground)" : undefined,
+            }}
             onClick={() => openTable(t.name)}
           >
             <i className="codicon codicon-table" />
@@ -265,46 +254,59 @@ export const DatabaseBrowser = ({ onConnect }: Props) => {
         <div style={TOOLBAR}>
           <strong style={{ fontSize: "13px" }}>{activeTable ?? "Select a table"}</strong>
           <div style={{ flex: 1 }} />
-          <button style={BTN} onClick={refreshSchema} title="Refresh schema"><i className="codicon codicon-refresh" /></button>
+          <button style={BTN} onClick={refreshSchema} title="Refresh schema">
+            <i className="codicon codicon-refresh" />
+          </button>
           {activeTable && (
-            <>
-              <button style={BTN} onClick={addRow}><i className="codicon codicon-add" /> Row</button>
-            </>
+            <button style={BTN} onClick={addRow}>
+              <i className="codicon codicon-add" /> Row
+            </button>
           )}
         </div>
 
-        {error && <div style={{ padding: "8px 12px", color: "var(--vscode-errorForeground)", fontSize: "12px" }}>{error}</div>}
+        {error && (
+          <div style={{ padding: "8px 12px", color: "var(--vscode-errorForeground)", fontSize: "12px" }}>
+            {error}
+          </div>
+        )}
 
         <div style={GRID_WRAP}>
           {activeTable && columns.length > 0 && (
             <table style={TABLE}>
               <thead>
                 <tr>
-                  <TH style={{ width: "36px" }}>#</TH>
+                  <th style={{ ...TH, width: "36px" }}>#</th>
                   {columns.map((c) => (
-                    <TH key={c.name}>{c.name}{c.primaryKey ? " 🔑" : ""}</TH>
+                    <th key={c.name} style={TH}>
+                      {c.name}
+                      {c.primaryKey ? " 🔑" : ""}
+                    </th>
                   ))}
-                  <TH style={{ width: "60px" }}></TH>
+                  <th style={{ ...TH, width: "60px" }}></th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row, i) => (
                   <tr key={i}>
-                    <TD style={{ textAlign: "center", color: "var(--vscode-descriptionForeground)" }}>{i + 1}</TD>
+                    <td style={{ ...TD, textAlign: "center", color: "var(--vscode-descriptionForeground)" }}>{i + 1}</td>
                     {columns.map((c) => (
-                      <TD key={c.name}>
+                      <td key={c.name} style={TD}>
                         <input
                           style={CELL_INPUT}
                           defaultValue={row[c.name] == null ? "" : String(row[c.name])}
-                          onBlur={(e) => { const v = e.target.value; const orig = row[c.name] == null ? "" : String(row[c.name]); if (v !== orig) editCell(row, c, v); }}
+                          onBlur={(e) => {
+                            const v = e.target.value;
+                            const orig = row[c.name] == null ? "" : String(row[c.name]);
+                            if (v !== orig) editCell(row, c, v);
+                          }}
                         />
-                      </TD>
+                      </td>
                     ))}
-                    <TD style={{ textAlign: "center" }}>
+                    <td style={{ ...TD, textAlign: "center" }}>
                       <button style={{ ...BTN, padding: "2px 6px" }} onClick={() => deleteRow(row)} title="Delete row">
                         <i className="codicon codicon-trash" />
                       </button>
-                    </TD>
+                    </td>
                   </tr>
                 ))}
               </tbody>

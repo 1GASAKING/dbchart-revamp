@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import DBViewerComponent from "../../components/dbviewercomponents/db-viewer-component";
+import { DatabaseBrowser } from "../../components/dbquerycomponents/database-browser";
 import { DBQueryEditor } from "../../components/dbquerycomponents/db-query-editor";
 import { DBConnectionDialog } from "../../components/dbconnectioncomponents/db-connection-dialog";
 import { ExtensionMessageType } from "@shared/extensionmessage/extensionmessage";
@@ -81,7 +81,7 @@ const DbViewerPage = () => {
 
       <div style={{ flex: 1, overflow: "hidden" }}>
         {showViewer ? (
-          <DBViewerComponent />
+          <DatabaseBrowser onConnect={() => setShowConnectionDialog(true)} />
         ) : (
           <DBQueryEditor connected={connected} onConnect={() => setShowConnectionDialog(true)} />
         )}
