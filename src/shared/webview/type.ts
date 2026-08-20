@@ -1,6 +1,6 @@
 import { WebviewMessageType } from "./webviewmessage";
 import type { DesignFile } from "@dbchart/schema";
-import type { ConnectionConfig } from "../../database/types/connection-config";
+import type { ConnectionConfig, CloudAccountCredentials, CloudProvider } from "../../database/types/connection-config";
 
 /** Payload for {@link WebviewMessageType.REQUEST_OPEN_FILE}. */
 export interface OpenFilePayload {
@@ -82,6 +82,21 @@ export interface CopyConnectionPayload {
   connectionId: string;
 }
 
+/** Payload for {@link WebviewMessageType.DB_CREATE_CLOUD_ACCOUNT}. */
+export interface CreateCloudAccountPayload extends CloudAccountCredentials {
+  provider: CloudProvider;
+  name: string;
+  region?: string;
+  projectId?: string;
+  tenantId?: string;
+  subscriptionId?: string;
+}
+
+/** Payload for {@link WebviewMessageType.DB_DELETE_CLOUD_ACCOUNT}. */
+export interface DeleteCloudAccountPayload {
+  accountId: string;
+}
+
 /**
  * Messages sent from the webview to the extension host.
  */
@@ -148,6 +163,15 @@ export type WebviewMessage =
   | {
       messageType: typeof WebviewMessageType.DB_COPY_CONNECTION;
       payload: CopyConnectionPayload;
+    }
+  | { messageType: typeof WebviewMessageType.DB_LIST_CLOUD_ACCOUNTS }
+  | {
+      messageType: typeof WebviewMessageType.DB_CREATE_CLOUD_ACCOUNT;
+      payload: CreateCloudAccountPayload;
+    }
+  | {
+      messageType: typeof WebviewMessageType.DB_DELETE_CLOUD_ACCOUNT;
+      payload: DeleteCloudAccountPayload;
     };
 
 /** A design file payload (unused by the union above, kept for compatibility). */

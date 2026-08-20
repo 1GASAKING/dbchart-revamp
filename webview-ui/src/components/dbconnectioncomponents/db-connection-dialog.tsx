@@ -12,12 +12,19 @@ interface SavedConnection {
   id: string;
   name: string;
   databaseId: string;
+  projectId?: string;
   host?: string;
   database?: string;
   username?: string;
   ssl?: boolean;
   createdAt: number;
   lastUsed?: number;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  description?: string;
 }
 
 interface ConnectionFieldDef {
@@ -283,6 +290,7 @@ export const DBConnectionDialog = ({ onClose, onConnected }: Props) => {
 
 const ConnectionDialogContent = ({ onClose, onConnected }: Props) => {
   const [databases, setDatabases] = useState<DatabaseDefinition[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [savedConnections, setSavedConnections] = useState<SavedConnection[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDb, setSelectedDb] = useState<DatabaseDefinition | null>(null);
@@ -311,6 +319,7 @@ const ConnectionDialogContent = ({ onClose, onConnected }: Props) => {
 
   useEffect(() => {
     vscode._postMessage({ messageType: WebviewMessageType.DB_LIST_DATABASES });
+    vscode._postMessage({ messageType: WebviewMessageType.DB_LIST_PROJECTS });
     vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
 
     const handleMessage = (event: MessageEvent) => {
@@ -321,6 +330,9 @@ const ConnectionDialogContent = ({ onClose, onConnected }: Props) => {
           break;
         case ExtensionMessageType.DB_CONNECTIONS_LISTED:
           setSavedConnections(message.payload.connections);
+          break;
+        case ExtensionMessageType.DB_PROJECTS_LISTED:
+          setProjects(message.payload.projects);
           break;
         case ExtensionMessageType.DB_CONNECTION_SAVED:
           setEditingId(null);
@@ -424,9 +436,11 @@ const ConnectionDialogContent = ({ onClose, onConnected }: Props) => {
 
   const buildConfig = () => {
     if (!selectedDb) return null;
+    const projectId = formValues["projectId"] ? String(formValues["projectId"]) : undefined;
     return {
       name: String(formValues["name"] ?? selectedDb.name),
       databaseId: selectedDb.id,
+      projectId,
       ...formValues,
       createdAt: 0,
     } as { name: string; databaseId: string; createdAt: number };
@@ -632,6 +646,22 @@ const ConnectionDialogContent = ({ onClose, onConnected }: Props) => {
                       style={INPUT_STYLES}
                     />
                   </div>
+
+                  {projects.length > 0 && (
+                    <div style={FIELD_STYLES}>
+                      <label style={LABEL_STYLES}>Project</label>
+                      <select
+                        value={String(formValues["projectId"] ?? "")}
+                        onChange={(e) => handleFieldChange("projectId", e.target.value || undefined)}
+                        style={INPUT_STYLES}
+                      >
+                        <option value="">No project</option>
+                        {projects.map((p) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
                   {Object.entries(groupedFields).map(([group, fields]) => (
                     <div key={group} style={FIELD_GROUP_STYLES}>

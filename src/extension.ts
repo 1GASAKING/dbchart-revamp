@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { DBChatSidebarProvider } from './webview/sidebarProvider';
 import { Logger } from './services/logging/logger';
 import { ConnectionManager } from './database/connection-manager';
+import { CloudAccountManager } from './database/cloud-account-manager';
 import { createDrivers, makeDriverAlias, DRIVER_ALIASES } from './database/drivers/driver-factory';
 
 let outputChannel: vscode.OutputChannel;
@@ -15,6 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
   // Initialize the database connection manager
   const connectionManager = ConnectionManager.getInstance();
   connectionManager.initialize(context);
+
+  CloudAccountManager.getInstance().initialize(context);
 
   // Register all database drivers
   const drivers = createDrivers();

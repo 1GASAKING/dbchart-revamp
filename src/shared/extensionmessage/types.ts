@@ -1,5 +1,5 @@
 import type { DatabaseSchema } from '../../database/drivers/database-driver';
-import type { ConnectionConfig, ConnectionField, ConnectionTestResult, Project, SavedConnection } from '../../database';
+import type { ConnectionConfig, ConnectionField, ConnectionTestResult, Project, SavedConnection, CloudAccount } from '../../database';
 import type { QueryResult } from '../../database/drivers/database-driver';
 import { ExtensionMessageType } from './extensionmessage';
 
@@ -86,6 +86,18 @@ export interface DBProjectAssignedPayload {
   connection: SavedConnection;
 }
 
+export interface DBCloudAccountsListedPayload {
+  accounts: CloudAccount[];
+}
+
+export interface DBCloudAccountCreatedPayload {
+  account: CloudAccount;
+}
+
+export interface DBCloudAccountDeletedPayload {
+  accountId: string;
+}
+
 export interface DBDatabaseInfo {
   id: string;
   name: string;
@@ -120,4 +132,7 @@ export type ExtensionMessage =
   | { type: typeof ExtensionMessageType.DB_PROJECT_CREATED; payload: DBProjectCreatedPayload }
   | { type: typeof ExtensionMessageType.DB_PROJECT_DELETED; payload: DBProjectDeletedPayload }
   | { type: typeof ExtensionMessageType.DB_PROJECT_UPDATED; payload: DBProjectUpdatedPayload }
-  | { type: typeof ExtensionMessageType.DB_PROJECT_ASSIGNED; payload: DBProjectAssignedPayload };
+  | { type: typeof ExtensionMessageType.DB_PROJECT_ASSIGNED; payload: DBProjectAssignedPayload }
+  | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNTS_LISTED; payload: DBCloudAccountsListedPayload }
+  | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_CREATED; payload: DBCloudAccountCreatedPayload }
+  | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_DELETED; payload: DBCloudAccountDeletedPayload };

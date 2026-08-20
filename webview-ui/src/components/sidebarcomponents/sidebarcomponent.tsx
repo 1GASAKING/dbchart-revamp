@@ -1,17 +1,10 @@
 import Tooltip from "../shared/Tooltip";
 import { SideBarMainDiv, SideBarSection, SideBarSectionHeader, SideBarContent, ToggleCheckbox } from "../../styles/sidebarcomponentsstyles/sidebarcomponentstyles";
-import ConnectionComponent from "./connectionscomponents/connectioncomponent";
 import ProjectsComponent from "./projectscomponents/projectscomponent";
-import { vscode } from "../../utils/vscode";
-import { WebviewMessageType } from "@shared/webview/webviewmessage";
+import CloudAccountsComponent from "./accountscomponents/cloudaccountscomponent";
+import SettingsHelpComponent from "./settingscomponents/settingshelpcomponent";
 
 const SideBarComponent = () => {
-    const OpenEditor =()=>{
-
-        vscode._postMessage(
-            {messageType: WebviewMessageType.OPEN_EDITOR}
-        )
-    }
     return (
         <SideBarMainDiv>
             <div>
@@ -49,52 +42,64 @@ const SideBarComponent = () => {
 
                 <SideBarSection >
                     <div>
-                        <ToggleCheckbox id="connections-toggle" defaultChecked />
+                        <ToggleCheckbox id="cloud-accounts-toggle" defaultChecked />
                         <SideBarSectionHeader>
                             <div className="section-header">
-                                <label htmlFor="connections-toggle" className="section-label-holder">
+                                <label htmlFor="cloud-accounts-toggle" className="section-label-holder">
                                     <div className="icon-container">
                                         <i className="codicon codicon-chevron-up"></i>
                                     </div>
                                     <div>
                                         <h4 className="text-container">
-                                            Connections
+                                            Cloud Accounts
                                         </h4>
                                     </div>
                                 </label>
 
                                 <div className="section-action-group-holder">
-
-                                    <Tooltip text="Link connection">
+                                    <Tooltip text="register account">
                                         <div className="icon-container section-action-holder">
-                                            <i className="codicon codicon-link"></i>
-                                        </div>
-                                    </Tooltip>
-                                    <Tooltip text="new connection">
-                                        <div className="icon-container section-action-holder" onClick={()=>{OpenEditor()}}>
-                                            <i className="codicon codicon-add"></i>
-                                        </div>
-                                    </Tooltip>
-                                    <Tooltip text="open editor">
-                                        <div className="icon-container section-action-holder" onClick={()=>{OpenEditor()}}>
-                                            <i className="codicon codicon-eye"></i>
+                                            <i className="codicon codicon-cloud"></i>
                                         </div>
                                     </Tooltip>
                                 </div>
                             </div>
-
-
-
-
                         </SideBarSectionHeader>
 
+                        <SideBarContent>
+                            <CloudAccountsComponent />
+                        </SideBarContent>
+                    </div>
+                </SideBarSection>
 
-                        <SideBarContent className="connections-section">
-                            {/* Section content goes here */}
+                <SideBarSection >
+                    <div>
+                        <ToggleCheckbox id="settings-toggle" defaultChecked />
+                        <SideBarSectionHeader>
+                            <div className="section-header">
+                                <label htmlFor="settings-toggle" className="section-label-holder">
+                                    <div className="icon-container">
+                                        <i className="codicon codicon-chevron-up"></i>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-container">
+                                            Settings & Help
+                                        </h4>
+                                    </div>
+                                </label>
 
-                            <ConnectionComponent />
+                                <div className="section-action-group-holder">
+                                    <Tooltip text="settings">
+                                        <div className="icon-container section-action-holder">
+                                            <i className="codicon codicon-gear"></i>
+                                        </div>
+                                    </Tooltip>
+                                </div>
+                            </div>
+                        </SideBarSectionHeader>
 
-
+                        <SideBarContent>
+                            <SettingsHelpComponent />
                         </SideBarContent>
                     </div>
                 </SideBarSection>

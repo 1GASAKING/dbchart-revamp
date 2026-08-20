@@ -8,4 +8,7 @@ export {
   type SavedConnection,
   type ConnectionTestResult,
   type Project,
+  CloudProvider,
+  type CloudAccount,
+  type CloudAccountCredentials,
 } from "@dbchart/schema";

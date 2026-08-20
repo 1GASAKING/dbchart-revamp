@@ -90,6 +90,33 @@ export interface Project {
   updatedAt?: number;
 }
 
+export const CloudProvider = {
+  AWS: "aws",
+  GCP: "gcp",
+  AZURE: "azure",
+} as const;
+
+export type CloudProvider = (typeof CloudProvider)[keyof typeof CloudProvider];
+
+export interface CloudAccount {
+  id: string;
+  provider: CloudProvider;
+  name: string;
+  createdAt: number;
+  region?: string;
+  projectId?: string;
+  tenantId?: string;
+  subscriptionId?: string;
+}
+
+export interface CloudAccountCredentials {
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  serviceAccountJson?: string;
+  clientId?: string;
+  clientSecret?: string;
+}
+
 export interface ConnectionConfig {
   name: string;
   databaseId: string;

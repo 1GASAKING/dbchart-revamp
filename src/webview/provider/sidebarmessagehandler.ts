@@ -3,6 +3,7 @@ import { ExtensionMessageType } from "../../shared/extensionmessage/extensionmes
 import { WebviewMessage } from "../../shared/webview/type";
 import { WebviewMessageType } from "../../shared/webview/webviewmessage";
 import { ConnectionManager } from "../../database/connection-manager";
+import { CloudAccountManager } from "../../database/cloud-account-manager";
 import { ALL_DATABASE_DEFINITIONS } from "../../database/registry";
 import { EditorPanelProvider } from "./editorpanelprovider";
 import { ImessageHandler } from "./IMessageHandler";
@@ -104,6 +105,28 @@ export class SidebarMessageHandler implements ImessageHandler {
       case WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT:
         if (message.payload) {
           await this._handleAssignConnectionToProject(message.payload.connectionId, message.payload.projectId);
+        }
+        break;
+
+      case WebviewMessageType.DB_COPY_CONNECTION:
+        if (message.payload) {
+          await this._handleCopyConnection(message.payload.connectionId);
+        }
+        break;
+
+      case WebviewMessageType.DB_LIST_CLOUD_ACCOUNTS:
+        this._handleListCloudAccounts();
+        break;
+
+      case WebviewMessageType.DB_CREATE_CLOUD_ACCOUNT:
+        if (message.payload) {
+          await this._handleCreateCloudAccount(message.payload);
+        }
+        break;
+
+      case WebviewMessageType.DB_DELETE_CLOUD_ACCOUNT:
+        if (message.payload) {
+          await this._handleDeleteCloudAccount(message.payload.accountId);
         }
         break;
 
@@ -290,6 +313,53 @@ export class SidebarMessageHandler implements ImessageHandler {
       this._provider.HandleSendMessageToWebview({
         type: ExtensionMessageType.DB_PROJECT_ASSIGNED,
         payload: { connection },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
+  private async _handleCopyConnection(connectionId: string) {
+    const manager = ConnectionManager.getInstance();
+    try {
+      const saved = await manager.copyConnection(connectionId);
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_CONNECTION_SAVED,
+        payload: { connection: saved },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
+  private _handleListCloudAccounts() {
+    const manager = CloudAccountManager.getInstance();
+    this._provider.HandleSendMessageToWebview({
+      type: ExtensionMessageType.DB_CLOUD_ACCOUNTS_LISTED,
+      payload: { accounts: manager.getAccounts() },
+    });
+  }
+
+  private async _handleCreateCloudAccount(payload: any) {
+    const manager = CloudAccountManager.getInstance();
+    try {
+      const account = await manager.createAccount(payload);
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_CLOUD_ACCOUNT_CREATED,
+        payload: { account },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
+  private async _handleDeleteCloudAccount(accountId: string) {
+    const manager = CloudAccountManager.getInstance();
+    try {
+      await manager.deleteAccount(accountId);
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_CLOUD_ACCOUNT_DELETED,
+        payload: { accountId },
       });
     } catch (err) {
       this._sendError(err);

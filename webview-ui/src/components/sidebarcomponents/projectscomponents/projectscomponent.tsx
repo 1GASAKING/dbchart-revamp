@@ -35,9 +35,6 @@ const S = {
     cursor: "pointer",
     fontSize: "12px",
   } as React.CSSProperties,
-  rowHover: {
-    background: "var(--vscode-list-hoverBackground)",
-  } as React.CSSProperties,
   name: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } as React.CSSProperties,
   iconBtn: {
     display: "inline-flex",
@@ -52,6 +49,12 @@ const S = {
     border: "1px solid transparent",
     borderRadius: "4px",
     fontSize: "12px",
+  } as React.CSSProperties,
+  statusDot: {
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    flexShrink: 0,
   } as React.CSSProperties,
   input: {
     width: "100%",
@@ -89,6 +92,7 @@ const S = {
 const ProjectsComponent = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [connections, setConnections] = useState<SavedConnection[]>([]);
+  const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -109,6 +113,12 @@ const ProjectsComponent = () => {
         case ExtensionMessageType.DB_CONNECTIONS_LISTED:
           setConnections(message.payload.connections);
           break;
+        case ExtensionMessageType.DB_CONNECTED:
+          setActiveConnectionId(message.payload.connectionId ?? null);
+          break;
+        case ExtensionMessageType.DB_DISCONNECTED:
+          setActiveConnectionId(null);
+          break;
         case ExtensionMessageType.DB_PROJECT_CREATED:
           setProjects((prev) => [...prev, message.payload.project]);
           setCreating(false);
@@ -125,6 +135,8 @@ const ProjectsComponent = () => {
           vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
           break;
         case ExtensionMessageType.DB_PROJECT_ASSIGNED:
+        case ExtensionMessageType.DB_CONNECTION_SAVED:
+        case ExtensionMessageType.DB_CONNECTION_DELETED:
           vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
           break;
       }
@@ -183,6 +195,65 @@ const ProjectsComponent = () => {
     setAssigningId(null);
   };
 
+  const connect = (conn: SavedConnection) => {
+    vscode._postMessage({
+      messageType: WebviewMessageType.DB_CONNECT,
+      payload: { connectionId: conn.id },
+    });
+  };
+
+  const disconnect = () => {
+    vscode._postMessage({ messageType: WebviewMessageType.DB_DISCONNECT });
+  };
+
+  const copyConnection = (conn: SavedConnection) => {
+    vscode._postMessage({
+      messageType: WebviewMessageType.DB_COPY_CONNECTION,
+      payload: { connectionId: conn.id },
+    });
+  };
+
+  const deleteConnection = (conn: SavedConnection) => {
+    vscode._postMessage({
+      messageType: WebviewMessageType.DB_DELETE_CONNECTION,
+      payload: { connectionId: conn.id },
+    });
+  };
+
+  const renderConnectionRow = (c: SavedConnection) => {
+    const isActive = c.id === activeConnectionId;
+    return (
+      <div key={c.id} style={S.connRow}>
+        <span
+          title={isActive ? "Connected" : "Disconnected"}
+          style={{
+            ...S.statusDot,
+            background: isActive ? "var(--vscode-testing-iconPassed, #89d185)" : "var(--vscode-descriptionForeground)",
+          }}
+        />
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {c.name} <span style={{ opacity: 0.6 }}>({c.databaseId})</span>
+        </span>
+
+        {isActive ? (
+          <button style={S.iconBtn} title="Disconnect" onClick={() => disconnect()}>
+            <i className="codicon codicon-debug-disconnect" />
+          </button>
+        ) : (
+          <button style={S.iconBtn} title="Connect" onClick={() => connect(c)}>
+            <i className="codicon codicon-plug" />
+          </button>
+        )}
+        <button style={S.iconBtn} title="Copy connection" onClick={() => copyConnection(c)}>
+          <i className="codicon codicon-copy" />
+        </button>
+        <button style={S.iconBtn} title="Delete connection" onClick={() => deleteConnection(c)}>
+          <i className="codicon codicon-trash" />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div style={S.wrap}>
       <div style={S.list}>
@@ -238,12 +309,7 @@ const ProjectsComponent = () => {
 
               {(isExpanded || assigningId === project.id) && (
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  {members.map((c) => (
-                    <div key={c.id} style={S.connRow}>
-                      <i className="codicon codicon-database" style={{ fontSize: "11px" }} />
-                      {c.name} <span style={{ opacity: 0.6 }}>({c.databaseId})</span>
-                    </div>
-                  ))}
+                  {members.map(renderConnectionRow)}
                   {members.length === 0 && (
                     <div style={{ ...S.connRow, opacity: 0.7 }}>No clients yet</div>
                   )}
