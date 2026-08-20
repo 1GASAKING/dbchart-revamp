@@ -157,6 +157,7 @@ const DBViewerComponent = () => {
     setSelectedRows(new Set());
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleRevert = (_rowId: string, _columnId: string) => {
     // Pseudo: restore original value from originalRowsPseudo
     // const originalRow = originalRowsPseudo.find(r => r.id === rowId);
@@ -205,16 +206,18 @@ const DBViewerComponent = () => {
           <div className="left-items">
             <div className="db-viewer-action-button">
               <VsButton onClick={()=> handleOptions?.(columns[0]?.id ?? "")} title="Options">
-                <i className="codicon codicon-settings-gear" /> options
+                <i className="codicon codicon-settings-gear" /><span
+                > options</span> 
+              </VsButton>
+            </div>
+            <div className="db-viewer-action-button" >
+              <VsButton onClick={handleUndo} title="Undo (Ctrl+Z)" $disabled={undoStack.length === 0}>
+                <i className="codicon codicon-undo" /> 
+                <span>undo</span>
               </VsButton>
             </div>
             <div className="db-viewer-action-button">
-              <VsButton onClick={handleUndo} title="Undo (Ctrl+Z)" disabled={undoStack.length === 0}>
-                <i className="codicon codicon-undo" /> undo
-              </VsButton>
-            </div>
-            <div className="db-viewer-action-button">
-              <VsButton onClick={handleRedo} title="Redo (Ctrl+Y)" disabled={redoStack.length === 0}>
+              <VsButton onClick={handleRedo} title="Redo (Ctrl+Y)" $disabled={redoStack.length === 0}>
                 <i className="codicon codicon-redo" /> redo
               </VsButton>
             </div>
@@ -255,7 +258,7 @@ const DBViewerComponent = () => {
             <VsButton
               className={`db-viewer-toolbar-button${selectedRows.size > 0 ? " action" : ""}`}
               onClick={handleDeleteSelected}
-              disabled={selectedRows.size === 0}
+              $disabled={selectedRows.size === 0}
             >
               <i className="codicon codicon-trash" /> Delete rows
             </VsButton>
@@ -460,7 +463,7 @@ const DBViewerComponent = () => {
             </select>
             <VsButton
               className="db-viewer-page-btn"
-              disabled={safePage === 1}
+              $disabled={safePage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               title="Previous page"
             >
@@ -471,7 +474,7 @@ const DBViewerComponent = () => {
             </span>
             <VsButton
               className="db-viewer-page-btn"
-              disabled={safePage === totalPages}
+              $disabled={safePage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               title="Next page"
             >

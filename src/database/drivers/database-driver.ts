@@ -50,6 +50,14 @@ export interface IDatabaseDriver {
   disconnect(): Promise<void>;
   testConnection(config: ConnectionConfig): Promise<ConnectionTestResult>;
   query(sql: string, params?: unknown[]): Promise<QueryResult>;
+  /** Read rows from a table/collection (used by the data browser). */
+  listRows?(table: string, limit?: number): Promise<QueryResult>;
+  /** Insert a new row. Returns the generated primary-key id when available. */
+  insertRow?(table: string, values: Record<string, unknown>): Promise<{ id?: string }>;
+  /** Update a row by its primary-key id. */
+  updateRow?(table: string, id: string, values: Record<string, unknown>): Promise<void>;
+  /** Delete a row by its primary-key id. */
+  deleteRow?(table: string, id: string): Promise<void>;
   getSchema(): Promise<DatabaseSchema>;
   listDatabases?(): Promise<string[]>;
   listTables?(): Promise<string[]>;

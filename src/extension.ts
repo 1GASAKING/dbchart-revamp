@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 import { DBChatSidebarProvider } from './webview/sidebarProvider';
 import { Logger } from './services/logging/logger';
 import { ConnectionManager } from './database/connection-manager';
-import { createDrivers } from './database/drivers/driver-factory';
-import { DRIVER_ALIASES } from './database/drivers/driver-factory';
+import { createDrivers, makeDriverAlias, DRIVER_ALIASES } from './database/drivers/driver-factory';
 
 let outputChannel: vscode.OutputChannel;
 
@@ -23,14 +22,12 @@ export function activate(context: vscode.ExtensionContext) {
     connectionManager.registerDriver(driver);
   }
 
-  // Register driver aliases for compatible databases
+  // Register driver aliases for compatible databases.
+  // makeDriverAlias preserves prototype methods (a plain spread would drop them).
   for (const [alias, baseDriver] of Object.entries(DRIVER_ALIASES)) {
     const base = connectionManager.getDriver(baseDriver);
     if (base) {
-      connectionManager.registerDriver({
-        ...base,
-        databaseId: alias,
-      } as any);
+      connectionManager.registerDriver(makeDriverAlias(base, alias));
     }
   }
 

@@ -13,6 +13,7 @@ export class ConnectionManager {
   private _context?: vscode.ExtensionContext;
   private _drivers: Map<string, IDatabaseDriver> = new Map();
   private _activeConnectionId?: string;
+  private _activeConfig?: ConnectionConfig;
   private _savedConnections: SavedConnection[] = [];
   private _workspaceConnections: SavedConnection[] = [];
 
@@ -157,6 +158,10 @@ export class ConnectionManager {
 
     await driver.connect(config);
 
+    // Track the active config so query/getSchema work even when
+    // connecting directly (not via a saved connection id).
+    this._activeConfig = config;
+
     if (this._activeConnectionId) {
       await this._updateLastUsed(this._activeConnectionId);
     }
@@ -165,19 +170,26 @@ export class ConnectionManager {
   }
 
   public async disconnect(): Promise<void> {
-    if (!this._activeConnectionId) {return;}
-
-    const config = await this.getConnectionConfig(this._activeConnectionId);
+    const config = this._activeConfig ??
+      (this._activeConnectionId ? await this.getConnectionConfig(this._activeConnectionId) : null);
     if (config) {
       const driver = this.getDriver(config.databaseId);
       if (driver) {await driver.disconnect();}
     }
     this._activeConnectionId = undefined;
+    this._activeConfig = undefined;
   }
 
   public async getActiveConnection(): Promise<ConnectionConfig | null> {
-    if (!this._activeConnectionId) {return null;}
-    return this.getConnectionConfig(this._activeConnectionId);
+    if (this._activeConfig) {return this._activeConfig;}
+    if (this._activeConnectionId) {return this.getConnectionConfig(this._activeConnectionId);}
+    return null;
+  }
+
+  public async getActiveDriver(): Promise<IDatabaseDriver | null> {
+    const config = await this.getActiveConnection();
+    if (!config) {return null;}
+    return this.getDriver(config.databaseId) ?? null;
   }
 
   private _separateSensitiveValues(config: ConnectionConfig): {

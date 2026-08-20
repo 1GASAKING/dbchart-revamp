@@ -50,6 +50,26 @@ export interface ConnectionConfig {
   filePath?: string;
   /** Role for databases that support roles (Development/Testing/Production). */
   role?: string;
+  /** Firebase Realtime Database URL. */
+  databaseUrl?: string;
+  /** Supabase project URL. */
+  projectUrl?: string;
+  /** Supabase anonymous key. */
+  anonKey?: string;
+  /** Supabase service role key. */
+  serviceRoleKey?: string;
+  /** Generic API key. */
+  apiKey?: string;
+  /** Stripe secret key. */
+  secretKey?: string;
+  /** Generic API token. */
+  apiToken?: string;
+  /** Generic auth token. */
+  authToken?: string;
+  /** AWS/cloud access key id. */
+  accessKeyId?: string;
+  /** AWS/cloud secret access key. */
+  secretAccessKey?: string;
   /** Post-connection SQL source type: inline or file. */
   postConnectionSqlSource?: "inline" | "file";
   /** Inline post-connection SQL script. */

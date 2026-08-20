@@ -23,7 +23,6 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   minWidth: 0,
   background: "var(--vscode-input-background, #3c3c3c)",
-  color: "var(--vscode-input-foreground, #cccccc)",
   border: "1px solid var(--vscode-input-border, #454545)",
   padding: "6px 8px",
   fontSize: "14px",
@@ -116,8 +115,6 @@ const AddNodeForm = ({ onCancel, onSubmit, existingLabels }: AddNodeFormProps) =
             display: "flex",
             flexDirection: "column",
             gap: "6px",
-            fontSize: "13px",
-            color: "var(--vscode-descriptionForeground, #999)",
           }}
         >
           Kind
@@ -140,10 +137,7 @@ const AddNodeForm = ({ onCancel, onSubmit, existingLabels }: AddNodeFormProps) =
             }}
           >
             <span
-              style={{
-                fontSize: "13px",
-                color: "var(--vscode-descriptionForeground, #999)",
-              }}
+             
             >
               Columns
             </span>
@@ -258,7 +252,6 @@ const AddNodeDialog = ({ open, onOpenChange, onSubmit, existingLabels = [] }: Ad
             maxHeight: "85vh",
             overflowY: "auto",
             zIndex: 10000,
-            color: "var(--vscode-editor-foreground, #cccccc)",
           }}
         >
           <Dialog.Title

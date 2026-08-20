@@ -40,7 +40,6 @@ const DBViewerComponentHeaderDiv = styled.div`
 
   .db-viewer-table-description {
     font-size: 12px;
-    color: var(--vscode-descriptionForeground, #999999);
   }
 
   .left-items {
@@ -90,7 +89,6 @@ const DBViewerToolbarDiv = styled.div`
     min-width: 200px;
 
     i {
-      color: var(--vscode-descriptionForeground, #999999);
       font-size: 14px;
     }
 
@@ -98,7 +96,6 @@ const DBViewerToolbarDiv = styled.div`
       background: transparent;
       border: none;
       outline: none;
-      color: var(--vscode-input-foreground, #cccccc);
       font-size: 13px;
       height: 100%;
       width: 100%;

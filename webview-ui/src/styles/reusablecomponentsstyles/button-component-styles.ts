@@ -3,11 +3,10 @@ import styled from "styled-components";
 interface ButtonComponentMainDivProp {
   $bgColor?: string;
   $borderColor?: string;
+  $disabled?:boolean;
 }
 
-const VsButton = styled.button.attrs<ButtonComponentMainDivProp>(() => ({
-  type: "button",
-}))<ButtonComponentMainDivProp>`
+const VsButton = styled.div<ButtonComponentMainDivProp>`
   border: 1px solid var(--vscode-button-border, var(--gray-30));
   background-color: var(--vscode-button-background, transparent);
   padding: 4px;
@@ -16,6 +15,8 @@ const VsButton = styled.button.attrs<ButtonComponentMainDivProp>(() => ({
   width: 100%;
   display: flex;
   align-items: center;
+  gap:.8em;
+
   justify-content: center;
   transition: all 0.5s;
   text-transform: inherit;
@@ -106,9 +107,9 @@ const VsButton = styled.button.attrs<ButtonComponentMainDivProp>(() => ({
   }
   &.delete-button {
     i {
-      color: red;
     }
   }
+    opacity:${(p)=> p.$disabled ?".4":"inherit"}
 `;
 
 export { VsButton };
