@@ -6,12 +6,23 @@ import * as vscode from "vscode";
 import { ImessageHandler } from "./IMessageHandler";
 import { ExtensionMessageType } from "../../shared/extensionmessage/extensionmessage";
 import { readFile, writeFile } from "../../utils/file-utils";
+import { DatabaseMessageHandler } from "./databasemessagehandler";
 
 export class EditorMessageHandler implements ImessageHandler {
-    constructor(private _provider: EditorPanelProvider, private _view: vscode.WebviewPanel) {}
+    private _dbMessageHandler: DatabaseMessageHandler;
+
+    constructor(private _provider: EditorPanelProvider, private _view: vscode.WebviewPanel) {
+        this._dbMessageHandler = new DatabaseMessageHandler((msg) => this._provider.sendMessageToWebview(msg));
+    }
 
     public async handleMessage(message: WebviewMessage) {
         Logger.getInstance().log(message.messageType.toString(), true);
+
+        // Route database messages to the shared handler
+        if (await this._dbMessageHandler.handleMessage(message)) {
+            return;
+        }
+
         switch (message.messageType) {
             case WebviewMessageType.WEBVIEW_DID_LAUNCH:
                 this._provider.sendMessageToWebview({

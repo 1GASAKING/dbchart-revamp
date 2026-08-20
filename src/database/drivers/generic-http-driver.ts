@@ -36,7 +36,7 @@ export class GenericHTTPDriver implements IDatabaseDriver {
   }
 
   async query(sql: string, _params?: unknown[]): Promise<QueryResult> {
-    if (!this._connected) throw new Error("Not connected");
+    if (!this._connected) {throw new Error("Not connected");}
     const start = Date.now();
 
     const parts = sql.trim().split(/\s+/);
@@ -103,9 +103,9 @@ export class GenericHTTPDriver implements IDatabaseDriver {
   }
 
   private buildBaseUrl(config: ConnectionConfig): string {
-    if (config.connectionString) return config.connectionString;
-    if (config.options?.apiUrl) return String(config.options.apiUrl);
-    if (config.options?.url) return String(config.options.url);
+    if (config.connectionString) {return config.connectionString;}
+    if (config.options?.apiUrl) {return String(config.options.apiUrl);}
+    if (config.options?.url) {return String(config.options.url);}
     const protocol = config.ssl ? "https" : "http";
     return `${protocol}://${config.host ?? "localhost"}:${config.port ?? 80}`;
   }

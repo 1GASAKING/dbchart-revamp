@@ -1,14 +1,10 @@
-import { useState } from "react";
 import Tooltip from "../shared/Tooltip";
 import { SideBarMainDiv, SideBarSection, SideBarSectionHeader, SideBarContent, ToggleCheckbox } from "../../styles/sidebarcomponentsstyles/sidebarcomponentstyles";
 import ConnectionComponent from "./connectionscomponents/connectioncomponent";
-import { DBConnectionDialog } from "../dbconnectioncomponents/db-connection-dialog";
 import { vscode } from "../../utils/vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 
 const SideBarComponent = () => {
-    const [showConnectionDialog, setShowConnectionDialog] = useState(false);
-
     const OpenEditor =()=>{
 
         vscode._postMessage(
@@ -16,13 +12,6 @@ const SideBarComponent = () => {
         )
     }
     return (
-        <>
-        {showConnectionDialog && (
-            <DBConnectionDialog
-                onClose={() => setShowConnectionDialog(false)}
-                onConnected={() => {}}
-            />
-        )}
         <SideBarMainDiv>
             <div>
                 <SideBarSection >
@@ -49,7 +38,7 @@ const SideBarComponent = () => {
                                         </div>
                                     </Tooltip>
                                     <Tooltip text="new connection">
-                                        <div className="icon-container section-action-holder" onClick={() => setShowConnectionDialog(true)}>
+                                        <div className="icon-container section-action-holder" onClick={()=>{OpenEditor()}}>
                                             <i className="codicon codicon-add"></i>
                                         </div>
                                     </Tooltip>
@@ -156,7 +145,6 @@ const SideBarComponent = () => {
                 </SideBarSection>
             </div>
         </SideBarMainDiv>
-        </>
     );
 };
 

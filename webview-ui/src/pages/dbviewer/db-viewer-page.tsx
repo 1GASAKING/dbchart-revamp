@@ -7,7 +7,7 @@ import type { ExtensionMessage } from "@shared/extensionmessage/types";
 
 const DbViewerPage = () => {
   const [connected, setConnected] = useState(false);
-  const [showConnectionDialog, setShowConnectionDialog] = useState(false);
+  const [showConnectionDialog, setShowConnectionDialog] = useState(true);
   const [showViewer, setShowViewer] = useState(true);
 
   useEffect(() => {
