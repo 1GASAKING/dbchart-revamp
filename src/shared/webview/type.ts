@@ -103,6 +103,8 @@ export interface DeleteCloudAccountPayload {
 export type WebviewMessage =
   | { messageType: typeof WebviewMessageType.OPEN_EDITOR }
   | { messageType: typeof WebviewMessageType.WEBVIEW_DID_LAUNCH }
+  | { messageType: typeof WebviewMessageType.DB_OPEN_DB_VIEW }
+  | { messageType: typeof WebviewMessageType.DB_LOAD_TYPES_INTO_EDITOR }
   | {
       messageType: typeof WebviewMessageType.REQUEST_OPEN_FILE;
       payload: OpenFilePayload;

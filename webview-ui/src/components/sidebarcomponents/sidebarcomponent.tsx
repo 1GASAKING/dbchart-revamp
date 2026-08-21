@@ -4,6 +4,11 @@ import ProjectsComponent from "./projectscomponents/projectscomponent";
 import CloudAccountsComponent from "./accountscomponents/cloudaccountscomponent";
 import SettingsHelpComponent from "./settingscomponents/settingshelpcomponent";
 
+/** Dispatch a sidebar section action (handled by {@link ProjectsComponent}). */
+const dispatchSidebarAction = (action: string) => {
+  window.dispatchEvent(new CustomEvent("dbchart:sidebar-action", { detail: action }));
+};
+
 const SideBarComponent = () => {
     return (
         <SideBarMainDiv>
@@ -25,27 +30,35 @@ const SideBarComponent = () => {
                                 </label>
 
                                 <div className="section-action-group-holder">
-                                    <Tooltip text="new project">
-                                        <div className="icon-container section-action-holder">
+                                    <Tooltip text="new connection">
+                                        <div
+                                            className="icon-container section-action-holder"
+                                            onClick={() => dispatchSidebarAction("new-connection")}
+                                        >
                                             <i className="codicon codicon-add"></i>
                                         </div>
                                     </Tooltip>
-                                     <Tooltip text="Group ">
-                                        <div className="icon-container section-action-holder">
+                                    <Tooltip text="new group">
+                                        <div
+                                            className="icon-container section-action-holder"
+                                            onClick={() => dispatchSidebarAction("new-group")}
+                                        >
                                             <i className="codicon codicon-new-collection"></i>
                                         </div>
                                     </Tooltip>
-                                      <Tooltip text="refresh  ">
-                                        <div className="icon-container section-action-holder">
-                                            <i className="codicon codicon-refresh"></i>
-                                        </div>
-                                    </Tooltip>
-                                    <Tooltip text="filter ">
-                                        <div className="icon-container section-action-holder">
+                                    <Tooltip text="filter">
+                                        <div
+                                            className="icon-container section-action-holder"
+                                            onClick={() => dispatchSidebarAction("toggle-filter")}
+                                        >
                                             <i className="codicon codicon-filter"></i>
                                         </div>
-                                    </Tooltip><Tooltip text="collapse all ">
-                                        <div className="icon-container section-action-holder">
+                                    </Tooltip>
+                                    <Tooltip text="collapse all">
+                                        <div
+                                            className="icon-container section-action-holder"
+                                            onClick={() => dispatchSidebarAction("collapse-all")}
+                                        >
                                             <i className="codicon codicon-collapse-all"></i>
                                         </div>
                                     </Tooltip>

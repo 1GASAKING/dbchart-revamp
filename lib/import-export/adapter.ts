@@ -1,4 +1,5 @@
 import type {
+  DatabaseSchema,
   DesignField,
   DesignRelationship,
   SchemaDesign,
@@ -9,6 +10,7 @@ import {
   generateNodeColor,
   generateNodeId,
 } from "../utils/general-utils";
+import { normalizeDataType } from "./helpers";
 import type {
   CanonicalEntity,
   CanonicalField,
@@ -181,4 +183,79 @@ function designFieldToCanonical(field: DesignField): CanonicalField {
 /** Build a stable field lookup key from entity + field names. */
 function fieldKey(entityName: string, fieldName: string): string {
   return `${entityName.toLowerCase()}:${fieldName.toLowerCase()}`;
+}
+
+/**
+ * Convert a runtime {@link DatabaseSchema} (from a live database driver) into a
+ * {@link SchemaDesign} that the React Flow canvas can render directly.
+ *
+ * Driver-specific column type strings are normalized to {@link FieldDataType}
+ * and relationships are resolved back to generated node/field ids so the
+ * resulting graph draws correctly.
+ */
+export function databaseSchemaToDesign(schema: DatabaseSchema): SchemaDesign {
+  const nodes: SchemaNode[] = [];
+  const relationships: DesignRelationship[] = [];
+
+  const nodeIdByTable = new Map<string, string>();
+  const fieldIdByColumn = new Map<string, string>();
+
+  for (const table of schema.tables) {
+    const nodeId = generateNodeId();
+    nodeIdByTable.set(table.name.toLowerCase(), nodeId);
+    if (table.schema && table.schema.length > 0) {
+      nodeIdByTable.set(`${table.schema}.${table.name}`.toLowerCase(), nodeId);
+    }
+
+    const fields: DesignField[] = table.columns.map((column) => {
+      const fieldId = generateFieldId();
+      fieldIdByColumn.set(fieldKey(table.name, column.name), fieldId);
+      return {
+        id: fieldId,
+        name: column.name,
+        dataType: normalizeDataType(column.type),
+        isPrimary: column.primaryKey ?? false,
+        isNullable: column.nullable ?? true,
+      };
+    });
+
+    nodes.push({
+      id: nodeId,
+      label: table.name,
+      kind: table.type === "view" ? "view" : "table",
+      color: generateNodeColor(),
+      fields,
+    });
+  }
+
+  for (const rel of schema.relationships) {
+    const sourceNodeId = nodeIdByTable.get(rel.sourceTable.toLowerCase());
+    const targetNodeId = nodeIdByTable.get(rel.targetTable.toLowerCase());
+    if (!sourceNodeId || !targetNodeId) { continue; }
+
+    const sourceFieldId = fieldIdByColumn.get(
+      fieldKey(rel.sourceTable, rel.sourceColumn)
+    );
+    const targetFieldId = fieldIdByColumn.get(
+      fieldKey(rel.targetTable, rel.targetColumn)
+    );
+    if (!sourceFieldId || !targetFieldId) { continue; }
+
+    // Mark the source column as a foreign key for visualization.
+    const sourceNode = nodes.find((n) => n.id === sourceNodeId);
+    const sourceField = sourceNode?.fields.find((f) => f.id === sourceFieldId);
+    if (sourceField) {
+      sourceField.isForeign = true;
+    }
+
+    relationships.push({
+      id: generateNodeId(),
+      sourceNodeId,
+      sourceFieldId,
+      targetNodeId,
+      targetFieldId,
+    });
+  }
+
+  return { type: "schema", nodes, relationships };
 }

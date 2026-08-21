@@ -98,6 +98,10 @@ export interface DBCloudAccountDeletedPayload {
   accountId: string;
 }
 
+export interface EditorLoadTypesPayload {
+  schema: DatabaseSchema;
+}
+
 export interface DBDatabaseInfo {
   id: string;
   name: string;
@@ -113,7 +117,7 @@ export interface DBDatabaseInfo {
  */
 export type ExtensionMessage =
   | { type: typeof ExtensionMessageType.WORKSPACEUPDATED }
-  | { type: typeof ExtensionMessageType.SET_APP_MODE; mode?: "sidebar" | "editor" }
+  | { type: typeof ExtensionMessageType.SET_APP_MODE; mode?: "sidebar" | "editor" | "canvas" }
   | { type: typeof ExtensionMessageType.FILE_OPENED; payload: FileOpenedPayload | FileOpenedErrorPayload }
   | { type: typeof ExtensionMessageType.FILE_SAVE_RESULT; payload: FileSaveResultPayload }
   | { type: typeof ExtensionMessageType.DB_DATABASES_LISTED; payload: DBDatabaseInfo[] }
@@ -135,4 +139,5 @@ export type ExtensionMessage =
   | { type: typeof ExtensionMessageType.DB_PROJECT_ASSIGNED; payload: DBProjectAssignedPayload }
   | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNTS_LISTED; payload: DBCloudAccountsListedPayload }
   | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_CREATED; payload: DBCloudAccountCreatedPayload }
-  | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_DELETED; payload: DBCloudAccountDeletedPayload };
+  | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_DELETED; payload: DBCloudAccountDeletedPayload }
+  | { type: typeof ExtensionMessageType.EDITOR_LOAD_TYPES; payload: EditorLoadTypesPayload };

@@ -25,6 +25,7 @@ export const ExtensionMessageType = {
   DB_CLOUD_ACCOUNTS_LISTED: 117,
   DB_CLOUD_ACCOUNT_CREATED: 118,
   DB_CLOUD_ACCOUNT_DELETED: 119,
+  EDITOR_LOAD_TYPES: 120,
 } as const;
 
 export type ExtensionMessageType = (typeof ExtensionMessageType)[keyof typeof ExtensionMessageType];

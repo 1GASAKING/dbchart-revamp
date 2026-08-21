@@ -3,7 +3,9 @@ import { vscode } from "../../../utils/vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from "@shared/extensionmessage/extensionmessage";
 import type { ExtensionMessage } from "@shared/extensionmessage/types";
-import { ProjectConnectionComponentMainDiv } from "../../../styles/sidebarcomponentsstyles/projectconnetionscomponentsstyles/projectconnectioncomponentsstyles";
+import { ProjectConnectionComponentConnection, ProjectConnectionComponentConnectionField, ProjectConnectionComponentMainDiv } from "../../../styles/sidebarcomponentsstyles/projectconnetionscomponentsstyles/projectconnectioncomponentsstyles";
+import { VsButton } from "../../../styles/reusablecomponentsstyles/button-component-styles";
+import { DBConnectionDialog } from "../../dbconnectioncomponents/db-connection-dialog";
 
 interface Project {
   id: string;
@@ -24,71 +26,7 @@ interface SavedConnection {
   createdAt: number;
 }
 
-const S = {
-  wrap: { display: "flex", flexDirection: "column", gap: "6px" } as React.CSSProperties,
-  list: { display: "flex", flexDirection: "column", gap: "4px" } as React.CSSProperties,
-  row: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    padding: "6px 8px",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontSize: "12px",
-  } as React.CSSProperties,
-  name: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } as React.CSSProperties,
-  iconBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "20px",
-    height: "20px",
-    padding: 0,
-    cursor: "pointer",
-    background: "transparent",
-    color: "var(--vscode-foreground)",
-    border: "1px solid transparent",
-    borderRadius: "4px",
-    fontSize: "12px",
-  } as React.CSSProperties,
-  statusDot: {
-    width: "8px",
-    height: "8px",
-    borderRadius: "50%",
-    flexShrink: 0,
-  } as React.CSSProperties,
-  input: {
-    width: "100%",
-    padding: "4px 6px",
-    borderRadius: "4px",
-    border: "1px solid var(--vscode-input-border)",
-    background: "var(--vscode-input-background)",
-    color: "var(--vscode-input-foreground)",
-    fontSize: "12px",
-  } as React.CSSProperties,
-  addBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "4px",
-    padding: "4px 8px",
-    cursor: "pointer",
-    background: "transparent",
-    color: "var(--vscode-foreground)",
-    border: "1px dashed var(--vscode-panel-border)",
-    borderRadius: "4px",
-    fontSize: "11px",
-  } as React.CSSProperties,
-  empty: { fontSize: "11px", color: "var(--vscode-descriptionForeground)", padding: "4px 2px" } as React.CSSProperties,
-  connRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    padding: "3px 8px 3px 18px",
-    fontSize: "11px",
-    color: "var(--vscode-descriptionForeground)",
-  } as React.CSSProperties,
-  count: { fontSize: "10px", color: "var(--vscode-descriptionForeground)" } as React.CSSProperties,
-};
+
 
 const ProjectsComponent = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -100,6 +38,7 @@ const ProjectsComponent = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [showConnectionDialog, setShowConnectionDialog] = useState(false);
 
   useEffect(() => {
     vscode._postMessage({ messageType: WebviewMessageType.DB_LIST_PROJECTS });
@@ -224,141 +163,233 @@ const ProjectsComponent = () => {
   const renderConnectionRow = (c: SavedConnection) => {
     const isActive = c.id === activeConnectionId;
     return (
-      <div key={c.id} style={S.connRow}>
-        <span
-          title={isActive ? "Connected" : "Disconnected"}
-          style={{
-            ...S.statusDot,
-            background: isActive ? "var(--vscode-testing-iconPassed, #89d185)" : "var(--vscode-descriptionForeground)",
-          }}
-        />
-        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {c.name} <span style={{ opacity: 0.6 }}>({c.databaseId})</span>
-        </span>
+      <ProjectConnectionComponentConnection key={c.id} className="connections-header" $connected={isActive}>
+        <div>
 
-        {isActive ? (
-          <button style={S.iconBtn} title="Disconnect" onClick={() => disconnect()}>
-            <i className="codicon codicon-debug-disconnect" />
-          </button>
-        ) : (
-          <button style={S.iconBtn} title="Connect" onClick={() => connect(c)}>
-            <i className="codicon codicon-plug" />
-          </button>
-        )}
-        <button style={S.iconBtn} title="Copy connection" onClick={() => copyConnection(c)}>
-          <i className="codicon codicon-copy" />
-        </button>
-        <button style={S.iconBtn} title="Delete connection" onClick={() => deleteConnection(c)}>
-          <i className="codicon codicon-trash" />
-        </button>
-      </div>
+          <div>
+            <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {c.name} <span style={{ opacity: 0.6 }}>({c.databaseId})</span>
+            </span>
+
+
+          </div>
+          <div className="flex flex-items">
+            {isActive ? (
+              <div className="connection-button">
+                <VsButton className=" header-button" title="Disconnect" onClick={() => disconnect()}>
+                  <i className="codicon codicon-debug-disconnect" />
+                </VsButton>
+              </div>
+
+            ) : (
+              <div className="connection-button">
+                <VsButton className=" header-button" title="Connect" onClick={() => connect(c)}>
+                  <i className="codicon codicon-plug" />
+                </VsButton>
+              </div>
+
+            )}
+            <div className="connection-button">
+              <VsButton className=" header-button" title="Copy connection" onClick={() => copyConnection(c)}>
+                <i className="codicon codicon-copy" />
+              </VsButton>
+
+            </div>
+            <div className="connection-button">
+              <VsButton className=" header-button" title="Delete connection" onClick={() => deleteConnection(c)}>
+                <i className="codicon codicon-trash" />
+              </VsButton>
+
+            </div>
+            <div
+              className="connected-icon"
+              title={isActive ? "Connected" : "Disconnected"}
+
+
+            />
+
+
+
+
+          </div>
+
+
+        </div>
+
+      </ProjectConnectionComponentConnection>
     );
   };
 
   return (
     <ProjectConnectionComponentMainDiv>
-      <div style={S.list}>
-        {projects.map((project) => {
-          const members = connectionsFor(project.id);
-          const isExpanded = expandedId === project.id;
-          return (
-            <div key={project.id} style={{ display: "flex", flexDirection: "column" }}>
-              <div
-                style={S.row}
-                onClick={() => setExpandedId(isExpanded ? null : project.id)}
-              >
-                <i
-                  className={`codicon codicon-${isExpanded ? "chevron-down" : "chevron-right"}`}
-                  style={{ fontSize: "12px" }}
-                />
-                {editingId === project.id ? (
-                  <>
-                    <input
-                      style={S.input}
-                      value={editName}
-                      autoFocus
-                      onChange={(e) => setEditName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") submitEdit();
-                        if (e.key === "Escape") setEditingId(null);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <button style={S.iconBtn} title="Save" onClick={(e) => { e.stopPropagation(); submitEdit(); }}>
-                      <i className="codicon codicon-check" />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <span style={S.name}>
-                      <i className="codicon codicon-folder" style={{ marginRight: "4px" }} />
-                      {project.name}
-                    </span>
-                    <span style={S.count}>{members.length}</span>
-                    <button style={S.iconBtn} title="Add connection" onClick={(e) => { e.stopPropagation(); setAssigningId(assigningId === project.id ? null : project.id); setExpandedId(project.id); }}>
-                      <i className="codicon codicon-add" />
-                    </button>
-                    <button style={S.iconBtn} title="Edit" onClick={(e) => { e.stopPropagation(); startEdit(project); }}>
-                      <i className="codicon codicon-edit" />
-                    </button>
-                    <button style={S.iconBtn} title="Delete" onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }}>
-                      <i className="codicon codicon-trash" />
-                    </button>
-                  </>
-                )}
-              </div>
+      <div>
+        <div className="connection-fields-container">
+          {unassignedConnections.map(renderConnectionRow)}
 
-              {(isExpanded || assigningId === project.id) && (
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  {members.map(renderConnectionRow)}
-                  {members.length === 0 && (
-                    <div style={{ ...S.connRow, opacity: 0.7 }}>No clients yet</div>
-                  )}
+          {projects.map((project) => {
+            const members = connectionsFor(project.id);
+            const isExpanded = expandedId === project.id;
+            return (
+              <ProjectConnectionComponentConnectionField key={project.id}>
 
-                  {assigningId === project.id && (
-                    <div style={{ ...S.connRow, gap: "4px" }}>
-                      <select
-                        style={S.input}
-                        defaultValue=""
-                        onChange={(e) => assignConnection(project.id, e.target.value)}
-                      >
-                        <option value="" disabled>Add existing client…</option>
-                        {unassignedConnections.map((c) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
+                <div
+                  className="connection-field-row "
+                  onClick={() => setExpandedId(isExpanded ? null : project.id)}
+                >
+                  <i
+                    className={`codicon codicon-${isExpanded ? "chevron-down" : "chevron-right"}`}
+                    style={{ fontSize: "12px" }}
+                  />
+                  {editingId === project.id ? (
+                    <div className="flex flex-center input-container">
+                      <div  className="input-container">
+                        <input
+                        className="connection-edit-input"
+                          value={editName}
+                          autoFocus
+                          onChange={(e) => setEditName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") submitEdit();
+                            if (e.key === "Escape") setEditingId(null);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+
+                      </div>
+                      <div className="connection-button">
+                        <VsButton title="Save" onClick={(e) => { e.stopPropagation(); submitEdit(); }}>
+                          <i className="codicon codicon-check" />
+                        </VsButton>
+                      </div>
+                       <div className="connection-button">
+                        <VsButton title="cancel" onClick={(e) => { e.stopPropagation(); setEditingId(null); }}>
+                          <i className="codicon codicon-close" />
+                        </VsButton>
+                      </div>
+
+                    </ div>
+                  ) : (
+                    < div className="connections-header">
+                      <span >
+                        <i className="codicon codicon-folder" style={{ marginRight: "4px" }} />
+                        {project.name}
+                      </span>
+                      <div className="flex flex-center">
+                        <span className=" count-text">{members.length}</span>
+                        <div className="connection-button">
+                          <VsButton className="header-button" title="Add connection" onClick={(e) => { e.stopPropagation(); setAssigningId(assigningId === project.id ? null : project.id); setExpandedId(project.id); }}>
+                            <i className="codicon codicon-add" />
+                          </VsButton>
+                        </div>
+
+
+                        <div>
+                          <VsButton className="header-button" title="Edit" onClick={(e) => { e.stopPropagation(); startEdit(project); }}>
+                            <i className="codicon codicon-edit" />
+                          </VsButton>
+                        </div>
+                        <div className="connection-button">
+                          <VsButton className="header-button" title="Delete" onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }}>
+                            <i className="codicon codicon-trash" />
+                          </VsButton>
+                        </div>
+                      </div>
+
+
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          );
-        })}
 
-        {projects.length === 0 && <div style={S.empty}>No projects yet</div>}
+                {(isExpanded || assigningId === project.id) && (
+                  <div className="connection-lists">
+                    {members.map(renderConnectionRow)}
+                    {members.length === 0 && (
+                      <div >No clients yet</div>
+                    )}
+
+                    {assigningId === project.id && (
+                      <div className="connections-dropdown" >
+                        <select
+                          className="connection-edit-input" defaultValue=""
+                          onChange={(e) => assignConnection(project.id, e.target.value)}
+                        >
+                          <option value="" disabled>Add existing client…</option>
+                          {unassignedConnections.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </ProjectConnectionComponentConnectionField>
+            );
+          })}
+
+
+        </div>
+
+        <div className="connection-prompt-holder">
+          {projects.length === 0 && <div className="connection-prompt-text"> <h4>No projects yet </h4></div>}
+          {creating
+            ? (
+              <div className="connection-group-dialog-name-container">
+                <div className="connection-group-input-name-container" >
+                  <input
+                    className="connection-edit-input"
+                    value={newName}
+                    autoFocus
+                    placeholder="Group  name"
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") submitCreate();
+                      if (e.key === "Escape") setCreating(false);
+                    }}
+                  />
+                </div>
+                <div>
+                  <VsButton title="Create" onClick={submitCreate}>
+                    <i className="codicon codicon-check" />
+                  </VsButton>
+                </div>
+                <div>
+                  <VsButton title="cancel" onClick={() => setCreating(false)}>
+                    <i className="codicon codicon-close" />
+                  </VsButton>
+                </div>
+
+
+              </div>
+            ) : (
+              <div className="connection-propmt-action-button-container">
+                <div className="connection-propmt-action-button">
+                  <VsButton onClick={() => setShowConnectionDialog(true)}>
+                    <i className="codicon codicon-plug" /> New connection
+                  </VsButton>
+                </div>
+                <div className="connection-propmt-action-button">
+                  <VsButton onClick={startCreate}>
+                    <i className="codicon codicon-folder" /> New group
+                  </VsButton>
+                </div>
+              </div>
+
+
+            )}
+
+
+        </div>
+        
+
+
+
       </div>
 
-      {creating ? (
-        <div style={{ display: "flex", gap: "4px" }}>
-          <input
-            style={S.input}
-            value={newName}
-            autoFocus
-            placeholder="Project name"
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") submitCreate();
-              if (e.key === "Escape") setCreating(false);
-            }}
-          />
-          <button style={S.iconBtn} title="Create" onClick={submitCreate}>
-            <i className="codicon codicon-check" />
-          </button>
-        </div>
-      ) : (
-        <button style={S.addBtn} onClick={startCreate}>
-          <i className="codicon codicon-folder-opened" /> New project
-        </button>
+      {showConnectionDialog && (
+        <DBConnectionDialog
+          onClose={() => setShowConnectionDialog(false)}
+          onConnected={() => setShowConnectionDialog(false)}
+        />
       )}
     </ProjectConnectionComponentMainDiv>
   );

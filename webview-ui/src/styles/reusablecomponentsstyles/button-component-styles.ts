@@ -3,7 +3,7 @@ import styled from "styled-components";
 interface ButtonComponentMainDivProp {
   $bgColor?: string;
   $borderColor?: string;
-  $disabled?:boolean;
+  $disabled?: boolean;
 }
 
 const VsButton = styled.div<ButtonComponentMainDivProp>`
@@ -15,7 +15,7 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
   width: 100%;
   display: flex;
   align-items: center;
-  gap:.8em;
+  gap: 0.8em;
 
   justify-content: center;
   transition: all 0.5s;
@@ -109,7 +109,11 @@ const VsButton = styled.div<ButtonComponentMainDivProp>`
     i {
     }
   }
-    opacity:${(p)=> p.$disabled ?".4":"inherit"}
+  opacity: ${(p) => (p.$disabled ? ".4" : "inherit")};
+  &.header-button {
+    border-style: dashed;
+    border-color: transparent;
+  }
 `;
 
 export { VsButton };
