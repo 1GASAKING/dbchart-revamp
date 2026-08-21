@@ -6,6 +6,7 @@ import { RedisDriver } from "./redis-driver";
 import { SQLiteDriver } from "./sqlite-driver";
 import { GenericHTTPDriver } from "./generic-http-driver";
 import { RestApiDriver } from "./rest-api-driver";
+import { FirebaseDriver } from "./firebase-driver";
 
 const COMPATIBLE_DRIVERS: Record<string, string> = {
   greenplum: "postgresql",
@@ -29,7 +30,6 @@ const COMPATIBLE_DRIVERS: Record<string, string> = {
   "cloudflare-d1": "sqlite",
   "amazon-documentdb": "mongodb",
   // SDK-free REST services (handled by RestApiDriver profiles)
-  firebase: "rest-api",
   supabase: "rest-api",
   stripe: "rest-api",
 };
@@ -43,6 +43,7 @@ export function createDrivers(): IDatabaseDriver[] {
     new SQLiteDriver(),
     new GenericHTTPDriver(),
     new RestApiDriver(),
+    new FirebaseDriver(),
   ];
 }
 

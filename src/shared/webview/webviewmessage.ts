@@ -27,6 +27,15 @@ export const WebviewMessageType = {
   DB_LIST_CLOUD_ACCOUNTS: "DB_LIST_CLOUD_ACCOUNTS",
   DB_CREATE_CLOUD_ACCOUNT: "DB_CREATE_CLOUD_ACCOUNT",
   DB_DELETE_CLOUD_ACCOUNT: "DB_DELETE_CLOUD_ACCOUNT",
+
+  /**
+   * Generic tree / loading events shared across every database client.
+   * e.g. a Firebase Firestore collection and a SQL table both use
+   * DB_LOAD_ENTITY — only the driver-specific conversion differs host-side.
+   */
+  DB_GET_TREE: "DB_GET_TREE",
+  DB_LOAD_ENTITY: "DB_LOAD_ENTITY",         // { entity, scope }
+  DB_OPEN_ANALYTICS_VIEW: "DB_OPEN_ANALYTICS_VIEW", // { viewId }
 } as const;
 
 export type WebViewMessageType = (typeof WebviewMessageType)[keyof typeof WebviewMessageType];
