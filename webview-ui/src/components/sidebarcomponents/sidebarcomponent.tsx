@@ -19,7 +19,7 @@ const SideBarComponent = () => {
                                     </div>
                                     <div>
                                         <h4 className="text-container">
-                                            Projects
+                                            connections 
                                         </h4>
                                     </div>
                                 </label>
@@ -27,10 +27,30 @@ const SideBarComponent = () => {
                                 <div className="section-action-group-holder">
                                     <Tooltip text="new project">
                                         <div className="icon-container section-action-holder">
-                                            <i className="codicon codicon-folder-opened"></i>
+                                            <i className="codicon codicon-add"></i>
+                                        </div>
+                                    </Tooltip>
+                                     <Tooltip text="Group ">
+                                        <div className="icon-container section-action-holder">
+                                            <i className="codicon codicon-new-collection"></i>
+                                        </div>
+                                    </Tooltip>
+                                      <Tooltip text="refresh  ">
+                                        <div className="icon-container section-action-holder">
+                                            <i className="codicon codicon-refresh"></i>
+                                        </div>
+                                    </Tooltip>
+                                    <Tooltip text="filter ">
+                                        <div className="icon-container section-action-holder">
+                                            <i className="codicon codicon-filter"></i>
+                                        </div>
+                                    </Tooltip><Tooltip text="collapse all ">
+                                        <div className="icon-container section-action-holder">
+                                            <i className="codicon codicon-collapse-all"></i>
                                         </div>
                                     </Tooltip>
                                 </div>
+
                             </div>
                         </SideBarSectionHeader>
 
