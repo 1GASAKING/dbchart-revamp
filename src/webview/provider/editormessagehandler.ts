@@ -1,17 +1,23 @@
 import { Logger } from "../../services/logging/logger";
 import { WebviewMessage, OpenFilePayload, SaveFilePayload } from "../../shared/webview/type";
 import { WebviewMessageType } from "../../shared/webview/webviewmessage";
-import { EditorPanelProvider } from "./editorpanelprovider";
+import { EditorPanelProvider, type EditorPanelMode } from "./editorpanelprovider";
 import * as vscode from "vscode";
 import { ImessageHandler } from "./IMessageHandler";
 import { ExtensionMessageType } from "../../shared/extensionmessage/extensionmessage";
 import { readFile, writeFile } from "../../utils/file-utils";
 import { DatabaseMessageHandler } from "./databasemessagehandler";
+import type { DatabaseSchema } from "@dbchart/schema";
 
 export class EditorMessageHandler implements ImessageHandler {
     private _dbMessageHandler: DatabaseMessageHandler;
 
-    constructor(private _provider: EditorPanelProvider, private _view: vscode.WebviewPanel) {
+    constructor(
+      private _provider: EditorPanelProvider,
+      private _view: vscode.WebviewPanel,
+      private _initialMode: EditorPanelMode = "editor",
+      private _initialSchema?: DatabaseSchema,
+    ) {
         this._dbMessageHandler = new DatabaseMessageHandler((msg) => this._provider.sendMessageToWebview(msg));
     }
 
@@ -27,8 +33,14 @@ export class EditorMessageHandler implements ImessageHandler {
             case WebviewMessageType.WEBVIEW_DID_LAUNCH:
                 this._provider.sendMessageToWebview({
                     type: ExtensionMessageType.SET_APP_MODE,
-                    mode: "editor",
+                    mode: this._initialMode,
                 });
+                if (this._initialSchema) {
+                    this._provider.sendMessageToWebview({
+                        type: ExtensionMessageType.EDITOR_LOAD_TYPES,
+                        payload: { schema: this._initialSchema },
+                    });
+                }
                 break;
 
             case WebviewMessageType.REQUEST_OPEN_FILE:

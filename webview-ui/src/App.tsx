@@ -7,6 +7,7 @@ import type { WebviewMessage } from "@shared/webview/type";
 import { vscode } from './utils/vscode';
 import { resolveFileOpened, resolveFileSaved } from './utils/file-operations';
 import EditorPage from './pages/editor/editor-page';
+import type { DatabaseSchema } from "@dbchart/schema";
 import '@xyflow/react/dist/style.css'
 import DbViewerPage from './pages/dbviewer/db-viewer-page';
 
@@ -14,7 +15,8 @@ import DbViewerPage from './pages/dbviewer/db-viewer-page';
 
 function App() {
 
-  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "">("");
+  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "canvas" | "">("");
+  const [canvasSchema, setCanvasSchema] = useState<DatabaseSchema | null>(null);
 
   const handleMessage = useCallback((event: MessageEvent) => {
     const message: ExtensionMessage = event.data
@@ -26,6 +28,10 @@ function App() {
         if (message.mode) {
           setAppMode(message.mode);
         }
+        break;
+      case ExtensionMessageType.EDITOR_LOAD_TYPES:
+        setAppMode("canvas");
+        setCanvasSchema(message.payload.schema);
         break;
       case ExtensionMessageType.FILE_OPENED:
         resolveFileOpened(message.payload);
@@ -59,6 +65,7 @@ function App() {
 
 
         {appMode === "editor" && <DbViewerPage />}
+        {appMode === "canvas" && <EditorPage schema={canvasSchema ?? undefined} />}
 
 
         {appMode === "sidebar" && <SideBarPage />}

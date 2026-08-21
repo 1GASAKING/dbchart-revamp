@@ -25,6 +25,14 @@ export class SidebarMessageHandler implements ImessageHandler {
         editorPanelProvider.openEditor(this._provider.context);
         break;
 
+      case WebviewMessageType.DB_OPEN_DB_VIEW:
+        this._handleOpenDbView();
+        break;
+
+      case WebviewMessageType.DB_LOAD_TYPES_INTO_EDITOR:
+        await this._handleLoadTypesIntoEditor();
+        break;
+
       case WebviewMessageType.WEBVIEW_DID_LAUNCH:
         this._provider.HandleSendMessageToWebview({
           type: ExtensionMessageType.SET_APP_MODE,
@@ -149,6 +157,30 @@ export class SidebarMessageHandler implements ImessageHandler {
       type: ExtensionMessageType.DB_DATABASES_LISTED,
       payload: dbList,
     });
+  }
+
+  private _handleOpenDbView() {
+    const editorPanelProvider = new EditorPanelProvider();
+    editorPanelProvider.openEditor(this._provider.context, "editor");
+  }
+
+  private async _handleLoadTypesIntoEditor() {
+    const manager = ConnectionManager.getInstance();
+    try {
+      const config = await manager.getActiveConnection();
+      if (!config) {
+        throw new Error("No active connection. Connect to a database first.");
+      }
+      const driver = manager.getDriver(config.databaseId);
+      if (!driver) {
+        throw new Error(`No driver registered for database type: ${config.databaseId}`);
+      }
+      const schema = await driver.getSchema();
+      const editorPanelProvider = new EditorPanelProvider();
+      await editorPanelProvider.openEditor(this._provider.context, "canvas", schema);
+    } catch (err) {
+      this._sendError(err);
+    }
   }
 
   private async _handleGetConnections() {

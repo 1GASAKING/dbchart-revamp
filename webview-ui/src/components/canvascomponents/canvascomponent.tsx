@@ -14,10 +14,11 @@ import { autoArrangeNodes, findFreeNodePosition, estimateLayoutNodeSize, createS
 import {
   parseSchema,
   canonicalToDesign,
+  databaseSchemaToDesign,
   designToCanonical,
   serializeSchema,
 } from "@lib/import-export";
-import type { SchemaDesign, SchemaNode } from "@dbchart/schema";
+import type { DatabaseSchema, SchemaDesign, SchemaNode } from "@dbchart/schema";
 import ImportDialog, { type ImportResult } from "../import-export/import-dialog";
 import ExportDialog, { type ExportKind } from "../import-export/export-dialog";
 import { requestOpenFile, requestSaveFile } from "../../utils/file-operations";
@@ -127,7 +128,11 @@ const ToastGetter = ({ onReady }: ToastGetterProps) => {
 };
 
 
-const CanvasComponent = () => {
+interface CanvasComponentProps {
+  schema?: DatabaseSchema;
+}
+
+const CanvasComponent = ({ schema }: CanvasComponentProps) => {
 
     const [nodes, setNodes, onNodesChange] = useNodesState<CanvasNode>([])
     const [edges, setEdges, onEdgesChange] = useEdgesState<DesignFlowEdge>([]);
@@ -683,6 +688,23 @@ const CanvasComponent = () => {
             }, 80);
         }, 0);
     };
+
+    // When a live database schema is provided (e.g. "Types" from the sidebar),
+    // convert and render it onto the canvas.
+    useEffect(() => {
+        if (!schema) return;
+        try {
+            const design = databaseSchemaToDesign(schema);
+            applyImportedSchema(design);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            showToastRef.current?.(
+                `Failed to load database types: ${message}`,
+                "error"
+            );
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [schema]);
 
     const handleImport = (result: ImportResult) => {
         try {
