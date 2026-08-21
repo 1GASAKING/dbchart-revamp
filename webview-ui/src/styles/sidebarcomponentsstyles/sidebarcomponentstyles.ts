@@ -44,7 +44,7 @@ export const SideBarSectionHeader = styled.div`
 
   .section-action-group-holder {
     display: flex;
-    gap: 2px;
+    gap: 4px;
   }
 
   .section-action-holder {

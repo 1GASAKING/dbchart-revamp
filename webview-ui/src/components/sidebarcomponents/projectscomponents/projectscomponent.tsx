@@ -3,6 +3,7 @@ import { vscode } from "../../../utils/vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from "@shared/extensionmessage/extensionmessage";
 import type { ExtensionMessage } from "@shared/extensionmessage/types";
+import { ProjectConnectionComponentMainDiv } from "../../../styles/sidebarcomponentsstyles/projectconnetionscomponentsstyles/projectconnectioncomponentsstyles";
 
 interface Project {
   id: string;
@@ -255,7 +256,7 @@ const ProjectsComponent = () => {
   };
 
   return (
-    <div style={S.wrap}>
+    <ProjectConnectionComponentMainDiv>
       <div style={S.list}>
         {projects.map((project) => {
           const members = connectionsFor(project.id);
@@ -359,7 +360,7 @@ const ProjectsComponent = () => {
           <i className="codicon codicon-folder-opened" /> New project
         </button>
       )}
-    </div>
+    </ProjectConnectionComponentMainDiv>
   );
 };
 
