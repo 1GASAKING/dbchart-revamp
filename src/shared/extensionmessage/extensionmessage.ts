@@ -26,6 +26,14 @@ export const ExtensionMessageType = {
   DB_CLOUD_ACCOUNT_CREATED: 118,
   DB_CLOUD_ACCOUNT_DELETED: 119,
   EDITOR_LOAD_TYPES: 120,
+
+  // Generic tree / arranged design / analytics / user paths
+  DB_TREE: 121,
+  EDITOR_LOAD_ARRANGED_DESIGN: 122,
+  DB_RTDB_CHILDREN: 123,
+  DB_USER_PATHS_LISTED: 124,
+  DB_USER_PATH_ADDED: 125,
+  DB_USER_PATH_REMOVED: 126,
 } as const;
 
 export type ExtensionMessageType = (typeof ExtensionMessageType)[keyof typeof ExtensionMessageType];

@@ -7,8 +7,9 @@ import { EditorMessageHandler } from "./editormessagehandler";
 import { ExtensionMessage } from "../../shared/extensionmessage/types";
 import { ConnectionManager } from "../../database/connection-manager";
 import type { DatabaseSchema } from "@dbchart/schema";
+import type { ArrangedDesign } from "../../../lib/utils/design-arrangement";
 
-export type EditorPanelMode = "editor" | "canvas";
+export type EditorPanelMode = "editor" | "canvas" | "analytics";
 
 export class EditorPanelProvider {
   private static readonly viewType = "dbchat.editorPanel";
@@ -17,23 +18,31 @@ export class EditorPanelProvider {
   private _onConnectionsChangedDisposable?: { dispose(): void };
   private _pendingMode: EditorPanelMode = "editor";
   private _pendingSchema?: DatabaseSchema;
+  private _pendingDesign?: ArrangedDesign;
 
   public async openEditor(
     context: vscode.ExtensionContext,
     mode: EditorPanelMode = "editor",
     schema?: DatabaseSchema,
+    design?: ArrangedDesign,
   ) {
     Logger.getInstance().log("Opening editor panel", true);
 
     this._pendingMode = mode;
     this._pendingSchema = schema;
+    this._pendingDesign = design;
 
     // Reuse the existing panel when it is already open, rather than creating a
     // duplicate. Push the new intent so the panel reactively re-enters the
     // requested mode/schema.
     if (this._panel) {
       this._panel.reveal(vscode.ViewColumn.One);
-      if (this._pendingSchema) {
+      if (this._pendingDesign) {
+        this.sendMessageToWebview({
+          type: ExtensionMessageType.EDITOR_LOAD_ARRANGED_DESIGN,
+          payload: { design: this._pendingDesign },
+        });
+      } else if (this._pendingSchema) {
         this.sendMessageToWebview({
           type: ExtensionMessageType.EDITOR_LOAD_TYPES,
           payload: { schema: this._pendingSchema },
@@ -69,6 +78,7 @@ export class EditorPanelProvider {
           this._panel,
           this._pendingMode,
           this._pendingSchema,
+          this._pendingDesign,
         )
       : this._messageHandler;
 
@@ -82,9 +92,14 @@ export class EditorPanelProvider {
       mode: this._pendingMode,
     });
 
-    // If a schema was requested, deliver it once the webview signals it is
-    // ready (WEBVIEW_DID_LAUNCH) as well as right away for resilience.
-    if (this._pendingSchema) {
+    // If a schema/design was requested, deliver it once the webview signals it
+    // is ready (WEBVIEW_DID_LAUNCH) as well as right away for resilience.
+    if (this._pendingDesign) {
+      this._panel.webview.postMessage({
+        type: ExtensionMessageType.EDITOR_LOAD_ARRANGED_DESIGN,
+        payload: { design: this._pendingDesign },
+      });
+    } else if (this._pendingSchema) {
       this._panel.webview.postMessage({
         type: ExtensionMessageType.EDITOR_LOAD_TYPES,
         payload: { schema: this._pendingSchema },
@@ -117,6 +132,10 @@ export class EditorPanelProvider {
     return this._pendingSchema;
   }
 
+  public getPendingDesign(): ArrangedDesign | undefined {
+    return this._pendingDesign;
+  }
+
   private async _pushConnections(): Promise<void> {
     const connections = await ConnectionManager.getInstance().getAllConnections();
     this.sendMessageToWebview({
@@ -130,4 +149,3 @@ export class EditorPanelProvider {
       this._panel.webview.postMessage(message);
     }
   }
-}

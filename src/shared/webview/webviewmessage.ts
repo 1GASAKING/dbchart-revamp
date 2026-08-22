@@ -32,10 +32,18 @@ export const WebviewMessageType = {
    * Generic tree / loading events shared across every database client.
    * e.g. a Firebase Firestore collection and a SQL table both use
    * DB_LOAD_ENTITY — only the driver-specific conversion differs host-side.
+   *
+   * User-pinned paths let users add custom locations (e.g. an RTDB path
+   * like /users/2026) where their data lives, when auto-discovery is not
+   * possible or too expensive.
    */
-  DB_GET_TREE: "DB_GET_TREE",
-  DB_LOAD_ENTITY: "DB_LOAD_ENTITY",         // { entity, scope }
-  DB_OPEN_ANALYTICS_VIEW: "DB_OPEN_ANALYTICS_VIEW", // { viewId }
+  DB_GET_TREE: "DB_GET_TREE",                       // get the database tree
+  DB_LOAD_ENTITY: "DB_LOAD_ENTITY",                 // { entity, scope } → arranged design to canvas
+  DB_GET_RTDB_CHILDREN: "DB_GET_RTDB_CHILDREN",     // { path, limit, orderBy } → shallow children list
+  DB_GET_USER_PATHS: "DB_GET_USER_PATHS",           // { } → pinned paths for active connection
+  DB_ADD_USER_PATH: "DB_ADD_USER_PATH",             // { path, label } → pin a custom path
+  DB_REMOVE_USER_PATH: "DB_REMOVE_USER_PATH",       // { id } → unpin a saved path
+  DB_OPEN_ANALYTICS_VIEW: "DB_OPEN_ANALYTICS_VIEW", // { viewId } → open the analytics dashboard
 } as const;
 
 export type WebViewMessageType = (typeof WebviewMessageType)[keyof typeof WebviewMessageType];

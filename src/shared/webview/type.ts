@@ -97,6 +97,30 @@ export interface DeleteCloudAccountPayload {
   accountId: string;
 }
 
+export interface LoadEntityPayload {
+  entity: string;
+  scope?: string;
+}
+
+export interface GetRealtimeChildrenPayload {
+  path: string;
+  limit?: number;
+  orderBy?: string;
+}
+
+export interface AddUserPathPayload {
+  path: string;
+  label?: string;
+}
+
+export interface RemoveUserPathPayload {
+  id: string;
+}
+
+export interface OpenAnalyticsViewPayload {
+  viewId: string;
+}
+
 /**
  * Messages sent from the webview to the extension host.
  */
@@ -105,6 +129,13 @@ export type WebviewMessage =
   | { messageType: typeof WebviewMessageType.WEBVIEW_DID_LAUNCH }
   | { messageType: typeof WebviewMessageType.DB_OPEN_DB_VIEW }
   | { messageType: typeof WebviewMessageType.DB_LOAD_TYPES_INTO_EDITOR }
+  | { messageType: typeof WebviewMessageType.DB_GET_TREE }
+  | { messageType: typeof WebviewMessageType.DB_LOAD_ENTITY; payload: LoadEntityPayload }
+  | { messageType: typeof WebviewMessageType.DB_GET_RTDB_CHILDREN; payload: GetRealtimeChildrenPayload }
+  | { messageType: typeof WebviewMessageType.DB_GET_USER_PATHS }
+  | { messageType: typeof WebviewMessageType.DB_ADD_USER_PATH; payload: AddUserPathPayload }
+  | { messageType: typeof WebviewMessageType.DB_REMOVE_USER_PATH; payload: RemoveUserPathPayload }
+  | { messageType: typeof WebviewMessageType.DB_OPEN_ANALYTICS_VIEW; payload: OpenAnalyticsViewPayload }
   | {
       messageType: typeof WebviewMessageType.REQUEST_OPEN_FILE;
       payload: OpenFilePayload;

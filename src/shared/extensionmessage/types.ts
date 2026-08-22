@@ -2,6 +2,7 @@ import type { DatabaseSchema } from '../../database/drivers/database-driver';
 import type { ConnectionConfig, ConnectionField, ConnectionTestResult, Project, SavedConnection, CloudAccount } from '../../database';
 import type { QueryResult } from '../../database/drivers/database-driver';
 import { ExtensionMessageType } from './extensionmessage';
+import type { ArrangedDesign } from '../../../lib/utils/design-arrangement';
 
 /** Payload delivered with a {@link ExtensionMessageType.FILE_OPENED} message. */
 export interface FileOpenedPayload {
@@ -102,6 +103,52 @@ export interface EditorLoadTypesPayload {
   schema: DatabaseSchema;
 }
 
+/** Section tree for the active connection (Firestore/Realtime/Views/etc). */
+export interface DBDatabaseTreeSection {
+  id: string;
+  label: string;
+  icon: string;
+  kind: "collection" | "table" | "path" | "view" | "analytics";
+  items: DBDatabaseTreeItem[];
+}
+
+export interface DBDatabaseTreeItem {
+  /** e.g. collection name, RTDB path, view id */
+  id: string;
+  name: string;
+  kind: "collection" | "table" | "path" | "view" | "analytics";
+  /** Optional metadata (e.g. estimated key count) */
+  meta?: string;
+}
+
+export interface DBDatabaseTreePayload {
+  sections: DBDatabaseTreeSection[];
+}
+
+/** Pre-arranged design (nodes + edges) rendered directly on the canvas. */
+export interface EditorLoadArrangedDesignPayload {
+  design: ArrangedDesign;
+}
+
+/** Shallow RTDB children for a given path (lazy-loaded). */
+export interface DBRealtimeChildrenPayload {
+  path: string;
+  children: { key: string; hasChildren: boolean }[];
+}
+
+/** User-pinned paths for the active connection. */
+export interface DBUserPathsListedPayload {
+  paths: { id: string; connectionId: string; path: string; label: string; createdAt: number }[];
+}
+
+export interface DBUserPathAddedPayload {
+  path: { id: string; connectionId: string; path: string; label: string; createdAt: number };
+}
+
+export interface DBUserPathRemovedPayload {
+  id: string;
+}
+
 export interface DBDatabaseInfo {
   id: string;
   name: string;
@@ -117,7 +164,7 @@ export interface DBDatabaseInfo {
  */
 export type ExtensionMessage =
   | { type: typeof ExtensionMessageType.WORKSPACEUPDATED }
-  | { type: typeof ExtensionMessageType.SET_APP_MODE; mode?: "sidebar" | "editor" | "canvas" }
+  | { type: typeof ExtensionMessageType.SET_APP_MODE; mode?: "sidebar" | "editor" | "canvas" | "analytics" }
   | { type: typeof ExtensionMessageType.FILE_OPENED; payload: FileOpenedPayload | FileOpenedErrorPayload }
   | { type: typeof ExtensionMessageType.FILE_SAVE_RESULT; payload: FileSaveResultPayload }
   | { type: typeof ExtensionMessageType.DB_DATABASES_LISTED; payload: DBDatabaseInfo[] }
@@ -140,4 +187,10 @@ export type ExtensionMessage =
   | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNTS_LISTED; payload: DBCloudAccountsListedPayload }
   | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_CREATED; payload: DBCloudAccountCreatedPayload }
   | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_DELETED; payload: DBCloudAccountDeletedPayload }
-  | { type: typeof ExtensionMessageType.EDITOR_LOAD_TYPES; payload: EditorLoadTypesPayload };
+  | { type: typeof ExtensionMessageType.EDITOR_LOAD_TYPES; payload: EditorLoadTypesPayload }
+  | { type: typeof ExtensionMessageType.DB_TREE; payload: DBDatabaseTreePayload }
+  | { type: typeof ExtensionMessageType.EDITOR_LOAD_ARRANGED_DESIGN; payload: EditorLoadArrangedDesignPayload }
+  | { type: typeof ExtensionMessageType.DB_RTDB_CHILDREN; payload: DBRealtimeChildrenPayload }
+  | { type: typeof ExtensionMessageType.DB_USER_PATHS_LISTED; payload: DBUserPathsListedPayload }
+  | { type: typeof ExtensionMessageType.DB_USER_PATH_ADDED; payload: DBUserPathAddedPayload }
+  | { type: typeof ExtensionMessageType.DB_USER_PATH_REMOVED; payload: DBUserPathRemovedPayload };

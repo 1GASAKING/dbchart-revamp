@@ -8,7 +8,17 @@ import { normalizeConnectionError } from "./errors";
 const STORAGE_KEY = "dbchat.savedConnections";
 const WORKSPACE_KEY = "dbchat.workspaceConnections";
 const PROJECTS_KEY = "dbchat.projects";
+const USER_PATHS_KEY = "dbchat.userPaths";
 const DEFAULT_SENSITIVE = ["password", "apiToken", "secretKey", "authToken", "clientSecret", "serviceRoleKey", "anonKey", "apiKey"];
+
+/** A user-pinned path scoped to a specific connection. */
+export interface UserPath {
+  id: string;
+  connectionId: string;
+  path: string;
+  label: string;
+  createdAt: number;
+}
 
 export class ConnectionManager {
   private static _instance: ConnectionManager;
@@ -19,6 +29,7 @@ export class ConnectionManager {
   private _savedConnections: SavedConnection[] = [];
   private _workspaceConnections: SavedConnection[] = [];
   private _projects: Project[] = [];
+  private _userPaths: UserPath[] = [];
   private _listeners: Set<() => void> = new Set();
 
   private constructor() {}
@@ -203,6 +214,46 @@ export class ConnectionManager {
     return [...this._savedConnections, ...this._workspaceConnections];
   }
 
+  // ── User-pinned paths (custom table locations) ─────────────────────
+
+  public getUserPaths(connectionId?: string): UserPath[] {
+    if (!connectionId) { return [...this._userPaths]; }
+    return this._userPaths
+      .filter((p) => p.connectionId === connectionId)
+      .sort((a, b) => a.createdAt - b.createdAt);
+  }
+
+  public async addUserPath(connectionId: string, path: string, label?: string): Promise<UserPath> {
+    if (!this._context) { throw new Error("ConnectionManager not initialized"); }
+    const cleanPath = path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean).join("/");
+    if (!cleanPath) { throw new Error("Path cannot be empty."); }
+
+    const userPath: UserPath = {
+      id: randomUUID(),
+      connectionId,
+      path: `/${cleanPath}`,
+      label: label ?? `/${cleanPath}`,
+      createdAt: Date.now(),
+    };
+    this._userPaths.push(userPath);
+    this._context.workspaceState.update(USER_PATHS_KEY, this._userPaths);
+    this._notifyConnectionsChanged();
+    return userPath;
+  }
+
+  public async removeUserPath(id: string): Promise<void> {
+    if (!this._context) { throw new Error("ConnectionManager not initialized"); }
+    this._userPaths = this._userPaths.filter((p) => p.id !== id);
+    this._context.workspaceState.update(USER_PATHS_KEY, this._userPaths);
+    this._notifyConnectionsChanged();
+  }
+
+  public async updateUserPaths(paths: UserPath[]): Promise<void> {
+    if (!this._context) { throw new Error("ConnectionManager not initialized"); }
+    this._userPaths = paths;
+    this._context.workspaceState.update(USER_PATHS_KEY, this._userPaths);
+  }
+
   public async getConnectionConfig(connectionId: string): Promise<ConnectionConfig | null> {
     if (!this._context) {return null;}
 
@@ -351,6 +402,7 @@ export class ConnectionManager {
     this._savedConnections = this._context?.globalState.get<SavedConnection[]>(STORAGE_KEY, []) ?? [];
     this._workspaceConnections = this._context?.workspaceState.get<SavedConnection[]>(WORKSPACE_KEY, []) ?? [];
     this._projects = this._context?.globalState.get<Project[]>(PROJECTS_KEY, []) ?? [];
+    this._userPaths = this._context?.workspaceState.get<UserPath[]>(USER_PATHS_KEY, []) ?? [];
   }
 
   private _saveConnections(): void {

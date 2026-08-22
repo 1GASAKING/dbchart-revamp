@@ -99,6 +99,82 @@ export class FirebaseDriver implements IDatabaseDriver {
   }
 
   /**
+   * Lazy-load children of an RTDB path using a shallow request.
+   *
+   * NEVER fetches payload data — only key names. This avoids downloading
+   * megabytes of nested data when exploring large nodes like /users.
+   */
+  async getRealtimeChildren(path: string, limit = 50, orderBy = "$key"): Promise<{ key: string; hasChildren: boolean }[]> {
+    const config = this._config!;
+    if (!this._databaseUrl) { return []; }
+    const headers = this._buildAuthHeaders(config);
+
+    const cleanPath = path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean).join("/");
+    const urlPath = cleanPath ? `/${cleanPath}` : "";
+    // shallow=true returns only the immediate child keys (as "true").
+    const res = await axios.get(
+      `${this._databaseUrl}${urlPath}.json?shallow=true&orderBy="${orderBy}"&limitToFirst=${limit}`,
+      { headers, timeout: 15000 }
+    );
+
+    const data = res.data ?? {};
+    return Object.keys(data).map((key) => ({
+      key,
+      // With a shallow request we can't know if a key is a leaf or a branch,
+      // so we mark it as "hasChildren: unknown" — the UI lazily expands.
+      hasChildren: true,
+    }));
+  }
+
+  /**
+   * Get the actual (non-shallow) value of a single RTDB child path so the
+   * DB viewer can render leaf values / objects in a table.
+   */
+  async getRealtimeNode(path: string): Promise<Record<string, unknown>> {
+    const config = this._config!;
+    if (!this._databaseUrl) { return {}; }
+    const headers = this._buildAuthHeaders(config);
+
+    const cleanPath = path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean).join("/");
+    const urlPath = cleanPath ? `/${cleanPath}` : "";
+    const res = await axios.get(`${this._databaseUrl}${urlPath}.json`, { headers, timeout: 15000 });
+    const data = res.data;
+    if (data && typeof data === "object") {
+      return data as Record<string, unknown>;
+    }
+    return { value: data };
+  }
+
+  /**
+   * Build a DatabaseSchema from a user-pinned RTDB path so the path can be
+   * loaded into the canvas like any table (shallow child keys become columns).
+   *
+   * @param path the pinned path, e.g. "/users" or "/app_config".
+   */
+  async getSchemaForPath(path: string): Promise<DatabaseSchema> {
+    const children = await this.getRealtimeChildren(path, 50);
+    return {
+      databaseName: this._projectId || "Firebase",
+      tables: [
+        {
+          name: path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean).join("_") || "root",
+          type: "collection",
+          columns: children.length
+            ? children.map((c) => ({
+                name: c.key,
+                type: "rtdb-child",
+                nullable: true,
+                primaryKey: false,
+              }))
+            : [{ name: "value", type: "string", nullable: true, primaryKey: false }],
+        },
+      ],
+      relationships: [],
+      metadata: { source: "user-path", path },
+    };
+  }
+
+  /**
    * List analytics "Views". These are lightweight analytics view definitions
    * that open the dashboard when clicked. We return a small default set so
    * the tree section is populated immediately; users can add their own later.
