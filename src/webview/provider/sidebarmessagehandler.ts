@@ -613,4 +613,5 @@ export class SidebarMessageHandler implements ImessageHandler {
       payload: { error: message, details },
     });
   }
+  
 }
