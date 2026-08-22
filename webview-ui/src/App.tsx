@@ -10,13 +10,16 @@ import EditorPage from './pages/editor/editor-page';
 import type { DatabaseSchema } from "@dbchart/schema";
 import '@xyflow/react/dist/style.css'
 import DbViewerPage from './pages/dbviewer/db-viewer-page';
+import { AnalyticsPage } from './pages/analytics/analytics-page';
+import type { ArrangedDesign } from '@lib/utils/design-arrangement';
 
 
 
 function App() {
 
-  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "canvas" | "">("");
+  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "canvas" | "analytics" | "">("");
   const [canvasSchema, setCanvasSchema] = useState<DatabaseSchema | null>(null);
+  const [canvasDesign, setCanvasDesign] = useState<ArrangedDesign | null>(null);
 
   const handleMessage = useCallback((event: MessageEvent) => {
     const message: ExtensionMessage = event.data
@@ -32,6 +35,12 @@ function App() {
       case ExtensionMessageType.EDITOR_LOAD_TYPES:
         setAppMode("canvas");
         setCanvasSchema(message.payload.schema);
+        setCanvasDesign(null);
+        break;
+      case ExtensionMessageType.EDITOR_LOAD_ARRANGED_DESIGN:
+        setAppMode("canvas");
+        setCanvasDesign(message.payload.design);
+        setCanvasSchema(null);
         break;
       case ExtensionMessageType.FILE_OPENED:
         resolveFileOpened(message.payload);
@@ -65,7 +74,8 @@ function App() {
 
 
         {appMode === "editor" && <DbViewerPage />}
-        {appMode === "canvas" && <EditorPage schema={canvasSchema ?? undefined} />}
+        {appMode === "analytics" && <AnalyticsPage />}
+        {appMode === "canvas" && <EditorPage schema={canvasSchema ?? undefined} design={canvasDesign ?? undefined} />}
 
 
         {appMode === "sidebar" && <SideBarPage />}

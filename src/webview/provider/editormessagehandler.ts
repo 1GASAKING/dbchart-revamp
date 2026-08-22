@@ -8,6 +8,7 @@ import { ExtensionMessageType } from "../../shared/extensionmessage/extensionmes
 import { readFile, writeFile } from "../../utils/file-utils";
 import { DatabaseMessageHandler } from "./databasemessagehandler";
 import type { DatabaseSchema } from "@dbchart/schema";
+import type { ArrangedDesign } from "../../../lib/utils/design-arrangement";
 
 export class EditorMessageHandler implements ImessageHandler {
     private _dbMessageHandler: DatabaseMessageHandler;
@@ -17,6 +18,7 @@ export class EditorMessageHandler implements ImessageHandler {
       private _view: vscode.WebviewPanel,
       private _initialMode: EditorPanelMode = "editor",
       private _initialSchema?: DatabaseSchema,
+      private _initialDesign?: ArrangedDesign,
     ) {
         this._dbMessageHandler = new DatabaseMessageHandler((msg) => this._provider.sendMessageToWebview(msg));
     }
@@ -35,7 +37,12 @@ export class EditorMessageHandler implements ImessageHandler {
                     type: ExtensionMessageType.SET_APP_MODE,
                     mode: this._initialMode,
                 });
-                if (this._initialSchema) {
+                if (this._initialDesign) {
+                    this._provider.sendMessageToWebview({
+                        type: ExtensionMessageType.EDITOR_LOAD_ARRANGED_DESIGN,
+                        payload: { design: this._initialDesign },
+                    });
+                } else if (this._initialSchema) {
                     this._provider.sendMessageToWebview({
                         type: ExtensionMessageType.EDITOR_LOAD_TYPES,
                         payload: { schema: this._initialSchema },

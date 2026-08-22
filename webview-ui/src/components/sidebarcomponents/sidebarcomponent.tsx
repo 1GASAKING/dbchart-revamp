@@ -3,6 +3,7 @@ import { SideBarMainDiv, SideBarSection, SideBarSectionHeader, SideBarContent, T
 import ProjectsComponent from "./projectscomponents/projectscomponent";
 import CloudAccountsComponent from "./accountscomponents/cloudaccountscomponent";
 import SettingsHelpComponent from "./settingscomponents/settingshelpcomponent";
+import { DatabaseTreeComponent } from "./database-tree-component";
 
 /** Dispatch a sidebar section action (handled by {@link ProjectsComponent}). */
 const dispatchSidebarAction = (action: string) => {
@@ -69,6 +70,7 @@ const SideBarComponent = () => {
 
                         <SideBarContent>
                             <ProjectsComponent />
+                            <DatabaseTreeComponent />
                         </SideBarContent>
                     </div>
                 </SideBarSection>

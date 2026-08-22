@@ -19,6 +19,7 @@ import {
   serializeSchema,
 } from "@lib/import-export";
 import type { DatabaseSchema, SchemaDesign, SchemaNode } from "@dbchart/schema";
+import type { ArrangedDesign } from "@lib/utils/design-arrangement";
 import ImportDialog, { type ImportResult } from "../import-export/import-dialog";
 import ExportDialog, { type ExportKind } from "../import-export/export-dialog";
 import { requestOpenFile, requestSaveFile } from "../../utils/file-operations";
@@ -130,9 +131,10 @@ const ToastGetter = ({ onReady }: ToastGetterProps) => {
 
 interface CanvasComponentProps {
   schema?: DatabaseSchema;
+  design?: ArrangedDesign;
 }
 
-const CanvasComponent = ({ schema }: CanvasComponentProps) => {
+const CanvasComponent = ({ schema, design }: CanvasComponentProps) => {
 
     const [nodes, setNodes, onNodesChange] = useNodesState<CanvasNode>([])
     const [edges, setEdges, onEdgesChange] = useEdgesState<DesignFlowEdge>([]);
@@ -706,6 +708,18 @@ const CanvasComponent = ({ schema }: CanvasComponentProps) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [schema]);
 
+    // When a pre-arranged design is provided (host already converted + laid out),
+    // render it directly without re-converting or re-layout.
+    useEffect(() => {
+        if (!design) return;
+        setNodes(design.nodes as CanvasNode[]);
+        setEdges(design.edges as DesignFlowEdge[]);
+        setTimeout(() => {
+            rfRef.current?.fitView({ padding: 0.2, duration: 300 });
+        }, 80);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [design]);
+
     const handleImport = (result: ImportResult) => {
         try {
             const parsed = parseSchema(result.format, result.content);
@@ -880,7 +894,7 @@ const CanvasComponent = ({ schema }: CanvasComponentProps) => {
                     onMove={(_, viewport) => syncZoomValue(viewport)}
 
 
-                    onInit={(instance) => { rfRef.current = instance }}
+                    onInit={(instance) => { rfRef.current = instance as ReactFlowInstance<CanvasNode, DesignFlowEdge> }}
                     proOptions={{ hideAttribution: true, }}>
 
                     <CanvasComponentControls  >

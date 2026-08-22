@@ -149,3 +149,4 @@ export class EditorPanelProvider {
       this._panel.webview.postMessage(message);
     }
   }
+}

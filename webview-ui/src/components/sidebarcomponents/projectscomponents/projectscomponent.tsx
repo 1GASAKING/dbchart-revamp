@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { vscode } from "../../../utils/vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from "@shared/extensionmessage/extensionmessage";
@@ -85,16 +85,30 @@ const ProjectsComponent = () => {
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+  
+  const startCreate = () => {
+    setCreating(true);
+    setNewName("");
+  };
+
+
+  useEffect(() => {
+    const handleSidebarAction = (e: Event) => {
+      const action = (e as CustomEvent).detail;
+      if (action === "new-connection") {
+        setShowConnectionDialog(true);
+      } else if (action === "new-group") {
+        startCreate();
+      }
+    };
+    window.addEventListener("dbchart:sidebar-action", handleSidebarAction);
+    return () => window.removeEventListener("dbchart:sidebar-action", handleSidebarAction);
+  }, []);
 
   const connectionsFor = (projectId: string) =>
     connections.filter((c) => c.projectId === projectId);
 
   const unassignedConnections = connections.filter((c) => !c.projectId);
-
-  const startCreate = () => {
-    setCreating(true);
-    setNewName("");
-  };
 
   const submitCreate = () => {
     const name = newName.trim();
