@@ -30,6 +30,11 @@ export class SidebarMessageHandler implements ImessageHandler {
         editorPanelProvider.openEditor(this._provider.context);
         break;
 
+      case WebviewMessageType.OPEN_CREATE_CONNECTION:
+        const createConnectionPanelProvider = new EditorPanelProvider();
+        createConnectionPanelProvider.openEditor(this._provider.context, "createConnection");
+        break;
+
       case WebviewMessageType.DB_OPEN_DB_VIEW:
         this._handleOpenDbView();
         break;
@@ -131,31 +136,31 @@ export class SidebarMessageHandler implements ImessageHandler {
         }
         break;
 
-      case WebviewMessageType.DB_LIST_PROJECTS:
-        this._handleListProjects();
+      case WebviewMessageType.DB_LIST_GROUPS:
+        this._handleListGroups();
         break;
 
-      case WebviewMessageType.DB_CREATE_PROJECT:
+      case WebviewMessageType.DB_CREATE_GROUP:
         if (message.payload) {
-          await this._handleCreateProject(message.payload.name, message.payload.description);
+          await this._handleCreateGroup(message.payload.name, message.payload.description);
         }
         break;
 
-      case WebviewMessageType.DB_UPDATE_PROJECT:
+      case WebviewMessageType.DB_UPDATE_GROUP:
         if (message.payload) {
-          await this._handleUpdateProject(message.payload.id, message.payload.name, message.payload.description);
+          await this._handleUpdateGroup(message.payload.id, message.payload.name, message.payload.description);
         }
         break;
 
-      case WebviewMessageType.DB_DELETE_PROJECT:
+      case WebviewMessageType.DB_DELETE_GROUP:
         if (message.payload) {
-          await this._handleDeleteProject(message.payload.groupId);
+          await this._handleDeleteGroup(message.payload.groupId);
         }
         break;
 
-      case WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT:
+      case WebviewMessageType.DB_ASSIGN_CONNECTION_TO_GROUP:
         if (message.payload) {
-          await this._handleAssignConnectionToProject(message.payload.connectionId, message.payload.groupId);
+          await this._handleAssignConnectionToGroup(message.payload.connectionId, message.payload.groupId);
         }
         break;
 
@@ -498,20 +503,20 @@ export class SidebarMessageHandler implements ImessageHandler {
     });
   }
 
-  private _handleListProjects() {
+  private _handleListGroups() {
     const manager = ConnectionManager.getInstance();
     this._provider.HandleSendMessageToWebview({
-      type: ExtensionMessageType.DB_PROJECTS_LISTED,
-      payload: { groups: manager.getProjects() },
+      type: ExtensionMessageType.DB_GROUPS_LISTED,
+      payload: { groups: manager.getGroups() },
     });
   }
 
-  private async _handleCreateProject(name: string, description?: string) {
+  private async _handleCreateGroup(name: string, description?: string) {
     const manager = ConnectionManager.getInstance();
     try {
-      const group = await manager.createProject(name, description);
+      const group = await manager.createGroup(name, description);
       this._provider.HandleSendMessageToWebview({
-        type: ExtensionMessageType.DB_PROJECT_CREATED,
+        type: ExtensionMessageType.DB_GROUP_CREATED,
         payload: { group },
       });
     } catch (err) {
@@ -519,12 +524,12 @@ export class SidebarMessageHandler implements ImessageHandler {
     }
   }
 
-  private async _handleUpdateProject(id: string, name: string, description?: string) {
+  private async _handleUpdateGroup(id: string, name: string, description?: string) {
     const manager = ConnectionManager.getInstance();
     try {
-      const group = await manager.updateProject(id, name, description);
+      const group = await manager.updateGroup(id, name, description);
       this._provider.HandleSendMessageToWebview({
-        type: ExtensionMessageType.DB_PROJECT_UPDATED,
+        type: ExtensionMessageType.DB_GROUP_UPDATED,
         payload: { group },
       });
     } catch (err) {
@@ -532,12 +537,12 @@ export class SidebarMessageHandler implements ImessageHandler {
     }
   }
 
-  private async _handleDeleteProject(groupId: string) {
+  private async _handleDeleteGroup(groupId: string) {
     const manager = ConnectionManager.getInstance();
     try {
-      await manager.deleteProject(groupId);
+      await manager.deleteGroup(groupId);
       this._provider.HandleSendMessageToWebview({
-        type: ExtensionMessageType.DB_PROJECT_DELETED,
+        type: ExtensionMessageType.DB_GROUP_DELETED,
         payload: { groupId },
       });
     } catch (err) {
@@ -545,12 +550,12 @@ export class SidebarMessageHandler implements ImessageHandler {
     }
   }
 
-  private async _handleAssignConnectionToProject(connectionId: string, groupId?: string) {
+  private async _handleAssignConnectionToGroup(connectionId: string, groupId?: string) {
     const manager = ConnectionManager.getInstance();
     try {
-      const connection = await manager.assignConnectionToProject(connectionId, groupId);
+      const connection = await manager.assignConnectionToGroup(connectionId, groupId);
       this._provider.HandleSendMessageToWebview({
-        type: ExtensionMessageType.DB_PROJECT_ASSIGNED,
+        type: ExtensionMessageType.DB_GROUP_ASSIGNED,
         payload: { connection },
       });
     } catch (err) {

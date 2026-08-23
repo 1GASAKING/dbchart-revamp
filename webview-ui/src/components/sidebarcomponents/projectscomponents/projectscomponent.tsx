@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { vscode } from "../../../utils/vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from "@shared/extensionmessage/extensionmessage";
 import type { ExtensionMessage } from "@shared/extensionmessage/types";
 import { ProjectConnectionComponentConnection, ProjectConnectionComponentConnectionField, ProjectConnectionComponentMainDiv } from "../../../styles/sidebarcomponentsstyles/projectconnetionscomponentsstyles/projectconnectioncomponentsstyles";
 import { VsButton } from "../../../styles/reusablecomponentsstyles/button-component-styles";
-import { DBConnectionDialog } from "../../dbconnectioncomponents/db-connection-dialog";
 
 interface Group {
   id: string;
@@ -38,16 +37,15 @@ const ProjectsComponent = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [assigningId, setAssigningId] = useState<string | null>(null);
-  const [showConnectionDialog, setShowConnectionDialog] = useState(false);
 
   useEffect(() => {
-    vscode._postMessage({ messageType: WebviewMessageType.DB_LIST_PROJECTS });
+    vscode._postMessage({ messageType: WebviewMessageType.DB_LIST_GROUPS });
     vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
 
     const handleMessage = (event: MessageEvent) => {
       const message: ExtensionMessage = event.data;
       switch (message.type) {
-        case ExtensionMessageType.DB_PROJECTS_LISTED:
+        case ExtensionMessageType.DB_GROUPS_LISTED:
           setProjects(message.payload.groups);
           break;
         case ExtensionMessageType.DB_CONNECTIONS_LISTED:
@@ -59,22 +57,22 @@ const ProjectsComponent = () => {
         case ExtensionMessageType.DB_DISCONNECTED:
           setActiveConnectionId(null);
           break;
-        case ExtensionMessageType.DB_PROJECT_CREATED:
+        case ExtensionMessageType.DB_GROUP_CREATED:
           setProjects((prev) => [...prev, message.payload.group]);
           setCreating(false);
           setNewName("");
           break;
-        case ExtensionMessageType.DB_PROJECT_UPDATED:
+        case ExtensionMessageType.DB_GROUP_UPDATED:
           setProjects((prev) =>
             prev.map((p) => (p.id === message.payload.group.id ? message.payload.group : p))
           );
           setEditingId(null);
           break;
-        case ExtensionMessageType.DB_PROJECT_DELETED:
+        case ExtensionMessageType.DB_GROUP_DELETED:
           setProjects((prev) => prev.filter((p) => p.id !== message.payload.groupId));
           vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
           break;
-        case ExtensionMessageType.DB_PROJECT_ASSIGNED:
+        case ExtensionMessageType.DB_GROUP_ASSIGNED:
         case ExtensionMessageType.DB_CONNECTION_SAVED:
         case ExtensionMessageType.DB_CONNECTION_DELETED:
           vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
@@ -86,6 +84,9 @@ const ProjectsComponent = () => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
   
+  const openCreateConnection = () =>
+    vscode._postMessage({ messageType: WebviewMessageType.OPEN_CREATE_CONNECTION });
+
   const startCreate = () => {
     setCreating(true);
     setNewName("");
@@ -96,7 +97,7 @@ const ProjectsComponent = () => {
     const handleSidebarAction = (e: Event) => {
       const action = (e as CustomEvent).detail;
       if (action === "new-connection") {
-        setShowConnectionDialog(true);
+        openCreateConnection();
       } else if (action === "new-group") {
         startCreate();
       }
@@ -114,7 +115,7 @@ const ProjectsComponent = () => {
     const name = newName.trim();
     if (!name) return;
     vscode._postMessage({
-      messageType: WebviewMessageType.DB_CREATE_PROJECT,
+      messageType: WebviewMessageType.DB_CREATE_GROUP,
       payload: { name },
     });
   };
@@ -128,14 +129,14 @@ const ProjectsComponent = () => {
     const name = editName.trim();
     if (!name || !editingId) return;
     vscode._postMessage({
-      messageType: WebviewMessageType.DB_UPDATE_PROJECT,
+      messageType: WebviewMessageType.DB_UPDATE_GROUP,
       payload: { id: editingId, name },
     });
   };
 
-  const deleteProject = (id: string) => {
+  const deleteGroup = (id: string) => {
     vscode._postMessage({
-      messageType: WebviewMessageType.DB_DELETE_PROJECT,
+      messageType: WebviewMessageType.DB_DELETE_GROUP,
       payload: { groupId: id },
     });
   };
@@ -143,7 +144,7 @@ const ProjectsComponent = () => {
   const assignConnection = (groupId: string, connectionId: string) => {
     if (!connectionId) return;
     vscode._postMessage({
-      messageType: WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT,
+      messageType: WebviewMessageType.DB_ASSIGN_CONNECTION_TO_GROUP,
       payload: { connectionId, groupId },
     });
     setAssigningId(null);
@@ -303,7 +304,7 @@ const ProjectsComponent = () => {
                           </VsButton>
                         </div>
                         <div className="connection-button">
-                          <VsButton className="header-button" title="Delete" onClick={(e) => { e.stopPropagation(); deleteProject(group.id); }}>
+                          <VsButton className="header-button" title="Delete" onClick={(e) => { e.stopPropagation(); deleteGroup(group.id); }}>
                             <i className="codicon codicon-trash" />
                           </VsButton>
                         </div>
@@ -377,7 +378,7 @@ const ProjectsComponent = () => {
             ) : (
               <div className="connection-propmt-action-button-container">
                 <div className="connection-propmt-action-button">
-                  <VsButton onClick={() => setShowConnectionDialog(true)}>
+                  <VsButton onClick={openCreateConnection}>
                     <i className="codicon codicon-plug" /> New connection
                   </VsButton>
                 </div>
@@ -399,12 +400,6 @@ const ProjectsComponent = () => {
 
       </div>
 
-      {showConnectionDialog && (
-        <DBConnectionDialog
-          onClose={() => setShowConnectionDialog(false)}
-          onConnected={() => setShowConnectionDialog(false)}
-        />
-      )}
     </ProjectConnectionComponentMainDiv>
   );
 };

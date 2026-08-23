@@ -68,23 +68,23 @@ export interface DBConnectionUpdatedPayload {
   connection: SavedConnection;
 }
 
-export interface DBProjectsListedPayload {
+export interface DBGroupsListedPayload {
   groups: Group[];
 }
 
-export interface DBProjectCreatedPayload {
+export interface DBGroupCreatedPayload {
   group: Group;
 }
 
-export interface DBProjectDeletedPayload {
+export interface DBGroupDeletedPayload {
   groupId: string;
 }
 
-export interface DBProjectUpdatedPayload {
+export interface DBGroupUpdatedPayload {
   group: Group;
 }
 
-export interface DBProjectAssignedPayload {
+export interface DBGroupAssignedPayload {
   connection: SavedConnection;
 }
 
@@ -165,7 +165,7 @@ export interface DBDatabaseInfo {
  */
 export type ExtensionMessage =
   | { type: typeof ExtensionMessageType.WORKSPACEUPDATED }
-  | { type: typeof ExtensionMessageType.SET_APP_MODE; mode?: "sidebar" | "editor" | "canvas" | "analytics" }
+  | { type: typeof ExtensionMessageType.SET_APP_MODE; mode?: "sidebar" | "editor" | "canvas" | "analytics" | "createConnection" }
   | { type: typeof ExtensionMessageType.FILE_OPENED; payload: FileOpenedPayload | FileOpenedErrorPayload }
   | { type: typeof ExtensionMessageType.FILE_SAVE_RESULT; payload: FileSaveResultPayload }
   | { type: typeof ExtensionMessageType.DB_DATABASES_LISTED; payload: DBDatabaseInfo[] }
@@ -180,11 +180,11 @@ export type ExtensionMessage =
   | { type: typeof ExtensionMessageType.DB_SCHEMA; payload: DBSchemaPayload }
   | { type: typeof ExtensionMessageType.DB_CONNECTION_DELETED; payload: DBConnectionDeletedPayload }
   | { type: typeof ExtensionMessageType.DB_CONNECTION_UPDATED; payload: DBConnectionUpdatedPayload }
-  | { type: typeof ExtensionMessageType.DB_PROJECTS_LISTED; payload: DBProjectsListedPayload }
-  | { type: typeof ExtensionMessageType.DB_PROJECT_CREATED; payload: DBProjectCreatedPayload }
-  | { type: typeof ExtensionMessageType.DB_PROJECT_DELETED; payload: DBProjectDeletedPayload }
-  | { type: typeof ExtensionMessageType.DB_PROJECT_UPDATED; payload: DBProjectUpdatedPayload }
-  | { type: typeof ExtensionMessageType.DB_PROJECT_ASSIGNED; payload: DBProjectAssignedPayload }
+  | { type: typeof ExtensionMessageType.DB_GROUPS_LISTED; payload: DBGroupsListedPayload }
+  | { type: typeof ExtensionMessageType.DB_GROUP_CREATED; payload: DBGroupCreatedPayload }
+  | { type: typeof ExtensionMessageType.DB_GROUP_DELETED; payload: DBGroupDeletedPayload }
+  | { type: typeof ExtensionMessageType.DB_GROUP_UPDATED; payload: DBGroupUpdatedPayload }
+  | { type: typeof ExtensionMessageType.DB_GROUP_ASSIGNED; payload: DBGroupAssignedPayload }
   | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNTS_LISTED; payload: DBCloudAccountsListedPayload }
   | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_CREATED; payload: DBCloudAccountCreatedPayload }
   | { type: typeof ExtensionMessageType.DB_CLOUD_ACCOUNT_DELETED; payload: DBCloudAccountDeletedPayload }

@@ -97,7 +97,7 @@ const ConnectionDialogContent = ({ onClose, onConnected }: ConnectionDialogProps
   };
 
   useEffect(() => {
-    vscode._postMessage({ messageType: WebviewMessageType.DB_LIST_PROJECTS });
+    vscode._postMessage({ messageType: WebviewMessageType.DB_LIST_GROUPS });
     vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
 
     const handleMessage = (event: MessageEvent) => {
@@ -106,7 +106,7 @@ const ConnectionDialogContent = ({ onClose, onConnected }: ConnectionDialogProps
         case ExtensionMessageType.DB_CONNECTIONS_LISTED:
           setSavedConnections(message.payload.connections);
           break;
-        case ExtensionMessageType.DB_PROJECTS_LISTED:
+        case ExtensionMessageType.DB_GROUPS_LISTED:
           setProjects(message.payload.groups);
           break;
         case ExtensionMessageType.DB_CONNECTION_SAVED:

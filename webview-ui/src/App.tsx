@@ -11,13 +11,14 @@ import type { DatabaseSchema } from "@dbchart/schema";
 import '@xyflow/react/dist/style.css'
 import DbViewerPage from './pages/dbviewer/db-viewer-page';
 import { AnalyticsPage } from './pages/analytics/analytics-page';
+import CreateConnectionPage from './pages/createconnection/create-connection-page';
 import type { ArrangedDesign } from '@lib/utils/design-arrangement';
 
 
 
 function App() {
 
-  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "canvas" | "analytics" | "">("");
+  const [appMode, setAppMode] = useState<"sidebar" | "editor" | "canvas" | "analytics" | "createConnection" | "">("");
   const [canvasSchema, setCanvasSchema] = useState<DatabaseSchema | null>(null);
   const [canvasDesign, setCanvasDesign] = useState<ArrangedDesign | null>(null);
 
@@ -76,6 +77,7 @@ function App() {
         {appMode === "editor" && <DbViewerPage />}
         {appMode === "analytics" && <AnalyticsPage />}
         {appMode === "canvas" && <EditorPage schema={canvasSchema ?? undefined} design={canvasDesign ?? undefined} />}
+        {appMode === "createConnection" && <CreateConnectionPage />}
 
 
         {appMode === "sidebar" && <SideBarPage />}

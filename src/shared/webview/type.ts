@@ -53,26 +53,26 @@ export interface UpdateConnectionPayload {
   config: ConnectionConfig;
 }
 
-/** Payload for {@link WebviewMessageType.DB_CREATE_PROJECT}. */
-export interface CreateProjectPayload {
+/** Payload for {@link WebviewMessageType.DB_CREATE_GROUP}. */
+export interface CreateGroupPayload {
   name: string;
   description?: string;
 }
 
-/** Payload for {@link WebviewMessageType.DB_UPDATE_PROJECT}. */
-export interface UpdateProjectPayload {
+/** Payload for {@link WebviewMessageType.DB_UPDATE_GROUP}. */
+export interface UpdateGroupPayload {
   id: string;
   name: string;
   description?: string;
 }
 
-/** Payload for {@link WebviewMessageType.DB_DELETE_PROJECT}. */
-export interface DeleteProjectPayload {
+/** Payload for {@link WebviewMessageType.DB_DELETE_GROUP}. */
+export interface DeleteGroupPayload {
   groupId: string;
 }
 
-/** Payload for {@link WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT}. */
-export interface AssignConnectionToProjectPayload {
+/** Payload for {@link WebviewMessageType.DB_ASSIGN_CONNECTION_TO_GROUP}. */
+export interface AssignConnectionToGroupPayload {
   connectionId: string;
   groupId?: string;
 }
@@ -126,6 +126,8 @@ export interface OpenAnalyticsViewPayload {
  */
 export type WebviewMessage =
   | { messageType: typeof WebviewMessageType.OPEN_EDITOR }
+  | { messageType: typeof WebviewMessageType.OPEN_CREATE_CONNECTION }
+  | { messageType: typeof WebviewMessageType.CLOSE_EDITOR }
   | { messageType: typeof WebviewMessageType.WEBVIEW_DID_LAUNCH }
   | { messageType: typeof WebviewMessageType.DB_OPEN_DB_VIEW }
   | { messageType: typeof WebviewMessageType.DB_LOAD_TYPES_INTO_EDITOR }
@@ -176,22 +178,22 @@ export type WebviewMessage =
       messageType: typeof WebviewMessageType.DB_UPDATE_CONNECTION;
       payload: UpdateConnectionPayload;
     }
-  | { messageType: typeof WebviewMessageType.DB_LIST_PROJECTS }
+  | { messageType: typeof WebviewMessageType.DB_LIST_GROUPS }
   | {
-      messageType: typeof WebviewMessageType.DB_CREATE_PROJECT;
-      payload: CreateProjectPayload;
+      messageType: typeof WebviewMessageType.DB_CREATE_GROUP;
+      payload: CreateGroupPayload;
     }
   | {
-      messageType: typeof WebviewMessageType.DB_UPDATE_PROJECT;
-      payload: UpdateProjectPayload;
+      messageType: typeof WebviewMessageType.DB_UPDATE_GROUP;
+      payload: UpdateGroupPayload;
     }
   | {
-      messageType: typeof WebviewMessageType.DB_DELETE_PROJECT;
-      payload: DeleteProjectPayload;
+      messageType: typeof WebviewMessageType.DB_DELETE_GROUP;
+      payload: DeleteGroupPayload;
     }
   | {
-      messageType: typeof WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT;
-      payload: AssignConnectionToProjectPayload;
+      messageType: typeof WebviewMessageType.DB_ASSIGN_CONNECTION_TO_GROUP;
+      payload: AssignConnectionToGroupPayload;
     }
   | {
       messageType: typeof WebviewMessageType.DB_COPY_CONNECTION;

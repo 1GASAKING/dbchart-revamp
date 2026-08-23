@@ -58,6 +58,10 @@ export class EditorMessageHandler implements ImessageHandler {
                 await this.handleSaveFile(message.payload as SaveFilePayload);
                 break;
 
+            case WebviewMessageType.CLOSE_EDITOR:
+                this._provider.closeEditor();
+                break;
+
             default:
                 break;
         }

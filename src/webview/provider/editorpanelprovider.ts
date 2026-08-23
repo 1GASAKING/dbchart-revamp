@@ -9,7 +9,7 @@ import { ConnectionManager } from "../../database/connection-manager";
 import type { DatabaseSchema } from "@dbchart/schema";
 import type { ArrangedDesign } from "../../../lib/utils/design-arrangement";
 
-export type EditorPanelMode = "editor" | "canvas" | "analytics";
+export type EditorPanelMode = "editor" | "canvas" | "analytics" | "createConnection";
 
 export class EditorPanelProvider {
   private static readonly viewType = "dbchat.editorPanel";
@@ -126,6 +126,11 @@ export class EditorPanelProvider {
 
   public getPendingMode(): EditorPanelMode {
     return this._pendingMode;
+  }
+
+  /** Close the editor panel (used by "Back to Sidebar" in editor-hosted pages). */
+  public closeEditor(): void {
+    this._panel?.dispose();
   }
 
   public getPendingSchema(): DatabaseSchema | undefined {

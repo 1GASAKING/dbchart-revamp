@@ -8,7 +8,7 @@ import { Group } from "@dbchart/schema";
 
 const STORAGE_KEY = "dbchat.savedConnections";
 const WORKSPACE_KEY = "dbchat.workspaceConnections";
-const PROJECTS_KEY = "dbchat.groups";
+const GROUPS_KEY = "dbchat.groups";
 const USER_PATHS_KEY = "dbchat.userPaths";
 const DEFAULT_SENSITIVE = ["password", "apiToken", "secretKey", "authToken", "clientSecret", "serviceRoleKey", "anonKey", "apiKey"];
 
@@ -29,7 +29,7 @@ export class ConnectionManager {
   private _activeConfig?: ConnectionConfig;
   private _savedConnections: SavedConnection[] = [];
   private _workspaceConnections: SavedConnection[] = [];
-  private _projects: Group[] = [];
+  private _groups: Group[] = [];
   private _userPaths: UserPath[] = [];
   private _listeners: Set<() => void> = new Set();
 
@@ -70,15 +70,15 @@ export class ConnectionManager {
     return this._drivers.has(databaseId);
   }
 
-  public getProjects(): Group[] {
-    return [...this._projects].sort((a, b) => a.createdAt - b.createdAt);
+  public getGroups(): Group[] {
+    return [...this._groups].sort((a, b) => a.createdAt - b.createdAt);
   }
 
-  public getProject(groupId: string): Group | undefined {
-    return this._projects.find((p) => p.id === groupId);
+  public getGroup(groupId: string): Group | undefined {
+    return this._groups.find((p) => p.id === groupId);
   }
 
-  public async createProject(name: string, description?: string): Promise<Group> {
+  public async createGroup(name: string, description?: string): Promise<Group> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
     const group: Group = {
@@ -88,22 +88,22 @@ export class ConnectionManager {
       createdAt: Date.now(),
     };
 
-    this._projects.push(group);
-    this._context.globalState.update(PROJECTS_KEY, this._projects);
+    this._groups.push(group);
+    this._context.globalState.update(GROUPS_KEY, this._groups);
     this._notifyConnectionsChanged();
     return group;
   }
 
-  public async updateProject(groupId: string, name: string, description?: string): Promise<Group> {
+  public async updateGroup(groupId: string, name: string, description?: string): Promise<Group> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
-    const group = this._projects.find((p) => p.id === groupId);
+    const group = this._groups.find((p) => p.id === groupId);
     if (!group) { throw new Error(`Group not found: ${groupId}`); }
 
     group.name = name;
     group.description = description;
     group.updatedAt = Date.now();
-    this._context.globalState.update(PROJECTS_KEY, this._projects);
+    this._context.globalState.update(GROUPS_KEY, this._groups);
     this._notifyConnectionsChanged();
     return group;
   }
@@ -116,7 +116,7 @@ export class ConnectionManager {
     return this.saveConnection({ ...config, name, createdAt: 0 });
   }
 
-  public async assignConnectionToProject(connectionId: string, groupId?: string): Promise<SavedConnection> {
+  public async assignConnectionToGroup(connectionId: string, groupId?: string): Promise<SavedConnection> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
     const conn = this._savedConnections.find((c) => c.id === connectionId)
@@ -134,11 +134,11 @@ export class ConnectionManager {
     return conn;
   }
 
-  public async deleteProject(groupId: string): Promise<void> {
+  public async deleteGroup(groupId: string): Promise<void> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
-    this._projects = this._projects.filter((p) => p.id !== groupId);
-    this._context.globalState.update(PROJECTS_KEY, this._projects);
+    this._groups = this._groups.filter((p) => p.id !== groupId);
+    this._context.globalState.update(GROUPS_KEY, this._groups);
 
     // Orphan the connections that belonged to this group.
     for (const conn of this._savedConnections) {
@@ -402,7 +402,7 @@ export class ConnectionManager {
   private _loadConnections(): void {
     this._savedConnections = this._context?.globalState.get<SavedConnection[]>(STORAGE_KEY, []) ?? [];
     this._workspaceConnections = this._context?.workspaceState.get<SavedConnection[]>(WORKSPACE_KEY, []) ?? [];
-    this._projects = this._context?.globalState.get<Group[]>(PROJECTS_KEY, []) ?? [];
+    this._groups = this._context?.globalState.get<Group[]>(GROUPS_KEY, []) ?? [];
     this._userPaths = this._context?.workspaceState.get<UserPath[]>(USER_PATHS_KEY, []) ?? [];
   }
 
