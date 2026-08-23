@@ -20,7 +20,7 @@ import type { DatabaseSchema, IDatabaseDriver, QueryResult, SchemaColumn, Schema
 export class FirebaseDriver implements IDatabaseDriver {
   readonly databaseId = "firebase";
   private _config?: ConnectionConfig;
-  private _projectId = "";
+  private _groupId = "";
   private _databaseUrl = "";
   private _accessToken?: string;
   private _tokenExpiry = 0;
@@ -28,12 +28,12 @@ export class FirebaseDriver implements IDatabaseDriver {
   // ── Public lifecycle (IDatabaseDriver) ─────────────────────────────
   async connect(config: ConnectionConfig): Promise<void> {
     this._config = config;
-    this._projectId = (config.projectId ?? config.options?.projectId ?? "").toString();
+    this._groupId = (config.groupId ?? config.options?.groupId ?? "").toString();
     this._databaseUrl = String(
       config.databaseUrl ?? config.options?.databaseUrl ?? config.connectionString ?? ""
     ).replace(/\/+$/, "");
 
-    if (!this._projectId) {
+    if (!this._groupId) {
       throw new Error("Firebase Project ID is required. Provide it in the connection dialog.");
     }
 
@@ -59,7 +59,7 @@ export class FirebaseDriver implements IDatabaseDriver {
       // also validates the service-account JSON.
       const token = await this._getAccessToken(config);
       await axios.get(
-        `https://firestore.googleapis.com/v1/projects/${this._projectId}/databases/(default)/documents`,
+        `https://firestore.googleapis.com/v1/projects/${this._groupId}/databases/(default)/documents`,
         { headers: { Authorization: `Bearer ${token}` }, timeout: 8000 }
       );
       return { success: true, message: "Connected to Firebase successfully" };
@@ -75,7 +75,7 @@ export class FirebaseDriver implements IDatabaseDriver {
   async listFirestoreCollections(): Promise<string[]> {
     const token = await this._getAccessToken();
     const res = await axios.get(
-      `https://firestore.googleapis.com/v1/projects/${this._projectId}/databases/(default)/documents`,
+      `https://firestore.googleapis.com/v1/projects/${this._groupId}/databases/(default)/documents`,
       { headers: { Authorization: `Bearer ${token}` }, timeout: 15000 }
     );
     const documents = res.data?.documents ?? [];
@@ -154,7 +154,7 @@ export class FirebaseDriver implements IDatabaseDriver {
   async getSchemaForPath(path: string): Promise<DatabaseSchema> {
     const children = await this.getRealtimeChildren(path, 50);
     return {
-      databaseName: this._projectId || "Firebase",
+      databaseName: this._groupId || "Firebase",
       tables: [
         {
           name: path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean).join("_") || "root",
@@ -192,7 +192,7 @@ export class FirebaseDriver implements IDatabaseDriver {
   async getFirestoreCollectionSchema(collectionId: string): Promise<SchemaColumn[]> {
     const token = await this._getAccessToken();
     const res = await axios.get(
-      `https://firestore.googleapis.com/v1/projects/${this._projectId}/databases/(default)/documents/${collectionId}?pageSize=3`,
+      `https://firestore.googleapis.com/v1/projects/${this._groupId}/databases/(default)/documents/${collectionId}?pageSize=3`,
       { headers: { Authorization: `Bearer ${token}` }, timeout: 15000 }
     );
     const docs = res.data?.documents ?? [];
@@ -223,7 +223,7 @@ export class FirebaseDriver implements IDatabaseDriver {
         columns: await this.getFirestoreCollectionSchema(collection),
       });
     }
-    return { databaseName: this._projectId || "Firebase", tables, relationships: [] };
+    return { databaseName: this._groupId || "Firebase", tables, relationships: [] };
   }
 
   // ── Minimum IDatabaseDriver surface (kept for compatibility) ───────

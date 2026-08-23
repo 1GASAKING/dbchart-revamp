@@ -82,13 +82,18 @@ export interface ConnectionField {
   multiple?: boolean;
 }
 
-export interface Project {
+export interface Group {
   id: string;
   name: string;
   description?: string;
   createdAt: number;
   updatedAt?: number;
 }
+
+/**
+ * @deprecated Use {@link Group} instead.
+ */
+export type Project = Group;
 
 export const CloudProvider = {
   AWS: "aws",
@@ -104,7 +109,7 @@ export interface CloudAccount {
   name: string;
   createdAt: number;
   region?: string;
-  projectId?: string;
+  groupId?: string;
   tenantId?: string;
   subscriptionId?: string;
 }
@@ -120,7 +125,7 @@ export interface CloudAccountCredentials {
 export interface ConnectionConfig {
   name: string;
   databaseId: string;
-  projectId?: string;
+  groupId?: string;
   host?: string;
   port?: number;
   database?: string;
@@ -158,7 +163,7 @@ export interface SavedConnection {
   id: string;
   name: string;
   databaseId: string;
-  projectId?: string;
+  groupId?: string;
   host?: string;
   database?: string;
   username?: string;

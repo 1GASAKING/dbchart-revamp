@@ -9,7 +9,7 @@ export interface CreateCloudAccountInput extends CloudAccountCredentials {
   provider: CloudProvider;
   name: string;
   region?: string;
-  projectId?: string;
+  groupId?: string;
   tenantId?: string;
   subscriptionId?: string;
 }
@@ -53,7 +53,7 @@ export class CloudAccountManager {
       name: input.name,
       createdAt: Date.now(),
       region: input.region,
-      projectId: input.projectId,
+      groupId: input.groupId,
       tenantId: input.tenantId,
       subscriptionId: input.subscriptionId,
     };

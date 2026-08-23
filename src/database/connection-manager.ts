@@ -1,13 +1,14 @@
 import * as vscode from "vscode";
 import { randomUUID } from "crypto";
-import type { ConnectionConfig, Project, SavedConnection } from "./types/connection-config";
+import type { ConnectionConfig, SavedConnection } from "./types/connection-config";
 import type { IDatabaseDriver } from "./drivers/database-driver";
 import { getDatabaseDefinition } from "./registry";
 import { normalizeConnectionError } from "./errors";
+import { Group } from "@dbchart/schema";
 
 const STORAGE_KEY = "dbchat.savedConnections";
 const WORKSPACE_KEY = "dbchat.workspaceConnections";
-const PROJECTS_KEY = "dbchat.projects";
+const PROJECTS_KEY = "dbchat.groups";
 const USER_PATHS_KEY = "dbchat.userPaths";
 const DEFAULT_SENSITIVE = ["password", "apiToken", "secretKey", "authToken", "clientSecret", "serviceRoleKey", "anonKey", "apiKey"];
 
@@ -28,7 +29,7 @@ export class ConnectionManager {
   private _activeConfig?: ConnectionConfig;
   private _savedConnections: SavedConnection[] = [];
   private _workspaceConnections: SavedConnection[] = [];
-  private _projects: Project[] = [];
+  private _projects: Group[] = [];
   private _userPaths: UserPath[] = [];
   private _listeners: Set<() => void> = new Set();
 
@@ -69,42 +70,42 @@ export class ConnectionManager {
     return this._drivers.has(databaseId);
   }
 
-  public getProjects(): Project[] {
+  public getProjects(): Group[] {
     return [...this._projects].sort((a, b) => a.createdAt - b.createdAt);
   }
 
-  public getProject(projectId: string): Project | undefined {
-    return this._projects.find((p) => p.id === projectId);
+  public getProject(groupId: string): Group | undefined {
+    return this._projects.find((p) => p.id === groupId);
   }
 
-  public async createProject(name: string, description?: string): Promise<Project> {
+  public async createProject(name: string, description?: string): Promise<Group> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
-    const project: Project = {
+    const group: Group = {
       id: randomUUID(),
       name,
       description,
       createdAt: Date.now(),
     };
 
-    this._projects.push(project);
+    this._projects.push(group);
     this._context.globalState.update(PROJECTS_KEY, this._projects);
     this._notifyConnectionsChanged();
-    return project;
+    return group;
   }
 
-  public async updateProject(projectId: string, name: string, description?: string): Promise<Project> {
+  public async updateProject(groupId: string, name: string, description?: string): Promise<Group> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
-    const project = this._projects.find((p) => p.id === projectId);
-    if (!project) { throw new Error(`Project not found: ${projectId}`); }
+    const group = this._projects.find((p) => p.id === groupId);
+    if (!group) { throw new Error(`Group not found: ${groupId}`); }
 
-    project.name = name;
-    project.description = description;
-    project.updatedAt = Date.now();
+    group.name = name;
+    group.description = description;
+    group.updatedAt = Date.now();
     this._context.globalState.update(PROJECTS_KEY, this._projects);
     this._notifyConnectionsChanged();
-    return project;
+    return group;
   }
 
   public async copyConnection(connectionId: string): Promise<SavedConnection> {
@@ -115,14 +116,14 @@ export class ConnectionManager {
     return this.saveConnection({ ...config, name, createdAt: 0 });
   }
 
-  public async assignConnectionToProject(connectionId: string, projectId?: string): Promise<SavedConnection> {
+  public async assignConnectionToProject(connectionId: string, groupId?: string): Promise<SavedConnection> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
     const conn = this._savedConnections.find((c) => c.id === connectionId)
       ?? this._workspaceConnections.find((c) => c.id === connectionId);
     if (!conn) { throw new Error(`Connection not found: ${connectionId}`); }
 
-    conn.projectId = projectId;
+    conn.groupId = groupId;
     if (this._savedConnections.some((c) => c.id === connectionId)) {
       this._saveConnections();
     } else {
@@ -133,16 +134,16 @@ export class ConnectionManager {
     return conn;
   }
 
-  public async deleteProject(projectId: string): Promise<void> {
+  public async deleteProject(groupId: string): Promise<void> {
     if (!this._context) { throw new Error("ConnectionManager not initialized"); }
 
-    this._projects = this._projects.filter((p) => p.id !== projectId);
+    this._projects = this._projects.filter((p) => p.id !== groupId);
     this._context.globalState.update(PROJECTS_KEY, this._projects);
 
-    // Orphan the connections that belonged to this project.
+    // Orphan the connections that belonged to this group.
     for (const conn of this._savedConnections) {
-      if (conn.projectId === projectId) {
-        conn.projectId = undefined;
+      if (conn.groupId === groupId) {
+        conn.groupId = undefined;
       }
     }
     this._saveConnections();
@@ -164,7 +165,7 @@ export class ConnectionManager {
       id: connectionId,
       name: config.name,
       databaseId: config.databaseId,
-      projectId: config.projectId,
+      groupId: config.groupId,
       host: config.host,
       database: config.database,
       username: config.username,
@@ -401,7 +402,7 @@ export class ConnectionManager {
   private _loadConnections(): void {
     this._savedConnections = this._context?.globalState.get<SavedConnection[]>(STORAGE_KEY, []) ?? [];
     this._workspaceConnections = this._context?.workspaceState.get<SavedConnection[]>(WORKSPACE_KEY, []) ?? [];
-    this._projects = this._context?.globalState.get<Project[]>(PROJECTS_KEY, []) ?? [];
+    this._projects = this._context?.globalState.get<Group[]>(PROJECTS_KEY, []) ?? [];
     this._userPaths = this._context?.workspaceState.get<UserPath[]>(USER_PATHS_KEY, []) ?? [];
   }
 

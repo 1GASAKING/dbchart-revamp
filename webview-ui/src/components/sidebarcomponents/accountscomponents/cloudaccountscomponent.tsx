@@ -10,7 +10,7 @@ interface CloudAccount {
   name: string;
   createdAt: number;
   region?: string;
-  projectId?: string;
+  groupId?: string;
   tenantId?: string;
   subscriptionId?: string;
 }
@@ -99,7 +99,7 @@ const emptyForm = {
   provider: "aws",
   name: "",
   region: "",
-  projectId: "",
+  groupId: "",
   tenantId: "",
   subscriptionId: "",
   accessKeyId: "",
@@ -151,7 +151,7 @@ const CloudAccountsComponent = () => {
         provider: form.provider as "aws" | "gcp" | "azure",
         name,
         region: form.region || undefined,
-        projectId: form.projectId || undefined,
+        groupId: form.groupId || undefined,
         tenantId: form.tenantId || undefined,
         subscriptionId: form.subscriptionId || undefined,
         accessKeyId: form.accessKeyId || undefined,
@@ -218,7 +218,7 @@ const CloudAccountsComponent = () => {
           {form.provider === "gcp" && (
             <>
               <div style={S.label}>Project ID</div>
-              <input style={S.input} value={form.projectId} onChange={(e) => update("projectId", e.target.value)} />
+              <input style={S.input} value={form.groupId} onChange={(e) => update("groupId", e.target.value)} />
               <div style={S.label}>Service Account JSON</div>
               <textarea style={S.input} rows={3} value={form.serviceAccountJson} onChange={(e) => update("serviceAccountJson", e.target.value)} />
             </>

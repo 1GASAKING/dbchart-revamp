@@ -95,13 +95,13 @@ export class DatabaseMessageHandler {
 
       case WebviewMessageType.DB_DELETE_PROJECT:
         if (message.payload) {
-          await this._handleDeleteProject(message.payload.projectId);
+          await this._handleDeleteProject(message.payload.groupId);
         }
         return true;
 
       case WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT:
         if (message.payload) {
-          await this._handleAssignConnectionToProject(message.payload.connectionId, message.payload.projectId);
+          await this._handleAssignConnectionToProject(message.payload.connectionId, message.payload.groupId);
         }
         return true;
 
@@ -270,17 +270,17 @@ export class DatabaseMessageHandler {
     const manager = ConnectionManager.getInstance();
     this._sendMessage({
       type: ExtensionMessageType.DB_PROJECTS_LISTED,
-      payload: { projects: manager.getProjects() },
+      payload: { groups: manager.getProjects() },
     });
   }
 
   private async _handleCreateProject(name: string, description?: string) {
     const manager = ConnectionManager.getInstance();
     try {
-      const project = await manager.createProject(name, description);
+      const group = await manager.createProject(name, description);
       this._sendMessage({
         type: ExtensionMessageType.DB_PROJECT_CREATED,
-        payload: { project },
+        payload: { group },
       });
     } catch (err) {
       this._sendError(err);
@@ -290,33 +290,33 @@ export class DatabaseMessageHandler {
   private async _handleUpdateProject(id: string, name: string, description?: string) {
     const manager = ConnectionManager.getInstance();
     try {
-      const project = await manager.updateProject(id, name, description);
+      const group = await manager.updateProject(id, name, description);
       this._sendMessage({
         type: ExtensionMessageType.DB_PROJECT_UPDATED,
-        payload: { project },
+        payload: { group },
       });
     } catch (err) {
       this._sendError(err);
     }
   }
 
-  private async _handleDeleteProject(projectId: string) {
+  private async _handleDeleteProject(groupId: string) {
     const manager = ConnectionManager.getInstance();
     try {
-      await manager.deleteProject(projectId);
+      await manager.deleteProject(groupId);
       this._sendMessage({
         type: ExtensionMessageType.DB_PROJECT_DELETED,
-        payload: { projectId },
+        payload: { groupId },
       });
     } catch (err) {
       this._sendError(err);
     }
   }
 
-  private async _handleAssignConnectionToProject(connectionId: string, projectId?: string) {
+  private async _handleAssignConnectionToProject(connectionId: string, groupId?: string) {
     const manager = ConnectionManager.getInstance();
     try {
-      const connection = await manager.assignConnectionToProject(connectionId, projectId);
+      const connection = await manager.assignConnectionToProject(connectionId, groupId);
       this._sendMessage({
         type: ExtensionMessageType.DB_PROJECT_ASSIGNED,
         payload: { connection },

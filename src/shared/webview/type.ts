@@ -68,13 +68,13 @@ export interface UpdateProjectPayload {
 
 /** Payload for {@link WebviewMessageType.DB_DELETE_PROJECT}. */
 export interface DeleteProjectPayload {
-  projectId: string;
+  groupId: string;
 }
 
 /** Payload for {@link WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT}. */
 export interface AssignConnectionToProjectPayload {
   connectionId: string;
-  projectId?: string;
+  groupId?: string;
 }
 
 /** Payload for {@link WebviewMessageType.DB_COPY_CONNECTION}. */
@@ -87,7 +87,7 @@ export interface CreateCloudAccountPayload extends CloudAccountCredentials {
   provider: CloudProvider;
   name: string;
   region?: string;
-  projectId?: string;
+  groupId?: string;
   tenantId?: string;
   subscriptionId?: string;
 }

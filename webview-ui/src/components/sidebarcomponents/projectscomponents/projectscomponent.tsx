@@ -7,7 +7,7 @@ import { ProjectConnectionComponentConnection, ProjectConnectionComponentConnect
 import { VsButton } from "../../../styles/reusablecomponentsstyles/button-component-styles";
 import { DBConnectionDialog } from "../../dbconnectioncomponents/db-connection-dialog";
 
-interface Project {
+interface Group {
   id: string;
   name: string;
   description?: string;
@@ -19,7 +19,7 @@ interface SavedConnection {
   id: string;
   name: string;
   databaseId: string;
-  projectId?: string;
+  groupId?: string;
   host?: string;
   database?: string;
   username?: string;
@@ -29,7 +29,7 @@ interface SavedConnection {
 
 
 const ProjectsComponent = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [groups, setProjects] = useState<Group[]>([]);
   const [connections, setConnections] = useState<SavedConnection[]>([]);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -48,7 +48,7 @@ const ProjectsComponent = () => {
       const message: ExtensionMessage = event.data;
       switch (message.type) {
         case ExtensionMessageType.DB_PROJECTS_LISTED:
-          setProjects(message.payload.projects);
+          setProjects(message.payload.groups);
           break;
         case ExtensionMessageType.DB_CONNECTIONS_LISTED:
           setConnections(message.payload.connections);
@@ -60,18 +60,18 @@ const ProjectsComponent = () => {
           setActiveConnectionId(null);
           break;
         case ExtensionMessageType.DB_PROJECT_CREATED:
-          setProjects((prev) => [...prev, message.payload.project]);
+          setProjects((prev) => [...prev, message.payload.group]);
           setCreating(false);
           setNewName("");
           break;
         case ExtensionMessageType.DB_PROJECT_UPDATED:
           setProjects((prev) =>
-            prev.map((p) => (p.id === message.payload.project.id ? message.payload.project : p))
+            prev.map((p) => (p.id === message.payload.group.id ? message.payload.group : p))
           );
           setEditingId(null);
           break;
         case ExtensionMessageType.DB_PROJECT_DELETED:
-          setProjects((prev) => prev.filter((p) => p.id !== message.payload.projectId));
+          setProjects((prev) => prev.filter((p) => p.id !== message.payload.groupId));
           vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
           break;
         case ExtensionMessageType.DB_PROJECT_ASSIGNED:
@@ -105,10 +105,10 @@ const ProjectsComponent = () => {
     return () => window.removeEventListener("dbchart:sidebar-action", handleSidebarAction);
   }, []);
 
-  const connectionsFor = (projectId: string) =>
-    connections.filter((c) => c.projectId === projectId);
+  const connectionsFor = (groupId: string) =>
+    connections.filter((c) => c.groupId === groupId);
 
-  const unassignedConnections = connections.filter((c) => !c.projectId);
+  const unassignedConnections = connections.filter((c) => !c.groupId);
 
   const submitCreate = () => {
     const name = newName.trim();
@@ -119,7 +119,7 @@ const ProjectsComponent = () => {
     });
   };
 
-  const startEdit = (p: Project) => {
+  const startEdit = (p: Group) => {
     setEditingId(p.id);
     setEditName(p.name);
   };
@@ -136,15 +136,15 @@ const ProjectsComponent = () => {
   const deleteProject = (id: string) => {
     vscode._postMessage({
       messageType: WebviewMessageType.DB_DELETE_PROJECT,
-      payload: { projectId: id },
+      payload: { groupId: id },
     });
   };
 
-  const assignConnection = (projectId: string, connectionId: string) => {
+  const assignConnection = (groupId: string, connectionId: string) => {
     if (!connectionId) return;
     vscode._postMessage({
       messageType: WebviewMessageType.DB_ASSIGN_CONNECTION_TO_PROJECT,
-      payload: { connectionId, projectId },
+      payload: { connectionId, groupId },
     });
     setAssigningId(null);
   };
@@ -240,21 +240,21 @@ const ProjectsComponent = () => {
         <div className="connection-fields-container">
           {unassignedConnections.map(renderConnectionRow)}
 
-          {projects.map((project) => {
-            const members = connectionsFor(project.id);
-            const isExpanded = expandedId === project.id;
+          {groups.map((group) => {
+            const members = connectionsFor(group.id);
+            const isExpanded = expandedId === group.id;
             return (
-              <ProjectConnectionComponentConnectionField key={project.id}>
+              <ProjectConnectionComponentConnectionField key={group.id}>
 
                 <div
                   className="connection-field-row "
-                  onClick={() => setExpandedId(isExpanded ? null : project.id)}
+                  onClick={() => setExpandedId(isExpanded ? null : group.id)}
                 >
                   <i
                     className={`codicon codicon-${isExpanded ? "chevron-down" : "chevron-right"}`}
                     style={{ fontSize: "12px" }}
                   />
-                  {editingId === project.id ? (
+                  {editingId === group.id ? (
                     <div className="flex flex-center input-container">
                       <div  className="input-container">
                         <input
@@ -286,24 +286,24 @@ const ProjectsComponent = () => {
                     < div className="connections-header">
                       <span >
                         <i className="codicon codicon-folder" style={{ marginRight: "4px" }} />
-                        {project.name}
+                        {group.name}
                       </span>
                       <div className="flex flex-center">
                         <span className=" count-text">{members.length}</span>
                         <div className="connection-button">
-                          <VsButton className="header-button" title="Add connection" onClick={(e) => { e.stopPropagation(); setAssigningId(assigningId === project.id ? null : project.id); setExpandedId(project.id); }}>
+                          <VsButton className="header-button" title="Add connection" onClick={(e) => { e.stopPropagation(); setAssigningId(assigningId === group.id ? null : group.id); setExpandedId(group.id); }}>
                             <i className="codicon codicon-add" />
                           </VsButton>
                         </div>
 
 
                         <div>
-                          <VsButton className="header-button" title="Edit" onClick={(e) => { e.stopPropagation(); startEdit(project); }}>
+                          <VsButton className="header-button" title="Edit" onClick={(e) => { e.stopPropagation(); startEdit(group); }}>
                             <i className="codicon codicon-edit" />
                           </VsButton>
                         </div>
                         <div className="connection-button">
-                          <VsButton className="header-button" title="Delete" onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }}>
+                          <VsButton className="header-button" title="Delete" onClick={(e) => { e.stopPropagation(); deleteProject(group.id); }}>
                             <i className="codicon codicon-trash" />
                           </VsButton>
                         </div>
@@ -314,18 +314,18 @@ const ProjectsComponent = () => {
                   )}
                 </div>
 
-                {(isExpanded || assigningId === project.id) && (
+                {(isExpanded || assigningId === group.id) && (
                   <div className="connection-lists">
                     {members.map(renderConnectionRow)}
                     {members.length === 0 && (
                       <div >No clients yet</div>
                     )}
 
-                    {assigningId === project.id && (
+                    {assigningId === group.id && (
                       <div className="connections-dropdown" >
                         <select
                           className="connection-edit-input" defaultValue=""
-                          onChange={(e) => assignConnection(project.id, e.target.value)}
+                          onChange={(e) => assignConnection(group.id, e.target.value)}
                         >
                           <option value="" disabled>Add existing client…</option>
                           {unassignedConnections.map((c) => (
@@ -344,7 +344,7 @@ const ProjectsComponent = () => {
         </div>
 
         <div className="connection-prompt-holder">
-          {projects.length === 0 && <div className="connection-prompt-text"> <h4>No projects yet </h4></div>}
+          {groups.length === 0 && <div className="connection-prompt-text"> <h4>No groups yet </h4></div>}
           {creating
             ? (
               <div className="connection-group-dialog-name-container">

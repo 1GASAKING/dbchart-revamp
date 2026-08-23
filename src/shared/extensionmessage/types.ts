@@ -1,8 +1,9 @@
 import type { DatabaseSchema } from '../../database/drivers/database-driver';
-import type { ConnectionConfig, ConnectionField, ConnectionTestResult, Project, SavedConnection, CloudAccount } from '../../database';
+import type { ConnectionConfig, ConnectionField, ConnectionTestResult,  SavedConnection, CloudAccount } from '../../database';
 import type { QueryResult } from '../../database/drivers/database-driver';
 import { ExtensionMessageType } from './extensionmessage';
 import type { ArrangedDesign } from '../../../lib/utils/design-arrangement';
+import { Group } from '@dbchart/schema';
 
 /** Payload delivered with a {@link ExtensionMessageType.FILE_OPENED} message. */
 export interface FileOpenedPayload {
@@ -68,19 +69,19 @@ export interface DBConnectionUpdatedPayload {
 }
 
 export interface DBProjectsListedPayload {
-  projects: Project[];
+  groups: Group[];
 }
 
 export interface DBProjectCreatedPayload {
-  project: Project;
+  group: Group;
 }
 
 export interface DBProjectDeletedPayload {
-  projectId: string;
+  groupId: string;
 }
 
 export interface DBProjectUpdatedPayload {
-  project: Project;
+  group: Group;
 }
 
 export interface DBProjectAssignedPayload {
