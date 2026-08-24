@@ -42,6 +42,13 @@ const ProjectsComponent = () => {
     vscode._postMessage({ messageType: WebviewMessageType.DB_LIST_GROUPS });
     vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
 
+    // Startup-race guard: if the initial request lands before the host has
+    // finished resolving the webview view, the reply is silently lost. Ask
+    // again shortly after mount so the list always populates.
+    const retry = setTimeout(() => {
+      vscode._postMessage({ messageType: WebviewMessageType.DB_GET_CONNECTIONS });
+    }, 500);
+
     const handleMessage = (event: MessageEvent) => {
       const message: ExtensionMessage = event.data;
       switch (message.type) {
@@ -81,7 +88,10 @@ const ProjectsComponent = () => {
     };
 
     window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+    return () => {
+      clearTimeout(retry);
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
   
   const openCreateConnection = () =>
@@ -109,7 +119,15 @@ const ProjectsComponent = () => {
   const connectionsFor = (groupId: string) =>
     connections.filter((c) => c.groupId === groupId);
 
-  const unassignedConnections = connections.filter((c) => !c.groupId);
+  // NOTE: some database forms reuse the connection `groupId` field as their
+  // cloud *Project ID* (e.g. Firebase), so a saved connection can carry a
+  // non-UUID groupId that belongs to no UI group. Only treat a groupId that
+  // actually matches an existing group as "assigned" — everything else is
+  // ungrouped and must still appear in the list.
+  const groupIdSet = new Set(groups.map((g) => g.id));
+  const unassignedConnections = connections.filter(
+    (c) => !c.groupId || !groupIdSet.has(c.groupId)
+  );
 
   const submitCreate = () => {
     const name = newName.trim();
@@ -230,6 +248,32 @@ const ProjectsComponent = () => {
 
 
         </div>
+
+        {/* Nested databases (e.g. Firestore / Realtime Database under Firebase). */}
+        {(CONNECTION_SUB_DATABASES[c.databaseId] ?? []).length > 0 && (
+          <div className="sub-databases">
+            {(CONNECTION_SUB_DATABASES[c.databaseId] ?? []).map((sub) => (
+              <div
+                key={sub.id}
+                className="sub-database-row"
+                title={`Open ${sub.label}`}
+                onClick={() => openSubDatabase(c)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "3px 0 3px 18px",
+                  fontSize: 12,
+                  opacity: 0.85,
+                  cursor: "pointer",
+                }}
+              >
+                <i className={`codicon codicon-${sub.icon}`} style={{ fontSize: 12 }} />
+                <span>{sub.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
       </ProjectConnectionComponentConnection>
     );

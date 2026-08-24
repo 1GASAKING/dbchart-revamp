@@ -1,6 +1,6 @@
 import type { CanonicalEntity, CanonicalField, CanonicalRelation } from "../types";
 import type { ParseResult } from "../types";
-import { irId, normalizeDataType } from "../helpers";
+import { irId, normalizeDataType, normalizeEnumDataType, parseEnumValues } from "../helpers";
 
 interface ColumnDef {
   name: string;
@@ -10,6 +10,8 @@ interface ColumnDef {
   isNullable?: boolean;
   isUnique?: boolean;
   references?: { entity: string; field: string };
+  /** Allowed values captured from an inline `ENUM('a', 'b')`. */
+  enumValues?: string[];
 }
 
 interface TableDef {
@@ -33,6 +35,8 @@ interface TableDef {
 export function parseSql(input: string): ParseResult {
   const warnings: string[] = [];
   const tables = new Map<string, TableDef>();
+  // Named enum types, e.g. `CREATE TYPE mood AS ENUM ('sad', 'ok')`.
+  const namedEnums = new Map<string, string[]>();
 
   // Normalize whitespace, strip line comments and block comments.
   const normalized = input
@@ -66,6 +70,18 @@ export function parseSql(input: string): ParseResult {
         columns,
         tableConstraints,
       });
+      {continue;}
+    }
+
+    // Named enum types, e.g. CREATE TYPE status AS ENUM ('pending', 'shipped').
+    const createEnum = trimmed.match(
+      /^CREATE\s+TYPE\s+["`']?([^\s("`']+)["`']?\s+AS\s+ENUM\s*\((.+)\)$/i
+    );
+    if (createEnum) {
+      namedEnums.set(
+        unquoteIdentifier(createEnum[1]).toLowerCase(),
+        parseEnumValues(createEnum[2])
+      );
       {continue;}
     }
 
@@ -127,14 +143,18 @@ export function parseSql(input: string): ParseResult {
         const pk = def.tableConstraints.find(
           (c) => c.type === "pk" && c.columns.includes(col.name.toLowerCase())
         );
+        const enumMeta = resolveEnumMeta(col, namedEnums);
         return {
           id: irId("field"),
           name: col.name,
-          dataType: normalizeDataType(col.dataType),
+          dataType: enumMeta
+            ? normalizeEnumDataType(col.dataType)
+            : normalizeDataType(col.dataType),
           isPrimary: col.isPrimary || Boolean(pk),
           isForeign: col.isForeign || Boolean(fk),
           isNullable: col.isNullable ?? true,
           isUnique: col.isUnique,
+          ...(enumMeta ? { enum: enumMeta } : {}),
         };
       });
 
@@ -188,6 +208,21 @@ export function parseSql(input: string): ParseResult {
   }
 
   return { schema: { entities, relations }, warnings };
+}
+
+/** Resolve enum metadata for a column: inline `ENUM(...)` or a named type. */
+function resolveEnumMeta(
+  col: ColumnDef,
+  namedEnums: Map<string, string[]>
+): { name?: string; values: string[] } | undefined {
+  if (col.enumValues && col.enumValues.length > 0) {
+    return { values: col.enumValues };
+  }
+  const named = namedEnums.get(col.dataType.toLowerCase());
+  if (named && named.length > 0) {
+    return { name: col.dataType, values: named };
+  }
+  return undefined;
 }
 
 /** Split a SQL string into top-level statements on `;`. */
@@ -269,6 +304,13 @@ function parseColumnDefinition(raw: string, _warnings: string[]): ColumnDef | nu
   const rest = (m[3] ?? "").toUpperCase();
 
   const def: ColumnDef = { name, dataType };
+
+  // Inline enum: `status ENUM('pending', 'processing')`. Preserve values.
+  const inlineEnum =
+    raw.match(/ENUM\s*\(\s*([^)]*)\)\s*$/i) ?? raw.match(/ENUM\s*\(\s*([^)]*)\)/i);
+  if (inlineEnum) {
+    def.enumValues = parseEnumValues(inlineEnum[1]);
+  }
 
   if (/NOT\s+NULL/.test(rest)) {def.isNullable = false;}
   else {def.isNullable = true;}

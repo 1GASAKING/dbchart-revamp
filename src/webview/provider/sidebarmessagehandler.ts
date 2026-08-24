@@ -406,6 +406,7 @@ export class SidebarMessageHandler implements ImessageHandler {
   private async _handleGetConnections() {
     const manager = ConnectionManager.getInstance();
     const connections = await manager.getAllConnections();
+    Logger.getInstance().log(`[Connections] listing ${connections.length} saved connection(s)`);
     this._provider.HandleSendMessageToWebview({
       type: ExtensionMessageType.DB_CONNECTIONS_LISTED,
       payload: { connections },

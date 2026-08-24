@@ -45,6 +45,11 @@ export class WebviewProvider implements vscode.WebviewViewProvider, ISidebarProv
       void this._pushConnections();
     });
 
+    // Also push once immediately so components that mount while the view is
+    // still resolving still receive the current list even if their own
+    // initial DB_GET_CONNECTIONS request raced startup.
+    void this._pushConnections();
+
     webviewView.onDidDispose(() => {
       this._onConnectionsChangedDisposable?.dispose();
       this._onConnectionsChangedDisposable = undefined;

@@ -21,6 +21,11 @@ function ident(name: string): string {
   return `"${name.replace(/"/g, '""')}"`;
 }
 
+/** Render an inline `ENUM('a','b')` clause for a field with allowed values. */
+function enumClause(values: string[]): string {
+  return `ENUM(${values.map((v) => `'${v.replace(/'/g, "''")}'`).join(", ")})`;
+}
+
 /** Serialize a canonical schema to DDL (CREATE TABLE + ALTER TABLE). */
 export function serializeSql(schema: CanonicalSchema): string {
   const lines: string[] = [];
@@ -33,7 +38,9 @@ export function serializeSql(schema: CanonicalSchema): string {
     const pkCols: string[] = [];
 
     for (const field of entity.fields) {
-      const type = TYPE_SQL_MAP[field.dataType] ?? "JSON";
+      const type = field.enum?.values?.length
+        ? enumClause(field.enum.values)
+        : TYPE_SQL_MAP[field.dataType] ?? "JSON";
       let def = `  ${ident(field.name)} ${type}`;
       if (field.isPrimary && !field.isNullable) {def += " NOT NULL";}
       else if (field.isNullable === false) {def += " NOT NULL";}

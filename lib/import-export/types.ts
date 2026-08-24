@@ -22,6 +22,8 @@ export interface CanonicalField {
   isUnique?: boolean;
   isNested?: boolean;
   nestedFields?: CanonicalField[];
+  /** Enum metadata preserved across import/export — name + allowed values. */
+  enum?: { name?: string; values: string[] };
 }
 
 /** A canonical entity (table/view/collection). */

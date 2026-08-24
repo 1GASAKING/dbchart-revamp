@@ -36,4 +36,6 @@ export interface DesignField {
   isNested?: boolean;
   /** Sub-fields when this field is a nested/embedded object. */
   nestedFields?: DesignField[];
+  /** Enum metadata (imported schemas) — preserves the allowed values. */
+  enum?: { name?: string; values: string[] };
 }

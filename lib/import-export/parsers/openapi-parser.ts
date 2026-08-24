@@ -5,7 +5,7 @@ import type {
   ParseResult,
 } from "../types";
 import type { FieldDataType } from "@dbchart/schema";
-import { irId, normalizeDataType } from "../helpers";
+import { irId, normalizeDataType, normalizeEnumDataType, parseEnumValues } from "../helpers";
 
 /**
  * Parse an OpenAPI 3.x document (e.g. FastAPI's `openapi.json`) into the
@@ -37,6 +37,20 @@ export function parseOpenApi(input: string): ParseResult {
   const entities: CanonicalEntity[] = [];
   const relations: CanonicalRelation[] = [];
 
+  // Pre-pass: collect enum schemas (`{ "enum": [...] }`) so `$ref`s to them
+  // can recover the allowed values and so they are not emitted as empty
+  // entities.
+  const enumComponents = new Map<string, string[]>();
+  for (const [name, rawSchema] of Object.entries(schemas)) {
+    const s = rawSchema as { enum?: unknown };
+    if (s.enum) {
+      const values = parseEnumValues(s.enum);
+      if (values.length > 0) {
+        enumComponents.set(name.toLowerCase(), values);
+      }
+    }
+  }
+
   for (const [name, rawSchema] of Object.entries(schemas)) {
     const schema = rawSchema as {
       type?: string;
@@ -53,21 +67,29 @@ export function parseOpenApi(input: string): ParseResult {
         format?: string;
         $ref?: string;
         items?: { type?: string };
+        enum?: unknown;
       };
 
+      const refEntity = prop.$ref?.split("/").pop() ?? "";
+      // A `$ref` to a plain model means this property points at another
+      // entity; a `$ref` to an enum component is a constrained value, not a
+      // relationship.
+      const isEnumRef = enumComponents.has(refEntity.toLowerCase());
+      const enumMeta = resolveOpenApiEnum(prop, enumComponents);
       const field: CanonicalField = {
         id: irId("field"),
         name: propName,
-        dataType: mapOpenApiType(prop),
+        dataType: enumMeta
+          ? normalizeEnumDataType(enumMeta.name ?? "enum")
+          : mapOpenApiType(prop),
         isPrimary: propName === "id" || propName === "_id",
-        isForeign: Boolean(prop.$ref),
+        isForeign: Boolean(prop.$ref) && !isEnumRef,
         isNullable: true,
+        ...(enumMeta ? { enum: enumMeta } : {}),
       };
       fields.push(field);
 
-      // A `$ref` means this property points at another model.
-      if (prop.$ref) {
-        const refEntity = prop.$ref.split("/").pop() ?? "";
+      if (prop.$ref && !isEnumRef) {
         relations.push({
           id: irId("rel"),
           sourceEntityName: name,
@@ -77,6 +99,13 @@ export function parseOpenApi(input: string): ParseResult {
           cardinality: "1:N",
         });
       }
+    }
+
+    // Pure enum components (no object properties) were already captured in
+    // the pre-pass — they are constrained value types, not relational
+    // entities.
+    if (fields.length === 0 && enumComponents.has(name.toLowerCase())) {
+      continue;
     }
 
     entities.push({
@@ -120,6 +149,27 @@ function mapOpenApiType(prop: {
     default:
       return normalizeDataType("json");
   }
+}
+
+/** Resolve enum metadata for a property: inline `enum` or `$ref` to an enum component. */
+function resolveOpenApiEnum(
+  prop: { enum?: unknown; $ref?: string },
+  enumComponents: Map<string, string[]>
+): { name?: string; values: string[] } | undefined {
+  if (prop.enum !== undefined) {
+    const values = parseEnumValues(prop.enum);
+    if (values.length > 0) {
+      return { values };
+    }
+  }
+  if (prop.$ref) {
+    const refName = prop.$ref.split("/").pop() ?? "";
+    const values = enumComponents.get(refName.toLowerCase());
+    if (values) {
+      return { name: refName, values };
+    }
+  }
+  return undefined;
 }
 
 /** Detect whether a raw JSON string is an OpenAPI document. */

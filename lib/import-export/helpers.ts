@@ -90,6 +90,49 @@ export function normalizeDataType(raw: string): FieldDataType {
   return map[base] ?? "json";
 }
 
+/**
+ * Parse the value list out of an enum declaration into clean strings.
+ *
+ * Handles the three styles used across formats:
+ *   - SQL:     `ENUM('pending', 'processing', 'shipped')`
+ *   - DBML:    `Enum Status { pending processing shipped }`
+ *   - OpenAPI: a JSON array `["pending", "processing"]`
+ */
+export function parseEnumValues(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.map((v) => String(v)).filter((s) => s.length > 0);
+  }
+  if (typeof raw !== "string") {
+    return [];
+  }
+
+  // Quoted values take precedence (they may contain spaces or commas).
+  const quoted = raw.match(/['"]([^'"]*)['"]/g);
+  if (quoted && quoted.length > 0) {
+    return quoted
+      .map((q) => q.slice(1, -1).trim())
+      .filter((s) => s.length > 0);
+  }
+
+  // Otherwise split on commas and/or whitespace (DBML enum member lists).
+  return raw
+    .split(/[\s,]+/)
+    .map((s) => s.trim().replace(/^['"]|['"]$/g, ""))
+    .filter((s) => s.length > 0);
+}
+
+/**
+ * Normalize a data type for a field that carries enum metadata. Unknown
+ * custom type names (e.g. PostgreSQL `CREATE TYPE mood AS ENUM (...)` used as
+ * a column type) fall through {@link normalizeDataType} to "json" — but an
+ * enum is a constrained string list, not an object, so coerce that fallback
+ * to "varchar" while keeping any recognizable scalar type.
+ */
+export function normalizeEnumDataType(raw: string): FieldDataType {
+  const normalized = normalizeDataType(raw);
+  return normalized === "json" ? "varchar" : normalized;
+}
+
 /** Whether two schemas are structurally equal (used mostly in tests). */
 export function isSameSchema(a: CanonicalSchema, b: CanonicalSchema): boolean {
   if (a.entities.length !== b.entities.length) {return false;}
@@ -109,6 +152,8 @@ export function isSameSchema(a: CanonicalSchema, b: CanonicalSchema): boolean {
       if (f.isForeign !== fb.isForeign){ return false;}
       if (f.isNullable !== fb.isNullable){ return false;}
       if (f.isUnique !== fb.isUnique){ return false;}
+      if ((f.enum?.name ?? "") !== (fb.enum?.name ?? "")){ return false;}
+      if ((f.enum?.values ?? []).join("\u0000") !== (fb.enum?.values ?? []).join("\u0000")){ return false;}
     }
   }
   return true;

@@ -98,6 +98,7 @@ function canonicalFieldToDesignField(
     isNullable: field.isNullable,
     isUnique: field.isUnique,
     isNested: field.isNested,
+    ...(field.enum ? { enum: field.enum } : {}),
   };
 
   if (field.nestedFields && field.nestedFields.length > 0) {
@@ -120,6 +121,7 @@ function canonicalNestedFieldToDesignField(field: CanonicalField): DesignField {
     isNullable: field.isNullable,
     isUnique: field.isUnique,
     isNested: field.isNested,
+    ...(field.enum ? { enum: field.enum } : {}),
   };
   if (field.nestedFields && field.nestedFields.length > 0) {
     out.nestedFields = field.nestedFields.map(canonicalNestedFieldToDesignField);
@@ -177,6 +179,7 @@ function designFieldToCanonical(field: DesignField): CanonicalField {
     isUnique: field.isUnique,
     isNested: field.isNested,
     nestedFields: field.nestedFields?.map(designFieldToCanonical),
+    ...(field.enum ? { enum: field.enum } : {}),
   };
 }
 

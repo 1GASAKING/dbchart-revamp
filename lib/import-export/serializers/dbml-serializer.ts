@@ -23,12 +23,43 @@ export function serializeDbml(schema: CanonicalSchema): string {
     schema.entities.map((e) => [e.name.toLowerCase(), e])
   );
 
+  // Collect enum definitions. Named enums keep their name; anonymous inline
+  // enums get a synthetic `<entity>_<field>` name so they round-trip.
+  // DBML enum members are single tokens, so values containing whitespace fall
+  // back to the plain base type.
+  const enumRefKey = (entityName: string, fieldName: string): string =>
+    `${entityName.toLowerCase()}:${fieldName.toLowerCase()}`;
+  const enumByName = new Map<string, { name: string; values: string[] }>();
+  const fieldEnumName = new Map<string, string>();
+
+  for (const entity of schema.entities) {
+    for (const field of entity.fields) {
+      if (!field.enum?.values?.length) {continue;}
+      if (field.enum.values.some((v) => /\s/.test(v))) {continue;}
+      const name =
+        field.enum.name && field.enum.name.length > 0
+          ? field.enum.name
+          : `${entity.name}_${field.name}`;
+      enumByName.set(name.toLowerCase(), { name, values: field.enum.values });
+      fieldEnumName.set(enumRefKey(entity.name, field.name), name);
+    }
+  }
+
+  for (const { name, values } of enumByName.values()) {
+    lines.push(`Enum ${name} {`);
+    lines.push(`  ${values.join(" ")}`);
+    lines.push("}");
+    lines.push("");
+  }
+
   for (const entity of schema.entities) {
     lines.push(`Table ${entity.name} {`);
 
     for (const field of entity.fields) {
       const settings = fieldSettings(field);
-      lines.push(`  ${field.name} ${TYPE_DBML_MAP[field.dataType] ?? "varchar"}${settings}`);
+      const enumName = fieldEnumName.get(enumRefKey(entity.name, field.name));
+      const type = enumName ?? TYPE_DBML_MAP[field.dataType] ?? "varchar";
+      lines.push(`  ${field.name} ${type}${settings}`);
     }
 
     lines.push("}");

@@ -1,6 +1,7 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 import * as crypto from "crypto";
 import type { ConnectionConfig, ConnectionTestResult } from "../types/connection-config";
+import { Logger } from "../../services/logging/logger";
 import type { DatabaseSchema, IDatabaseDriver, QueryResult, SchemaColumn, SchemaTable } from "./database-driver";
 
 /**
@@ -58,13 +59,24 @@ export class FirebaseDriver implements IDatabaseDriver {
       // Firestore REST ping – reachable only with a valid access token, so this
       // also validates the service-account JSON.
       const token = await this._getAccessToken(config);
-      await axios.get(
-        `https://firestore.googleapis.com/v1/projects/${this._groupId}/databases/(default)/documents`,
-        { headers: { Authorization: `Bearer ${token}` }, timeout: 8000 }
-      );
+      await this._trace("testConnection", {
+        method: "GET",
+        url: `https://firestore.googleapis.com/v1/projects/${this._groupId}/databases/(default)/documents`,
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 8000,
+      });
       return { success: true, message: "Connected to Firebase successfully" };
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      let message = err instanceof Error ? err.message : String(err);
+      // Turn raw HTTP codes into actionable hints (the full detail is always
+      // in the "DBCHAT" Output Channel).
+      if (/HTTP 404/.test(message)) {
+        message +=
+          " — Hint: check the Project ID, and note Cloud Firestore must be provisioned for the project (a Realtime-Database-only project returns 404 here). Full request/response details are in the DBCHAT output channel.";
+      } else if (/HTTP 40[13]/.test(message)) {
+        message +=
+          " — Hint: check the service account's roles (Datastore User / Firebase Admin) and that the Firestore/RTDB APIs are enabled for the project. Full details are in the DBCHAT output channel.";
+      }
       return { success: false, message };
     }
   }
@@ -74,10 +86,12 @@ export class FirebaseDriver implements IDatabaseDriver {
   /** List Firestore collection ids. */
   async listFirestoreCollections(): Promise<string[]> {
     const token = await this._getAccessToken();
-    const res = await axios.get(
-      `https://firestore.googleapis.com/v1/projects/${this._groupId}/databases/(default)/documents`,
-      { headers: { Authorization: `Bearer ${token}` }, timeout: 15000 }
-    );
+    const res = await this._trace("list-firestore-collections", {
+      method: "GET",
+      url: `https://firestore.googleapis.com/v1/projects/${this._groupId}/databases/(default)/documents`,
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 15000,
+    });
     const documents = res.data?.documents ?? [];
     return documents
       .map((doc: { name: string }) => {
@@ -94,7 +108,12 @@ export class FirebaseDriver implements IDatabaseDriver {
     const config = this._config!;
     if (!this._databaseUrl) { return []; }
     const headers = this._buildAuthHeaders(config);
-    const res = await axios.get(`${this._databaseUrl}/.json?shallow=true`, { headers, timeout: 15000 });
+    const res = await this._trace("list-rtdb-paths", {
+      method: "GET",
+      url: `${this._databaseUrl}/.json?shallow=true`,
+      headers,
+      timeout: 15000,
+    });
     return Object.keys(res.data ?? {}).sort();
   }
 
@@ -112,10 +131,12 @@ export class FirebaseDriver implements IDatabaseDriver {
     const cleanPath = path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean).join("/");
     const urlPath = cleanPath ? `/${cleanPath}` : "";
     // shallow=true returns only the immediate child keys (as "true").
-    const res = await axios.get(
-      `${this._databaseUrl}${urlPath}.json?shallow=true&orderBy="${orderBy}"&limitToFirst=${limit}`,
-      { headers, timeout: 15000 }
-    );
+    const res = await this._trace("rtdb-children", {
+      method: "GET",
+      url: `${this._databaseUrl}${urlPath}.json?shallow=true`,
+      headers,
+      timeout: 15000,
+    });
 
     const data = res.data ?? {};
     return Object.keys(data).map((key) => ({
@@ -137,7 +158,12 @@ export class FirebaseDriver implements IDatabaseDriver {
 
     const cleanPath = path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean).join("/");
     const urlPath = cleanPath ? `/${cleanPath}` : "";
-    const res = await axios.get(`${this._databaseUrl}${urlPath}.json`, { headers, timeout: 15000 });
+    const res = await this._trace("rtdb-node", {
+      method: "GET",
+      url: `${this._databaseUrl}${urlPath}.json`,
+      headers,
+      timeout: 15000,
+    });
     const data = res.data;
     if (data && typeof data === "object") {
       return data as Record<string, unknown>;
@@ -249,7 +275,7 @@ export class FirebaseDriver implements IDatabaseDriver {
       : "GET";
     const path = parts.join(" ").replace(/^\//, "");
     const url = this._databaseUrl + (path ? `/${path}` : "");
-    const res = await axios.request({
+    const res = await this._trace("query", {
       method,
       url,
       headers: this._buildAuthHeaders(config),
@@ -321,4 +347,55 @@ export class FirebaseDriver implements IDatabaseDriver {
     if (token) { headers["Authorization"] = `Bearer ${String(token)}`; }
     return headers;
   }
+
+  // ── Diagnostics: every REST call is traced to the DBCHAT Output Channel ──
+
+  /**
+   * Perform an HTTP request with full tracing to the Output Channel
+   * (method, URL, duration, status, error body) so connection problems like
+   * 404/403 can be diagnosed from View → Output → "DBCHAT".
+   */
+  private async _trace<T = any>(label: string, config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    const log = Logger.getInstance();
+    const method = (config.method ?? "GET").toUpperCase();
+    const url = String(config.url ?? "");
+    log.log(`[Firebase] → ${method} ${url} (${label})`);
+    const startedAt = Date.now();
+    try {
+      const res = await axios.request<T>(config);
+      log.log(`[Firebase] ← ${res.status}${res.statusText ? ` ${res.statusText}` : ""} ${method} ${url} (${Date.now() - startedAt}ms)`);
+      return res;
+    } catch (err) {
+      const detail = describeHttpError(err);
+      log.log(`[Firebase] ✖ ${method} ${url} failed after ${Date.now() - startedAt}ms\n          ${detail}`);
+      throw new Error(detail);
+    }
+  }
+}
+
+/**
+ * Extract a human-readable diagnosis from an axios failure, including the
+ * HTTP status and Google's error body (which states the real cause, e.g.
+ * "Cloud Firestore API has not been used in project …").
+ */
+function describeHttpError(err: unknown): string {
+  if (!axios.isAxiosError(err)) {
+    return err instanceof Error ? err.message : String(err);
+  }
+  const parts: string[] = [err.message];
+  if (err.response) {
+    parts.push(`HTTP ${err.response.status}${err.response.statusText ? ` ${err.response.statusText}` : ""}`);
+    const data = err.response.data;
+    if (data !== undefined && data !== null) {
+      try {
+        const body = typeof data === "string" ? data : JSON.stringify(data);
+        parts.push(`body: ${body.slice(0, 600)}`);
+      } catch {
+        parts.push("body: <unserializable>");
+      }
+    }
+  } else if (err.code) {
+    parts.push(`code: ${err.code}`);
+  }
+  return parts.join(" | ");
 }

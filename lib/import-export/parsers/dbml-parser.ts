@@ -4,7 +4,7 @@ import type {
   CanonicalRelation,
   ParseResult,
 } from "../types";
-import { irId, normalizeDataType } from "../helpers";
+import { irId, normalizeDataType, normalizeEnumDataType, parseEnumValues } from "../helpers";
 
 interface DbmlColumn {
   name: string;
@@ -67,6 +67,19 @@ export function parseDbml(input: string): ParseResult {
     tables.push({ name, fields });
   }
 
+  // Parse `Enum <name> { value1 value2 }` blocks into a name → values map so
+  // columns typed with an enum name keep their allowed values.
+  const enums = new Map<string, string[]>();
+  const enumRegex =
+    /Enum\s+(?:(?:\[[^\]]*\])\s+)?["`']?([A-Za-z_][\w$]*)["`']?\s*\{([^{}]*)\}/g;
+  let enumMatch: RegExpExecArray | null;
+  while ((enumMatch = enumRegex.exec(clean)) !== null) {
+    const values = parseEnumValues(enumMatch[2] ?? "");
+    if (values.length > 0) {
+      enums.set(enumMatch[1].toLowerCase(), values);
+    }
+  }
+
   // Parse Ref relations. DBML Ref syntax:
   //   Ref name { table1.field1 < table2.field2 }
   //   Ref { table1.field1 < table2.field2 }
@@ -88,14 +101,20 @@ export function parseDbml(input: string): ParseResult {
   }
 
   const entities: CanonicalEntity[] = tables.map((t) => {
-    const fields = t.fields.map<CanonicalField>((col) => ({
-      id: irId("field"),
-      name: col.name,
-      dataType: normalizeDataType(col.dataType),
-      isPrimary: /\[.*\bpk\b.*\]/.test(col.settings),
-      isUnique: /\[.*\bunique\b.*\]/.test(col.settings),
-      isNullable: !/\[.*\bnot\s+null\b.*\]/.test(col.settings),
-    }));
+    const fields = t.fields.map<CanonicalField>((col) => {
+      const enumValues = enums.get(col.dataType.toLowerCase());
+      return {
+        id: irId("field"),
+        name: col.name,
+        dataType: enumValues
+          ? normalizeEnumDataType(col.dataType)
+          : normalizeDataType(col.dataType),
+        isPrimary: /\[.*\bpk\b.*\]/.test(col.settings),
+        isUnique: /\[.*\bunique\b.*\]/.test(col.settings),
+        isNullable: !/\[.*\bnot\s+null\b.*\]/.test(col.settings),
+        ...(enumValues ? { enum: { name: col.dataType, values: enumValues } } : {}),
+      };
+    });
     return {
       id: irId("entity"),
       name: t.name,
