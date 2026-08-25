@@ -3,8 +3,9 @@ import { vscode } from "../../../utils/vscode";
 import { WebviewMessageType } from "@shared/webview/webviewmessage";
 import { ExtensionMessageType } from "@shared/extensionmessage/extensionmessage";
 import type { ExtensionMessage } from "@shared/extensionmessage/types";
-import { ProjectConnectionComponentConnection, ProjectConnectionComponentConnectionField, ProjectConnectionComponentMainDiv } from "../../../styles/sidebarcomponentsstyles/projectconnetionscomponentsstyles/projectconnectioncomponentsstyles";
+import {  ProjectConnectionComponentConnectionField, ProjectConnectionComponentMainDiv } from "../../../styles/sidebarcomponentsstyles/projectconnetionscomponentsstyles/projectconnectioncomponentsstyles";
 import { VsButton } from "../../../styles/reusablecomponentsstyles/button-component-styles";
+import ConnectionComponent from "../connectionscomponents/connectioncomponent";
 
 interface Group {
   id: string;
@@ -193,89 +194,26 @@ const ProjectsComponent = () => {
     });
   };
 
+  
+
+  /** Open a nested database: connect first when needed, then show the DB explorer. */
+  const openSubDatabase = (conn: SavedConnection) => {
+    const needsConnect = conn.id !== activeConnectionId;
+    if (needsConnect) {
+      connect(conn);
+    }
+    // Give a cold connection a moment to establish before opening the
+    // explorer, which immediately requests its tree.
+    setTimeout(
+      () => vscode._postMessage({ messageType: WebviewMessageType.DB_OPEN_DB_VIEW }),
+      needsConnect ? 1500 : 0
+    );
+  };
+
   const renderConnectionRow = (c: SavedConnection) => {
     const isActive = c.id === activeConnectionId;
     return (
-      <ProjectConnectionComponentConnection key={c.id} className="connections-header" $connected={isActive}>
-        <div>
-
-          <div>
-            <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {c.name} <span style={{ opacity: 0.6 }}>({c.databaseId})</span>
-            </span>
-
-
-          </div>
-          <div className="flex flex-items">
-            {isActive ? (
-              <div className="connection-button">
-                <VsButton className=" header-button" title="Disconnect" onClick={() => disconnect()}>
-                  <i className="codicon codicon-debug-disconnect" />
-                </VsButton>
-              </div>
-
-            ) : (
-              <div className="connection-button">
-                <VsButton className=" header-button" title="Connect" onClick={() => connect(c)}>
-                  <i className="codicon codicon-plug" />
-                </VsButton>
-              </div>
-
-            )}
-            <div className="connection-button">
-              <VsButton className=" header-button" title="Copy connection" onClick={() => copyConnection(c)}>
-                <i className="codicon codicon-copy" />
-              </VsButton>
-
-            </div>
-            <div className="connection-button">
-              <VsButton className=" header-button" title="Delete connection" onClick={() => deleteConnection(c)}>
-                <i className="codicon codicon-trash" />
-              </VsButton>
-
-            </div>
-            <div
-              className="connected-icon"
-              title={isActive ? "Connected" : "Disconnected"}
-
-
-            />
-
-
-
-
-          </div>
-
-
-        </div>
-
-        {/* Nested databases (e.g. Firestore / Realtime Database under Firebase). */}
-        {(CONNECTION_SUB_DATABASES[c.databaseId] ?? []).length > 0 && (
-          <div className="sub-databases">
-            {(CONNECTION_SUB_DATABASES[c.databaseId] ?? []).map((sub) => (
-              <div
-                key={sub.id}
-                className="sub-database-row"
-                title={`Open ${sub.label}`}
-                onClick={() => openSubDatabase(c)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "3px 0 3px 18px",
-                  fontSize: 12,
-                  opacity: 0.85,
-                  cursor: "pointer",
-                }}
-              >
-                <i className={`codicon codicon-${sub.icon}`} style={{ fontSize: 12 }} />
-                <span>{sub.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-      </ProjectConnectionComponentConnection>
+      <ConnectionComponent isActive={isActive} onConnect={connect} connection={c} onDisConnect={disconnect}  onCopyConnection={copyConnection} onDeleteConnection={deleteConnection} onOpenSubDatabase={openSubDatabase} />
     );
   };
 

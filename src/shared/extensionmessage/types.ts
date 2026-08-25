@@ -3,7 +3,7 @@ import type { ConnectionConfig, ConnectionField, ConnectionTestResult,  SavedCon
 import type { QueryResult } from '../../database/drivers/database-driver';
 import { ExtensionMessageType } from './extensionmessage';
 import type { ArrangedDesign } from '../../../lib/utils/design-arrangement';
-import { Group } from '@dbchart/schema';
+import type { Group } from '@dbchart/schema';
 
 /** Payload delivered with a {@link ExtensionMessageType.FILE_OPENED} message. */
 export interface FileOpenedPayload {

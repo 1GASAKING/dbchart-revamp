@@ -1,6 +1,6 @@
 import { CATEGORY_ORDER } from "./db-connection-types";
 import type { DatabaseDefinition, SavedConnection } from "./db-connection-types";
-import { getDbIcon } from "./db-connection-icons";
+import DbIcon from "./db-icon";
 
 const SEARCH_STYLES: React.CSSProperties = {
   width: "100%",
@@ -137,17 +137,11 @@ export const DbConnectionSelectStep = ({
               onMouseLeave={(e) => Object.assign(e.currentTarget.style, SAVED_ITEM_STYLES)}
             >
               <span style={{ cursor: "pointer", flex: 1 }} onClick={() => onConnectSaved(conn.id)}>
-                {(() => {
-                  const savedConnIcon = getDbIcon(conn.databaseId);
-                  return savedConnIcon ? (
-                    <span
-                      style={{ width: 14, height: 14, display: "inline-flex", marginRight: 6, verticalAlign: "middle" }}
-                      dangerouslySetInnerHTML={{ __html: savedConnIcon }}
-                    />
-                  ) : (
-                    <i className="codicon codicon-database" style={{ marginRight: "6px" }} />
-                  );
-                })()}
+                <DbIcon
+                  databaseId={conn.databaseId}
+                  size={14}
+                  style={{ marginRight: 6, verticalAlign: "middle" }}
+                />
                 {conn.name}
               </span>
               <span style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }}>
@@ -178,23 +172,13 @@ export const DbConnectionSelectStep = ({
         <div key={category} style={CATEGORY_STYLES}>
           <div style={CATEGORY_HEADER_STYLES}>{category}</div>
           <div style={DB_GRID_STYLES}>
-            {dbs.map((db) => {
-              const dbIcon = getDbIcon(db.id);
-              return (
-                <button key={db.id} style={DB_ITEM_STYLES} onClick={() => onSelectDb(db)}>
-                  {dbIcon ? (
-                    <span
-                      style={{ width: 14, height: 14, display: "inline-flex", flexShrink: 0 }}
-                      dangerouslySetInnerHTML={{ __html: dbIcon }}
-                    />
-                  ) : (
-                    <i className="codicon codicon-database" />
-                  )}
-                  <span>{db.name}</span>
-                  {db.preview && <span style={PREVIEW_BADGE}>Preview</span>}
-                </button>
-              );
-            })}
+            {dbs.map((db) => (
+              <button key={db.id} style={DB_ITEM_STYLES} onClick={() => onSelectDb(db)}>
+                <DbIcon databaseId={db.id} size={14} />
+                <span>{db.name}</span>
+                {db.preview && <span style={PREVIEW_BADGE}>Preview</span>}
+              </button>
+            ))}
           </div>
         </div>
       ))}

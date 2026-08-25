@@ -133,34 +133,7 @@ const ProjectConnectionComponentConnectionField = styled.div`
     }
 `;
 
-interface ProjectConnectionComponentConnectionProp {
-  $connected: boolean;
-}
-const ProjectConnectionComponentConnection = styled.div<ProjectConnectionComponentConnectionProp>`
-  width: 100%;
-  > div {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    justify-content: space-between;
-    width: 100%;
-  }
-  .connected-icon {
-    width:  5px;
-    height: 5px;
-    border-radius: 100%;
-
-    background: ${(p) => (p.$connected ? " #89d185" : "#ef5757")};
-  }
-
-  .flex-items {
-    align-items: center;
-    gap: 1px;
-  }
-`;
 
 export {
   ProjectConnectionComponentMainDiv,
-  ProjectConnectionComponentConnectionField,
-  ProjectConnectionComponentConnection,
-};
+  ProjectConnectionComponentConnectionField,};

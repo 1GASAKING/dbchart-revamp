@@ -4,7 +4,7 @@ import type { ConnectionConfig, SavedConnection } from "./types/connection-confi
 import type { IDatabaseDriver } from "./drivers/database-driver";
 import { getDatabaseDefinition } from "./registry";
 import { normalizeConnectionError } from "./errors";
-import { Group } from "@dbchart/schema";
+import type { Group } from "@dbchart/schema";
 
 const STORAGE_KEY = "dbchat.savedConnections";
 const WORKSPACE_KEY = "dbchat.workspaceConnections";

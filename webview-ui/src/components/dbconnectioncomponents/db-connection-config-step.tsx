@@ -1,4 +1,4 @@
-import { getDbIcon } from "./db-connection-icons";
+import DbIcon from "./db-icon";
 import type { ConnectionFieldDef, DatabaseDefinition, Group } from "./db-connection-types";
 import { VsButton } from "../../styles/reusablecomponentsstyles/button-component-styles";
 
@@ -113,14 +113,12 @@ export const DbConnectionConfigStep = ({
   onSave,
   onConnect,
 }: Props) => {
-  const dbIcon = getDbIcon(selectedDb.id);
 
   return (
     <>
       <button onClick={onBack} style={BACK_BUTTON_STYLES}>
         <i className="codicon codicon-arrow-left" /> Back
       </button>
-      {groupedFields? "Dd":"hdhshdhd"}
 
       <div style={FORM_STYLES}>
         <div
@@ -133,11 +131,7 @@ export const DbConnectionConfigStep = ({
             gap: "6px",
           }}
         >
-          {dbIcon ? (
-            <span style={{ width: 16, height: 16, display: "inline-flex", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: dbIcon }} />
-          ) : (
-            <i className="codicon codicon-database" />
-          )}
+          <DbIcon databaseId={selectedDb.id} size={16} />
           {selectedDb.name}
           {selectedDb.preview && <span style={PREVIEW_BADGE}>Preview</span>}
         </div>

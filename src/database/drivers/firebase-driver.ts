@@ -123,7 +123,7 @@ export class FirebaseDriver implements IDatabaseDriver {
    * NEVER fetches payload data — only key names. This avoids downloading
    * megabytes of nested data when exploring large nodes like /users.
    */
-  async getRealtimeChildren(path: string, limit = 50, orderBy = "$key"): Promise<{ key: string; hasChildren: boolean }[]> {
+  async getRealtimeChildren(path: string, _limit = 50, _orderBy = "$key"): Promise<{ key: string; hasChildren: boolean }[]> {
     const config = this._config!;
     if (!this._databaseUrl) { return []; }
     const headers = this._buildAuthHeaders(config);

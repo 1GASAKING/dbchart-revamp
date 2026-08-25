@@ -11,7 +11,6 @@ export class Logger {
   private static isVerbose = process.env.IS_DEV === "true";
 
   private constructor() {}
-  private static subscribers: Set<(msg: string) => void> = new Set();
 
   public static getInstance(): Logger {
     if (!Logger.instance) {
