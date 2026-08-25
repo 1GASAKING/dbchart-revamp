@@ -1094,6 +1094,8 @@ export const EXTENDED_DATABASE_DEFINITIONS: DatabaseDefinition[] = [
       { key: "groupId", label: "Project ID", type: ConnectionFieldType.TEXT, required: true, group: "Connection" },
       { key: "serviceAccountJson", label: "Service Account JSON", type: ConnectionFieldType.JSON, group: "Authentication", helpText: "Paste the Firebase service account key JSON" },
       { key: "databaseUrl", label: "Database URL", type: ConnectionFieldType.URL, placeholder: "https://your-app.firebaseio.com", group: "Connection" },
+      { key: "enableFirestore", label: "Enable Cloud Firestore", type: ConnectionFieldType.CHECKBOX, defaultValue: true, group: "Connection", helpText: "Uncheck if this project does not use Cloud Firestore" },
+      { key: "enableRealtimeDb", label: "Enable Realtime Database", type: ConnectionFieldType.CHECKBOX, defaultValue: true, group: "Connection", helpText: "Uncheck if this project does not use Realtime Database" },
       ...commonAdvanced,
     ],
   },

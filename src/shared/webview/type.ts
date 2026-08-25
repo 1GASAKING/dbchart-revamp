@@ -108,6 +108,13 @@ export interface GetRealtimeChildrenPayload {
   orderBy?: string;
 }
 
+/** Payload for {@link WebviewMessageType.DB_GET_RTDB_TABLE_SHAPE}. */
+export interface GetRtdbTableShapePayload {
+  path: string;
+  /** Max records to sample while inferring the shape. Defaults host-side. */
+  limit?: number;
+}
+
 export interface AddUserPathPayload {
   path: string;
   label?: string;
@@ -134,6 +141,7 @@ export type WebviewMessage =
   | { messageType: typeof WebviewMessageType.DB_GET_TREE }
   | { messageType: typeof WebviewMessageType.DB_LOAD_ENTITY; payload: LoadEntityPayload }
   | { messageType: typeof WebviewMessageType.DB_GET_RTDB_CHILDREN; payload: GetRealtimeChildrenPayload }
+  | { messageType: typeof WebviewMessageType.DB_GET_RTDB_TABLE_SHAPE; payload: GetRtdbTableShapePayload }
   | { messageType: typeof WebviewMessageType.DB_GET_USER_PATHS }
   | { messageType: typeof WebviewMessageType.DB_ADD_USER_PATH; payload: AddUserPathPayload }
   | { messageType: typeof WebviewMessageType.DB_REMOVE_USER_PATH; payload: RemoveUserPathPayload }

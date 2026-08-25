@@ -124,6 +124,12 @@ export interface DBDatabaseTreeItem {
 
 export interface DBDatabaseTreePayload {
   sections: DBDatabaseTreeSection[];
+  /**
+   * Non-fatal per-section failures (e.g. Cloud Firestore unavailable while
+   * Realtime Database works). Sections that failed are included empty so
+   * consumers can still render whatever succeeded.
+   */
+  warnings?: string[];
 }
 
 /** Pre-arranged design (nodes + edges) rendered directly on the canvas. */
@@ -135,6 +141,34 @@ export interface EditorLoadArrangedDesignPayload {
 export interface DBRealtimeChildrenPayload {
   path: string;
   children: { key: string; hasChildren: boolean }[];
+}
+
+/** A single column inferred from sampled Realtime Database JSON. */
+export interface RealtimeTableColumn {
+  name: string;
+  /** Inferred primitive type, or "object"/"array" for nested children. */
+  type: string;
+  /** Whether the column holds nested objects/arrays (see {@link children}). */
+  nested: boolean;
+  /** Sub-columns inferred from the nested values (when {@link nested}). */
+  children?: RealtimeTableColumn[];
+}
+
+/** Table-like view derived from sampling an RTDB path's raw JSON. */
+export interface RealtimeTableShape {
+  /** The RTDB path the shape was inferred from. */
+  path: string;
+  /** True when the node looks like a list of records (ids/indices). */
+  isCollection: boolean;
+  /** How many records were sampled while inferring the shape. */
+  sampledRecords: number;
+  /** Inferred top-level columns (sorted alphabetically). */
+  columns: RealtimeTableColumn[];
+}
+
+export interface DBRtdbTableShapePayload {
+  path: string;
+  shape: RealtimeTableShape;
 }
 
 /** User-pinned paths for the active connection. */
@@ -192,6 +226,7 @@ export type ExtensionMessage =
   | { type: typeof ExtensionMessageType.DB_TREE; payload: DBDatabaseTreePayload }
   | { type: typeof ExtensionMessageType.EDITOR_LOAD_ARRANGED_DESIGN; payload: EditorLoadArrangedDesignPayload }
   | { type: typeof ExtensionMessageType.DB_RTDB_CHILDREN; payload: DBRealtimeChildrenPayload }
+  | { type: typeof ExtensionMessageType.DB_RTDB_TABLE_SHAPE; payload: DBRtdbTableShapePayload }
   | { type: typeof ExtensionMessageType.DB_USER_PATHS_LISTED; payload: DBUserPathsListedPayload }
   | { type: typeof ExtensionMessageType.DB_USER_PATH_ADDED; payload: DBUserPathAddedPayload }
   | { type: typeof ExtensionMessageType.DB_USER_PATH_REMOVED; payload: DBUserPathRemovedPayload };

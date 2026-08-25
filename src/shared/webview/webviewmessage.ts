@@ -42,6 +42,7 @@ export const WebviewMessageType = {
   DB_GET_TREE: "DB_GET_TREE",                       // get the database tree
   DB_LOAD_ENTITY: "DB_LOAD_ENTITY",                 // { entity, scope } → arranged design to canvas
   DB_GET_RTDB_CHILDREN: "DB_GET_RTDB_CHILDREN",     // { path, limit, orderBy } → shallow children list
+  DB_GET_RTDB_TABLE_SHAPE: "DB_GET_RTDB_TABLE_SHAPE", // { path, limit } → JSON converted to table/columns/nested children
   DB_GET_USER_PATHS: "DB_GET_USER_PATHS",           // { } → pinned paths for active connection
   DB_ADD_USER_PATH: "DB_ADD_USER_PATH",             // { path, label } → pin a custom path
   DB_REMOVE_USER_PATH: "DB_REMOVE_USER_PATH",       // { id } → unpin a saved path

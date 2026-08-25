@@ -34,6 +34,7 @@ export const ExtensionMessageType = {
   DB_USER_PATHS_LISTED: 124,
   DB_USER_PATH_ADDED: 125,
   DB_USER_PATH_REMOVED: 126,
+  DB_RTDB_TABLE_SHAPE: 127,
 } as const;
 
 export type ExtensionMessageType = (typeof ExtensionMessageType)[keyof typeof ExtensionMessageType];

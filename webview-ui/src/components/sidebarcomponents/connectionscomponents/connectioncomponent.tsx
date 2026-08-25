@@ -1,3 +1,5 @@
+import { useState, type ReactNode } from "react";
+import { ToastProvider } from "../../../contexts/toastcontext/toast-context-provider";
 import { VsButton } from "../../../styles/reusablecomponentsstyles/button-component-styles";
 import {
 
@@ -6,7 +8,7 @@ import {
   ConnectionComponentSubSectionDiv,
 } from "../../../styles/sidebarcomponentsstyles/connectioncomponentstyles/connectioncomponentstyle";
 import DbIcon from "../../dbconnectioncomponents/db-icon";
-
+import ConnectionTableComponent from "./connectiontablecomponent";
 
 interface SavedConnection {
   id: string;
@@ -23,21 +25,71 @@ interface connectionProp {
   onConnect: (connection: SavedConnection) => void,
   onCopyConnection: (connection: SavedConnection) => void,
   onDeleteConnection: (connection: SavedConnection) => void,
-  onOpenSubDatabase: (connection: SavedConnection) => void,
+  /** Kept for compatibility; sub-databases now expand inline instead. */
+  onOpenSubDatabase?: (connection: SavedConnection) => void,
   onDisConnect: () => void,
   connection: SavedConnection,
   isActive: boolean,
 
 }
-const ConnectionComponent = ({ onConnect, connection, onDisConnect, isActive, onCopyConnection, onDeleteConnection, onOpenSubDatabase }: connectionProp) => {
+interface SubDatabaseDropdownProps {
+    label: string;
+    children: (setLoading: (loading: boolean) => void) => ReactNode;
+}
+
+/**
+ * Collapsible sub-database row. The tables body only mounts while expanded,
+ * so expanding always triggers a fresh load, and re-expanding refreshes.
+ */
+const SubDatabaseDropdown = ({ label, children }: SubDatabaseDropdownProps) => {
+    const [expanded, setExpanded] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    // Spin the INSTANT the row is opened — the freshly-mounted tables body
+    // keeps it spinning until its data arrives (or an error shows). Collapse
+    // always clears it so a mid-load collapse can never freeze the spinner.
+    const toggle = () => {
+        const next = !expanded;
+        setExpanded(next);
+        setLoading(next);
+    };
+
+    return (
+        <div className="sub-database-dropdown">
+            <div className="flex sub-header" onClick={toggle}>
+                <div>
+                    <i className="codicon codicon-database" />
+                </div>
+                <div>
+                    <span>{label}</span>
+                    <span className="database-field-info"> tables </span>
+                </div>
+                <div className="sub-toggle">
+                    <i
+                        className={
+                            loading
+                                ? "codicon codicon-loading codicon-spin"
+                                : `codicon codicon-chevron-${expanded ? "down" : "right"}`
+                        }
+                    />
+                </div>
+            </div>
+            {expanded && (
+                <div className="sub-body">{children(setLoading)}</div>
+            )}
+        </div>
+    );
+};
+
+const ConnectionComponent = ({ onConnect, connection, onDisConnect, isActive, onCopyConnection, onDeleteConnection }: connectionProp) => {
 
   return (
     <ConnectionComponentMainDiv>
       <div>
         <ConnectionComponentHeaderDiv $connected={isActive}>
           <div>
-            <div>
-              <div>
+            <div className="flex  left-item">
+              <div className="flex">
                 <DbIcon databaseId={connection.databaseId} size={16} />
               </div>
               <div>
@@ -49,13 +101,6 @@ const ConnectionComponent = ({ onConnect, connection, onDisConnect, isActive, on
                 </span>
 
               </div>
-
-              <div>
-
-              </div>
-
-
-
             </div>
             <div className="flex ">
 
@@ -106,28 +151,22 @@ const ConnectionComponent = ({ onConnect, connection, onDisConnect, isActive, on
 
 
         {(CONNECTION_SUB_DATABASES[connection.databaseId] ?? []).length > 0 && (
+          <ToastProvider>
           <ConnectionComponentSubSectionDiv className="sub-databases">
             {(CONNECTION_SUB_DATABASES[connection.databaseId] ?? []).map((sub) => (
-              <div
-                key={sub.id}
-                className="sub-database-row"
-                title={`Open ${sub.label}`}
-                onClick={() => onOpenSubDatabase(connection)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "3px 0 3px 18px",
-                  fontSize: 12,
-                  opacity: 0.85,
-                  cursor: "pointer",
-                }}
-              >
-                <i className={`codicon codicon-database`} style={{ fontSize: 12 }} />
-                <span>{sub.label}</span>
-              </div>
+              <SubDatabaseDropdown key={sub.id} label={sub.label}>
+                
+                {(setLoading) => (
+                  <ConnectionTableComponent
+                    sectionId={sub.id === "realtime-database" ? "rtdb" : sub.id}
+                    active={isActive}
+                    onLoadingChange={setLoading}
+                  />
+                )}
+              </SubDatabaseDropdown>
             ))}
           </ConnectionComponentSubSectionDiv>
+          </ToastProvider>
         )}
 
 

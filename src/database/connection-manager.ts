@@ -255,6 +255,36 @@ export class ConnectionManager {
     this._context.workspaceState.update(USER_PATHS_KEY, this._userPaths);
   }
 
+  // ── Schema definition cache ─────────────────────────────────────────
+  // A connection's purpose is to extract *definitions* (tables → columns →
+  // datatypes). We persist those per connection so the UI can render
+  // instantly (even offline / mid-refresh) while a background refresh runs.
+  // Row data is NEVER cached here — viewing rows happens in the DB view.
+
+  /** Cached tree of tables/sections for a connection (definitions only). */
+  public getSchemaCache<T>(connectionId: string): T | undefined {
+    if (!this._context) { return undefined; }
+    return this._context.globalState.get<T>(`dbchat.schemaCache.${connectionId}`);
+  }
+
+  public saveSchemaCache(connectionId: string, payload: unknown): void {
+    this._context?.globalState.update(`dbchat.schemaCache.${connectionId}`, payload);
+  }
+
+  /** Cached per-table definition (e.g. an inferred RTDB table shape). */
+  public getTableShapeCache<T>(connectionId: string, path: string): T | undefined {
+    if (!this._context) { return undefined; }
+    return this._context.globalState.get<Record<string, T>>(`dbchat.shapeCache.${connectionId}`)?.[path];
+  }
+
+  public saveTableShapeCache(connectionId: string, path: string, shape: unknown): void {
+    if (!this._context) { return; }
+    const key = `dbchat.shapeCache.${connectionId}`;
+    const map = this._context.globalState.get<Record<string, unknown>>(key) ?? {};
+    map[path] = shape;
+    this._context.globalState.update(key, map);
+  }
+
   public async getConnectionConfig(connectionId: string): Promise<ConnectionConfig | null> {
     if (!this._context) {return null;}
 

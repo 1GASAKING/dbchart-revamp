@@ -1,25 +1,20 @@
-import type { ComponentType, SVGProps } from "react";
-
 /**
- * SVGs under assets/icons/ are compiled into React components by
- * vite-plugin-svgr at build time (`*.svg?react`, see vite.config.ts), so they
- * are rendered as real inline SVG elements - no raw HTML strings involved.
+ * Client icons are imported statically as SVG asset URLs (Vite inlines small
+ * SVGs as data URIs at build time) and mapped by database id, e.g.:
  *
- * The file name (without extension) must match the database id,
- * e.g. firebase.svg => "firebase".
- * Add a new client icon to assets/icons/ and it is picked up automatically -
- * no code changes needed.
+ *   import firebase from "../../../../assets/icons/firebase.svg";
+ *   export const dbIconMap = { firebase };
+ *
+ * Add a new icon to assets/icons/, import it here and register it in
+ * {@link dbIconMap} under the database id it belongs to.
  */
-export type DbIconComponent = ComponentType<SVGProps<SVGSVGElement>>;
+import firebase from "../../../../assets/icons/firebase.svg";
 
-const dbIconModules = import.meta.glob("../../../../assets/icons/*.svg?react", {
-  eager: true,
-  import: "ReactComponent",
-}) as Record<string, DbIconComponent>;
-
-export const getDbIconComponent = (dbId: string): DbIconComponent | null => {
-  const moduleKey = Object.keys(dbIconModules).find((key) =>
-    key.endsWith(`/${dbId}.svg`)
-  );
-  return moduleKey ? (dbIconModules[moduleKey] ?? null) : null;
+/** Maps a database id to its client icon source. */
+export const dbIconMap: Record<string, string> = {
+  firebase,
 };
+
+/** Returns the icon source for a database id, or null when none is registered. */
+export const getDbIconSrc = (dbId: string): string | null =>
+  dbIconMap[dbId] ?? null;

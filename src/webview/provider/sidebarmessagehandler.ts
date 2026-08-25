@@ -13,7 +13,10 @@ import { databaseSchemaToDesign } from "../../../lib/import-export";
 import { arrangeSchemaDesign } from "../../../lib/utils/design-arrangement";
 import { FirebaseDriver } from "../../database/drivers/firebase-driver";
 import type { DatabaseSchema } from "@dbchart/schema";
-import type { DBDatabaseTreeItem, DBDatabaseTreeSection } from "../../shared/extensionmessage/types";
+import type { DBDatabaseTreeItem, DBDatabaseTreeSection, RealtimeTableShape } from "../../shared/extensionmessage/types";
+
+/** Workspace key holding the last successfully connected saved-connection id. */
+const LAST_CONNECTION_KEY = "dbchat.lastConnectionId";
 
 export class SidebarMessageHandler implements ImessageHandler {
   constructor(
@@ -59,6 +62,12 @@ export class SidebarMessageHandler implements ImessageHandler {
         }
         break;
 
+      case WebviewMessageType.DB_GET_RTDB_TABLE_SHAPE:
+        if (message.payload) {
+          await this._handleGetRtdbTableShape(message.payload.path, message.payload.limit);
+        }
+        break;
+
       case WebviewMessageType.DB_GET_USER_PATHS:
         await this._handleGetUserPaths();
         break;
@@ -86,6 +95,10 @@ export class SidebarMessageHandler implements ImessageHandler {
           type: ExtensionMessageType.SET_APP_MODE,
           mode: "sidebar",
         });
+        // Lifecycle step: on load, silently reconnect the last session's
+        // saved connection so its cached table/column definitions can be
+        // shown immediately and refreshed from the live database.
+        void this._autoReconnectLastConnection();
         break;
 
       // ==================== DATABASE OPERATIONS ====================
@@ -237,60 +250,114 @@ export class SidebarMessageHandler implements ImessageHandler {
       const driver = manager.getDriver(config.databaseId);
       if (!driver) { throw new Error(`No driver registered for database type: ${config.databaseId}`); }
 
+      // Stale-while-revalidate: serve the locally-cached definitions first so
+      // the UI renders instantly, then refresh live further down — the
+      // webview simply overwrites its state when the newer DB_TREE arrives.
+      // Definitions only; row data is never part of this payload.
+      const treeConnectionId = manager.getActiveConnectionId();
+      const cachedTree = treeConnectionId
+        ? manager.getSchemaCache<{ sections: DBDatabaseTreeSection[] }>(treeConnectionId)
+        : undefined;
+      if (cachedTree?.sections?.length) {
+        this._provider.HandleSendMessageToWebview({
+          type: ExtensionMessageType.DB_TREE,
+          payload: { sections: cachedTree.sections },
+        });
+      }
+
       const sections: DBDatabaseTreeSection[] = [];
+      const warnings: string[] = [];
+      const errorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
+      const backendEnabled = (key: string): boolean => {
+        const raw = (config as unknown as Record<string, unknown>)[key] ?? (config.options as Record<string, unknown> | undefined)?.[key];
+        if (raw === undefined || raw === null || raw === "") { return true; }
+        return raw !== false && raw !== "false";
+      };
 
       if (driver instanceof FirebaseDriver) {
         const fb = driver as FirebaseDriver;
 
-        // Firestore collections
-        const collections = await fb.listFirestoreCollections();
-        sections.push({
-          id: "firestore",
-          label: "Firestore",
-          icon: "database",
-          kind: "collection",
-          items: collections.map((name) => ({ id: name, name, kind: "collection" })),
-        });
+        // Each sub-section is isolated: one failing backend must not stop
+        // the others from loading (e.g. Firestore not provisioned while
+        // Realtime Database works fine). Backends the user disabled are
+        // skipped entirely — no request, no warning.
+        if (backendEnabled("enableFirestore")) {
+        try {
+          // Firestore collections
+          const collections = await fb.listFirestoreCollections();
+          sections.push({
+            id: "firestore",
+            label: "Firestore",
+            icon: "database",
+            kind: "collection",
+            items: collections.map((name) => ({ id: name, name, kind: "collection" })),
+          });
+        } catch (err) {
+          warnings.push(`Cloud Firestore: ${errorMessage(err)}`);
+          sections.push({ id: "firestore", label: "Firestore", icon: "database", kind: "collection", items: [] });
+        }
+        }
 
-        // Realtime Database top-level paths (shallow, lazy children later)
-        const rtdbPaths = await fb.listRealtimePaths();
-        sections.push({
-          id: "rtdb",
-          label: "Realtime Database",
-          icon: "zap",
-          kind: "path",
-          items: rtdbPaths.map((path) => ({ id: `/ ${path}`, name: path, kind: "path", meta: "shallow" })),
-        });
+        if (backendEnabled("enableRealtimeDb")) {
+        try {
+          // Realtime Database top-level paths (shallow, lazy children later)
+          const rtdbPaths = await fb.listRealtimePaths();
+          sections.push({
+            id: "rtdb",
+            label: "Realtime Database",
+            icon: "zap",
+            kind: "path",
+            items: rtdbPaths.map((path) => ({ id: `/ ${path}`, name: path, kind: "path", meta: "shallow" })),
+          });
+        } catch (err) {
+          warnings.push(`Realtime Database: ${errorMessage(err)}`);
+          sections.push({ id: "rtdb", label: "Realtime Database", icon: "zap", kind: "path", items: [] });
+        }
+        }
 
-        // Analytics views
-        const views = await fb.listViews();
-        sections.push({
-          id: "analytics",
-          label: "Views (Analytics)",
-          icon: "graph-line",
-          kind: "analytics",
-          items: views.map((v) => ({ id: v.id, name: v.name, kind: "analytics", meta: v.description })),
-        });
+        try {
+          // Analytics views
+          const views = await fb.listViews();
+          sections.push({
+            id: "analytics",
+            label: "Views (Analytics)",
+            icon: "graph-line",
+            kind: "analytics",
+            items: views.map((v) => ({ id: v.id, name: v.name, kind: "analytics", meta: v.description })),
+          });
+        } catch (err) {
+          warnings.push(`Views (Analytics): ${errorMessage(err)}`);
+          sections.push({ id: "analytics", label: "Views (Analytics)", icon: "graph-line", kind: "analytics", items: [] });
+        }
       } else {
         // Generic drivers — build a single "Tables" section from the schema.
-        const schema: DatabaseSchema = await driver.getSchema();
-        const tables: DBDatabaseTreeItem[] = schema.tables.map((t) => ({
-          id: t.name,
-          name: t.name,
-          kind: t.type === "view" ? "view" : "table",
-        }));
-        sections.push({
-          id: "tables",
-          label: "Tables",
-          icon: "table",
-          kind: "table",
-          items: tables,
-        });
+        try {
+          const schema: DatabaseSchema = await driver.getSchema();
+          const tables: DBDatabaseTreeItem[] = schema.tables.map((t) => ({
+            id: t.name,
+            name: t.name,
+            kind: t.type === "view" ? "view" : "table",
+          }));
+          sections.push({
+            id: "tables",
+            label: "Tables",
+            icon: "table",
+            kind: "table",
+            items: tables,
+          });
+        } catch (err) {
+          warnings.push(`Tables: ${errorMessage(err)}`);
+          sections.push({ id: "tables", label: "Tables", icon: "table", kind: "table", items: [] });
+        }
+      }
+
+      if (treeConnectionId) {
+        manager.saveSchemaCache(treeConnectionId, { sections });
       }
 
       this._provider.HandleSendMessageToWebview({
         type: ExtensionMessageType.DB_TREE,
-        payload: { sections },
+        payload: { sections, ...(warnings.length > 0 ? { warnings } : {}) },
       });
     } catch (err) {
       this._sendError(err);
@@ -349,6 +416,40 @@ export class SidebarMessageHandler implements ImessageHandler {
       this._provider.HandleSendMessageToWebview({
         type: ExtensionMessageType.DB_RTDB_CHILDREN,
         payload: { path, children },
+      });
+    } catch (err) {
+      this._sendError(err);
+    }
+  }
+
+  /** Convert the JSON under an RTDB path into tables/columns/nested children.
+   * Serves the locally-cached shape first (stale-while-revalidate) so expanding
+   * a table always shows its known definition instantly, then refreshes from
+   * the live database and pushes the updated shape. */
+  private async _handleGetRtdbTableShape(path: string, limit = 25) {
+    const manager = ConnectionManager.getInstance();
+    try {
+      const config = await manager.getActiveConnection();
+      if (!config) { throw new Error("No active connection. Connect to a database first."); }
+      const driver = manager.getDriver(config.databaseId);
+      if (!driver || !(driver instanceof FirebaseDriver)) {
+        throw new Error("Realtime table shapes are only available for Firebase connections.");
+      }
+      const connectionId = manager.getActiveConnectionId();
+      const cached = connectionId ? manager.getTableShapeCache<RealtimeTableShape>(connectionId, path) : undefined;
+      if (cached) {
+        this._provider.HandleSendMessageToWebview({
+          type: ExtensionMessageType.DB_RTDB_TABLE_SHAPE,
+          payload: { path, shape: cached },
+        });
+      }
+      const shape = await (driver as FirebaseDriver).getRealtimeTableShape(path, limit);
+      if (connectionId) {
+        manager.saveTableShapeCache(connectionId, path, shape);
+      }
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_RTDB_TABLE_SHAPE,
+        payload: { path, shape },
       });
     } catch (err) {
       this._sendError(err);
@@ -439,11 +540,45 @@ export class SidebarMessageHandler implements ImessageHandler {
     }
   }
 
+  /**
+   * On launch, silently reconnect the last session's saved connection. The
+   * point of connecting is to keep the locally-cached table/column
+   * definitions in sync with the live database — disconnecting remains a
+   * manual choice, and failures only log (the cached definitions still
+   * render from local storage).
+   */
+  private async _autoReconnectLastConnection() {
+    try {
+      const lastId = await this._provider.context.workspaceState.get<string>(LAST_CONNECTION_KEY);
+      if (!lastId) { return; }
+      const manager = ConnectionManager.getInstance();
+      if (await manager.getActiveConnection()) { return; } // already connected
+      const driver = await manager.connect(lastId); // throws if it was deleted
+      this._provider.HandleSendMessageToWebview({
+        type: ExtensionMessageType.DB_CONNECTED,
+        payload: { connected: true, databaseId: driver.databaseId, connectionId: lastId },
+      });
+      // Push the (cached + freshly refreshed) tree right away so the
+      // sidebar's sub-databases are ready without any click.
+      await this._handleGetTree();
+    } catch (err) {
+      Logger.getInstance().log(
+        `[Auto-reconnect] failed: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+
   private async _handleConnect(payload: { connectionId?: string; config?: any }) {
     const manager = ConnectionManager.getInstance();
     try {
       const connectionId = typeof payload.connectionId === "string" ? payload.connectionId : null;
       const driver = await manager.connect(payload.connectionId ?? payload.config);
+      // Remember the last connected saved-connection id for auto-reconnect on
+      // the next launch. Manual disconnect intentionally does NOT clear this:
+      // dropping the live connection is a per-session choice only.
+      if (connectionId) {
+        await this._provider.context.workspaceState.update(LAST_CONNECTION_KEY, connectionId);
+      }
       this._provider.HandleSendMessageToWebview({
         type: ExtensionMessageType.DB_CONNECTED,
         payload: { connected: true, databaseId: driver.databaseId, connectionId: connectionId ?? undefined },

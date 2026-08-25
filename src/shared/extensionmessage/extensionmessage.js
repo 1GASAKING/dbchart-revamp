@@ -1,0 +1,40 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ExtensionMessageType = void 0;
+exports.ExtensionMessageType = {
+    WORKSPACEUPDATED: 0,
+    SET_APP_MODE: 1,
+    FILE_OPENED: 2,
+    FILE_SAVE_RESULT: 3,
+    // Database responses
+    DB_DATABASES_LISTED: 100,
+    DB_CONNECTIONS_LISTED: 101,
+    DB_CONNECTION_SAVED: 102,
+    DB_CONNECTION_TESTED: 103,
+    DB_CONNECTED: 104,
+    DB_DISCONNECTED: 105,
+    DB_QUERY_RESULT: 106,
+    DB_SCHEMA: 107,
+    DB_ERROR: 108,
+    DB_CONNECTION_CONFIG: 109,
+    DB_CONNECTION_DELETED: 110,
+    DB_CONNECTION_UPDATED: 111,
+    DB_GROUPS_LISTED: 112,
+    DB_GROUP_CREATED: 113,
+    DB_GROUP_DELETED: 114,
+    DB_GROUP_UPDATED: 115,
+    DB_GROUP_ASSIGNED: 116,
+    DB_CLOUD_ACCOUNTS_LISTED: 117,
+    DB_CLOUD_ACCOUNT_CREATED: 118,
+    DB_CLOUD_ACCOUNT_DELETED: 119,
+    EDITOR_LOAD_TYPES: 120,
+    // Generic tree / arranged design / analytics / user paths
+    DB_TREE: 121,
+    EDITOR_LOAD_ARRANGED_DESIGN: 122,
+    DB_RTDB_CHILDREN: 123,
+    DB_USER_PATHS_LISTED: 124,
+    DB_USER_PATH_ADDED: 125,
+    DB_USER_PATH_REMOVED: 126,
+    DB_RTDB_TABLE_SHAPE: 127,
+};
+//# sourceMappingURL=extensionmessage.js.map
