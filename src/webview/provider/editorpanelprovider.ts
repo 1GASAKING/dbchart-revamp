@@ -108,7 +108,12 @@ export class EditorPanelProvider {
 
     // Set up message listener using the handler
     this._panel.webview.onDidReceiveMessage((message: WebviewMessage) => {
-      this._messageHandler.handleMessage(message);
+      // Async handler — log rejections instead of dying silently.
+      Promise.resolve(this._messageHandler.handleMessage(message)).catch((err) => {
+        Logger.getInstance().log(
+          `[EditorPanel] handler failed for "${String(message?.messageType)}": ${err instanceof Error ? err.stack ?? err.message : String(err)}`
+        );
+      });
     });
 
     this._panel.onDidDispose(() => {

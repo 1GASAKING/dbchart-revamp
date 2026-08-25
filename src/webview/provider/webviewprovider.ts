@@ -66,9 +66,15 @@ export class WebviewProvider implements vscode.WebviewViewProvider, ISidebarProv
   private _setWebViewMessageListner(
     webview: vscode.Webview,
   ) {
-    webview.onDidReceiveMessage((e) =>
-      this._webviemessagehanler!.handleMessage(e),
-    );
+    webview.onDidReceiveMessage((e) => {
+      // The handler is async — an uncaught rejection here dies silently and
+      // can leave the webview stuck on a blank/broken state. Always log.
+      Promise.resolve(this._webviemessagehanler!.handleMessage(e)).catch((err) => {
+        Logger.getInstance().log(
+          `[Webview] handler failed for "${String(e?.messageType)}": ${err instanceof Error ? err.stack ?? err.message : String(err)}`
+        );
+      });
+    });
   }
 
   private async _pushConnections(): Promise<void> {

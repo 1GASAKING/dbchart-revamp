@@ -82,7 +82,8 @@ function App() {
 
         {appMode === "sidebar" && <SideBarPage />}
         {appMode === "" && <EditorPage />}
-
+<EditorPage />
+dgdgdg
       </div>
 
     </main>
